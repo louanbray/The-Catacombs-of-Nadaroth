@@ -14,7 +14,6 @@
 7) Ecriture de la fonction STATS
 
 */
-bool DEBUG = true;
 /// 1) Type pour les cartes :
 typedef int card;
 // Convention : les cartes sont numC)rotC)es de -N C  N.
@@ -70,10 +69,6 @@ void swap(deck a, int i, int j) {
     card tmp = a[i];
     a[i] = a[j];
     a[j] = tmp;
-}
-
-card abs(int x) {
-    return (x < 0) ? -x : x;
 }
 
 void insert(hands jeu, int p, card c) {
@@ -175,44 +170,57 @@ void destroy_pairs(hands jeu, int p) {
 
 // TURN EXECUTION
 
-int clear_losers(int *ids, hands jeu, int player, int player_in_game, stat data, clock_t begin) {
-    int id_player = ids[player];
-    if (jeu[id_player].nb_cards == 0) {
-        data.pos[id_player][data.nb_player - player_in_game] += 1;
-        data.timestamp[data.nb_player - player_in_game] += clock() - begin;
-        remove_player(ids, player, player_in_game);
-        player_in_game--;
+void clear_losers(int *ids, hands jeu, int p, int *pig, stat data, clock_t begin) {
+    int id = ids[p];
+
+    if (jeu[id].nb_cards == 0) {
+        data.pos[id][data.nb_player - *pig] += 1;
+        data.timestamp[data.nb_player - *pig] += clock() - begin;
+
+        remove_player(ids, p, *pig);
+        *pig -= 1;
     }
-    for (int i = 0; i < player_in_game; i++) {
+    for (int i = 0; i < *pig; i++) {
         if (jeu[ids[i]].nb_cards == 0) {
-            data.pos[ids[i]][data.nb_player - player_in_game] += 1;
-            data.timestamp[data.nb_player - player_in_game] += clock() - begin;
-            remove_player(ids, i, player_in_game);
-            player_in_game--;
+            data.pos[ids[i]][data.nb_player - *pig] += 1;
+            data.timestamp[data.nb_player - *pig] += clock() - begin;
+
+            remove_player(ids, i, *pig);
+            *pig -= 1;
         }
     }
-    return player_in_game;
 }
 
-void play(hands jeu, int player, int *nb, int *ids, stat data, clock_t begin) {
-    if (jeu[ids[player]].nb_cards != 0 && *nb != 1) {
-        int joueur = (player == 0) ? ids[*nb - 1] : ids[player - 1];
-        int size = jeu[joueur].nb_cards;
-        if (player == 0 && size == 0) {
-            *nb = clear_losers(ids, jeu, player, *nb, data, begin);
-            joueur = (player == 0) ? ids[*nb - 1] : ids[player - 1];
-            size = jeu[joueur].nb_cards;
-        }
-        int index = rand() % size;
-        card carte = jeu[joueur].cards[index];
+void play(hands jeu, int p, int *nb, int *ids, stat data, clock_t begin) {
+    if (jeu[ids[p]].nb_cards != 0 && *nb != 1) {
+        int j = (p == 0) ? ids[*nb - 1] : ids[p - 1];
+        int size = jeu[j].nb_cards;
 
-        insert(jeu, ids[player], carte);
-        remove_card(jeu, joueur, index);
-        destroy_pair(jeu, ids[player]);
+        if (p == 0 && size == 0) {
+            clear_losers(ids, jeu, p, nb, data, begin);
+
+            j = (p == 0) ? ids[*nb - 1] : ids[p - 1];
+            size = jeu[j].nb_cards;
+        }
+
+        int index = rand() % size;
+        card carte = jeu[j].cards[index];
+
+        insert(jeu, ids[p], carte);
+        remove_card(jeu, j, index);
+        destroy_pair(jeu, ids[p]);
     }
 }
 
 // GAME EXECUTION
+
+int *init_ids(int n) {
+    int *ids = malloc(sizeof(int) * n);
+    for (int i = 0; i < n; i++) {
+        ids[i] = i;
+    }
+    return ids;
+}
 
 void free_game(hands jeu, int nb_players) {
     for (int i = 0; i < nb_players; i++) {
@@ -221,23 +229,22 @@ void free_game(hands jeu, int nb_players) {
     free(jeu);
 }
 
-void game_execution(deck cartes, int N, int nb_player, stat data, clock_t begin) {
-    int *ids = malloc(sizeof(int) * nb_player);
-    for (int i = 0; i < nb_player; i++) {
-        ids[i] = i;
-    }
+void game_execution(deck cartes, int N, stat data, clock_t begin) {
+    int nb_player = data.nb_player;
+    int *ids = init_ids(nb_player);
 
     shuffle(N, cartes);
     hands jeu = distribue(N, cartes, nb_player);
     destroy_pairs(jeu, nb_player);
-    int player_in_game = nb_player;
 
-    while (player_in_game > 1) {
-        for (int player = 0; player < player_in_game; player++) {
-            play(jeu, player, &player_in_game, ids, data, begin);
-            player_in_game = clear_losers(ids, jeu, player, player_in_game, data, begin);
+    int pig = nb_player;
+    while (pig > 1) {
+        for (int p = 0; p < pig; p++) {
+            play(jeu, p, &pig, ids, data, begin);
+            clear_losers(ids, jeu, p, &pig, data, begin);
         }
     }
+
     data.loser_id = ids[0];
     data.pos[ids[0]][nb_player - 1] += 1;
     data.timestamp[nb_player - 1] += clock() - begin;
@@ -251,7 +258,7 @@ void execute_all(int N, stat data) {
 
     for (int game = 0; game < data.nb_game; game++) {
         clock_t begin = clock();
-        game_execution(cartes, 2 * N + 1, data.nb_player, data, begin);
+        game_execution(cartes, 2 * N + 1, data, begin);
     }
     free(cartes);
 }
@@ -278,15 +285,18 @@ clock_t *init_time_stamp(int p) {
     return ts;
 }
 
+double e_t(clock_t s, clock_t e, int n) {
+    return (double)(e - s) / (CLOCKS_PER_SEC * n);
+}
+
 void stats(int N, int nb_game, int nb_player) {
     clock_t begin = clock();
     stat data = {init_player_data(nb_player), nb_game, nb_player, 0, init_time_stamp(nb_player)};
 
     execute_all(N, data);
     clock_t end = clock();
-    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 
-    printf("Temps moyen de jeu : %f", time_spent / nb_game);
+    printf("Temps moyen de jeu : %f", e_t(begin, end, nb_game));
 
     printf("\nSortie du jeu : ");
     for (int i = 0; i < nb_player; i++) {
@@ -296,9 +306,7 @@ void stats(int N, int nb_game, int nb_player) {
         }
     }
     for (int j = 0; j < nb_player; j++) {
-        printf("\nFin de %deme sortie: ", j + 1);
-        double ts = (double)(data.timestamp[j]) / CLOCKS_PER_SEC;
-        printf(" %f,", ts / nb_game);
+        printf("\nFin de %deme sortie: %f ", j + 1, e_t(0, data.timestamp[j], nb_game));
     }
 }
 
