@@ -27,7 +27,6 @@ typedef card *deck;
 struct hand_s {
     int nb_cards;
     card *cards;
-    int id;
 };
 typedef struct hand_s hand;
 // Le joueur a nb_cards cartes en main, stocké à l'adresse 'cards'.
@@ -93,7 +92,6 @@ hands raw_hands(int N, int p) {
     for (int i = 0; i < p; i++) {
         jeu[i].cards = malloc(sizeof(card) * (N / 2 + 1));
         jeu[i].nb_cards = 0;
-        jeu[i].id = i;
     }
     return jeu;
 }
@@ -145,23 +143,17 @@ void remove_pair(hands jeu, int p, int i, int j) {
 }
 
 void destroy_pair(hands j, int p) {
-    int ct = 0;
-    while (true) {
-        ct = 0;
-        for (int i = 0; i < j[p].nb_cards; i++) {
+    int c = 1;
+    while (c) {
+        c = 0;
+        for (int i = 0; (i < j[p].nb_cards) && (c == 0); i++) {
             for (int k = 0; k < j[p].nb_cards; k++) {
-                if (k != i && abs(j[p].cards[i]) == abs(j[p].cards[k]) && j[p].cards[i] != 0) {
+                if (k != i && j[p].cards[i] + j[p].cards[k] == 0 && j[p].cards[i] != 0) {
                     remove_pair(j, p, i, k);
-                    ct++;
+                    c++;
                     break;
                 }
             }
-            if (ct != 0) {
-                break;
-            }
-        }
-        if (ct == 0) {
-            break;
         }
     }
 }
@@ -187,7 +179,7 @@ void play(hands jeu, int player, int nb, int *ids) {
     }
 }
 
-//
+// GAME EXECUTION
 
 void free_game(hands jeu, int nb_players) {
     for (int i = 0; i < nb_players; i++) {
@@ -196,56 +188,70 @@ void free_game(hands jeu, int nb_players) {
     free(jeu);
 }
 
+int clear_losers(int *ids, hands jeu, int player, int player_in_game) {
+    if (jeu[ids[player]].nb_cards == 0) {
+        remove_player(ids, player, player_in_game);
+        player_in_game -= 1;
+    }
+    for (int i = 0; i < player_in_game; i++) {
+        if (jeu[ids[i]].nb_cards == 0) {
+            remove_player(ids, i, player_in_game);
+            player_in_game -= 1;
+        }
+    }
+    return player_in_game;
+}
+
+void game_execution(deck cartes, int N, int nb_player, int *ratio) {
+    int *ids = malloc(sizeof(int) * nb_player);
+    for (int i = 0; i < nb_player; i++) {
+        ids[i] = i;
+    }
+
+    shuffle(N, cartes);
+    hands jeu = distribue(N, cartes, nb_player);
+    destroy_pairs(jeu, nb_player);
+    int player_in_game = nb_player;
+
+    while (player_in_game > 1) {
+        for (int player = 0; player < player_in_game; player++) {
+            play(jeu, player, player_in_game, ids);
+            player_in_game = clear_losers(ids, jeu, player, player_in_game);
+        }
+    }
+    ratio[ids[0]] += 1;
+
+    free_game(jeu, nb_player);
+    free(ids);
+}
+
 // STATS
+
+int *init_ratio(int N) {
+    int *ratio = malloc(sizeof(int) * N);
+    for (int i = 0; i < N; i++) {
+        ratio[i] = 0;
+    }
+    return ratio;
+}
 
 void stats(int N, int nb_game, int nb_player) {
     clock_t begin = clock();
 
-    int *ratio = malloc(sizeof(int) * nb_player);
-    for (int i = 0; i < nb_player; i++) {
-        ratio[i] = 0;
-    }
+    int *ratio = init_ratio(nb_player);
 
     deck cartes = raw_deck(N);
 
     for (int game = 0; game < nb_game; game++) {
-        int *ids = malloc(sizeof(int) * nb_player);
-        for (int i = 0; i < nb_player; i++) {
-            ids[i] = i;
-        }
-        shuffle(2 * N + 1, cartes);
-        hands jeu = distribue(2 * N + 1, cartes, nb_player);
-        destroy_pairs(jeu, nb_player);
-        int player_in_game = nb_player;
-
-        while (player_in_game > 1) {
-            for (int player = 0; player < player_in_game; player++) {
-                play(jeu, player, player_in_game, ids);
-
-                if (jeu[ids[player]].nb_cards == 0) {
-                    remove_player(ids, player, player_in_game);
-                    player_in_game -= 1;
-                }
-                for (int i = 0; i < player_in_game; i++) {
-                    if (jeu[ids[i]].nb_cards == 0) {
-                        remove_player(ids, i, player_in_game);
-                        player_in_game -= 1;
-                        if (i < player) {
-                            player--;
-                        }
-                    }
-                }
-            }
-        }
-        ratio[ids[0]] += 1;
-        printf("FIN n%d\n", game);
-        free_game(jeu, nb_player);
-        free(ids);
+        game_execution(cartes, 2 * N + 1, nb_player, ratio);
     }
     free(cartes);
+
     clock_t end = clock();
     double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+
     printf("Temps moyen de jeu : %f\n", time_spent / nb_game);
+
     for (int i = 0; i < nb_player; i++) {
         printf("Taux de defaite du joueur %d : %f%%\n", i + 1, (100 * ratio[i]) / (nb_game + 0.));
     }
