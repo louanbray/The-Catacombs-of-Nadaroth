@@ -8,10 +8,10 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "d:/Bureau/Famille/Louan/Cours/Prépa/Informatique/Code/Env",
-      "program": "d:/Bureau/Famille/Louan/Cours/Prépa/Informatique/Code/Env/build/Debug/outDebug",
+      "cwd": "c:/Users/Louan/Documents/GitHub/informatique",
+      "program": "c:/Users/Louan/Documents/GitHub/informatique/build/Debug/outDebug",
       "MIMode": "gdb",
-      "miDebuggerPath": "gcc",
+      "miDebuggerPath": "gdb",
       "setupCommands": [
         {
           "description": "Enable pretty-printing for gdb",
