@@ -465,8 +465,8 @@ void score_update(slot board, score_tab* score) {
     }
     i = lenHelper(_bestScore);
     for (int j = 1; j <= i; j++) {
-        board.val[ROW - 2][DISPLAY_POS + 16 + j] = 48 + (_bestScore / ipow(10, i - j)) % 10;
-        board.type[ROW - 2][DISPLAY_POS + 16 + j] = DISPLAY;
+        board.val[ROW - 2][DISPLAY_POS + 12 + j] = 48 + (_bestScore / ipow(10, i - j)) % 10;
+        board.type[ROW - 2][DISPLAY_POS + 12 + j] = DISPLAY;
     }
 }
 // Update ultimate charge
