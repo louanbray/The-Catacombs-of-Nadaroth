@@ -27,7 +27,8 @@ int ID = -1;
 int COLOR = 1;
 int ANIMATION = 1;
 
-int ULTIMATE_CHARGE, FIRE_COOLDOWN_CHARGE = 0;
+int ULTIMATE_CHARGE;
+int FIRE_COOLDOWN_CHARGE = 0;
 int FIRE_COOLDOWN = 4;
 bool IS_ULTIMATE_FIRED;
 
@@ -38,8 +39,7 @@ char** S_BIRD;
 
 /// /!\ Ne pas toucher à cette fonction, je ne la comprend pas.
 // Gets a char from STDIN
-// Returns immediatly, even if STDIN is empty
-// in which case it returns ?
+// Returns immediatly, even if STDIN is empty in which case it returns ?
 int getch() {
     int acquisition_time = 50;
     int ch;
@@ -84,14 +84,12 @@ typedef struct slot_s {
     char** val;
     int** type;
 } slot;
-
 typedef struct jump_s {
     bool isJumping;
     int jumpHeight;
     int jumpLength;
     int jumpPhase;
 } jump_parameters;
-
 enum Type {
     NONE,
     DISPLAY,
@@ -105,24 +103,27 @@ enum Type {
     LEADERBOARD,
     ULTIMATE
 };
-
 enum GamePhase {
     EASY,
     MEDIUM,
     HARD,
     HELL
 };
-
 typedef struct player_s {
     char pseudo[20];
     int bestScore;
 } player;
-
 typedef struct score_s {
     int* ids;
     int score;
     player* bestScore;
 } score_tab;
+typedef struct enemies_s {
+    int obstacle_time;
+    int last_obstacle;
+    int bird_time;
+    int last_bird;
+} enemies;
 
 // Generate main structures
 slot generate_board() {
@@ -218,13 +219,13 @@ int lenHelper(unsigned x) {
 }
 
 // Prints the game board.
-void print_board(slot board) {
+void print_board(slot* board) {
     clear_screen();
     if (COLOR) {
         for (int i = ROW - 1; i >= 0; i--) {
             for (int j = 0; j < COL; j++) {
-                int type = board.type[i][j];
-                char val = board.val[i][j];
+                int type = board->type[i][j];
+                char val = board->val[i][j];
                 if (val != ' ') {
                     if (type == OBSTACLE) {
                         printf("\x1b[30;1m%c\033[0m", val);
@@ -252,14 +253,14 @@ void print_board(slot board) {
     } else {
         for (int i = ROW - 1; i >= 0; i--) {
             char buffer[101];
-            sprintf(&buffer[0], "%100s", &board.val[i][0]);
+            sprintf(&buffer[0], "%100s", &board->val[i][0]);
             printf("%100s\n", buffer);
         }
     }
 }
 
 // Load a sprite from a file on the board at specific coordinates and return the last column modified
-int load_sprite(int x, int y, slot board, int t, char* sprite) {
+int load_sprite(int x, int y, slot* board, int t, char* sprite) {
     FILE* file = fopen(sprite, "r");
     if (file == NULL) {
         perror("Error opening file");
@@ -283,9 +284,9 @@ int load_sprite(int x, int y, slot board, int t, char* sprite) {
     for (int i = height - 1; i >= 0; i--) {
         for (int j = 0; j < length; j++) {
             c = fgetc(file);
-            if (board.type[i + y][j + x] == NONE && c != ' ') {
-                board.val[i + y][j + x] = c;
-                board.type[i + y][j + x] = t;
+            if (board->type[i + y][j + x] == NONE && c != ' ') {
+                board->val[i + y][j + x] = c;
+                board->type[i + y][j + x] = t;
             }
         }
         c = fgetc(file);
@@ -297,14 +298,14 @@ int load_sprite(int x, int y, slot board, int t, char* sprite) {
     return x + length - 1;
 }
 // Place a hard loaded sprite
-void place(int x, int y, slot board, int t, char** sprite, int height, int length) {
+void place(int x, int y, slot* board, int t, char** sprite, int height, int length) {
     for (register int i = height - 1; i >= 0; i--) {
         int row = i + y;
         for (int j = 0; j < length; j++) {
             int col = j + x;
-            if (board.type[row][col] == NONE && sprite[i][j] != ' ') {
-                board.val[row][col] = sprite[i][j];
-                board.type[row][col] = t;
+            if (board->type[row][col] == NONE && sprite[i][j] != ' ') {
+                board->val[row][col] = sprite[i][j];
+                board->type[row][col] = t;
             }
         }
     }
@@ -404,46 +405,47 @@ void getBestScore(score_tab scores) {
 }
 
 // Initialize the board.
-void init_board(slot board) {
+void init_board(slot* board) {
     for (int i = 0; i < ROW; i++ /*waw ... space*/) {
         for (int j = 0; j < COL; j++) {
-            board.val[i][j] = ' ';
-            board.type[i][j] = NONE;
+            board->val[i][j] = ' ';
+            board->type[i][j] = NONE;
         }
     }
 
     if (!IS_GAME_OVER) {
         for (int j = 0; j < COL; j++ /*build floor*/) {
-            board.val[0][j] = j % 2 == 0 ? '-' : '_';
-            board.type[0][j] = FLOOR;
+            board->val[0][j] = j % 2 == 0 ? '-' : '_';
+            board->type[0][j] = FLOOR;
         }
         load_sprite(DISPLAY_POS, ROW - 2, board, DISPLAY, "sprite_best_score.txt");
         load_sprite(DISPLAY_POS, ROW - 3, board, DISPLAY, "sprite_score.txt");
         load_sprite(COL / 2 - 9, ROW - 2, board, ULTIMATE, "sprite_ultimate_text.txt");
-        board.val[ROW - 3][(COL / 2) - 6] = '[';
-        board.val[ROW - 3][(COL / 2) + 5] = ']';
+        board->val[ROW - 3][(COL / 2) - 6] = '[';
+        board->val[ROW - 3][(COL / 2) + 5] = ']';
 
         for (int i = 0; i <= 11; i++)
-            board.type[ROW - 3][(COL / 2) - 6 + i] = ULTIMATE;
+            board->type[ROW - 3][(COL / 2) - 6 + i] = ULTIMATE;
 
         load_sprite(COL - 14, ROW - 2, board, MENU, "sprite_fire_text.txt");
-        board.val[ROW - 3][COL - 11] = '[';
-        board.val[ROW - 3][COL - 4] = ']';
+        board->val[ROW - 3][COL - 11] = '[';
+        board->val[ROW - 3][COL - 4] = ']';
 
         for (int i = 0; i <= 7; i++)
-            board.type[ROW - 3][COL - 11 + i] = MENU;
+            board->type[ROW - 3][COL - 11 + i] = MENU;
 
         PLAYER_POS = load_sprite(PLAYER_POS, 1, board, PLAYER, "sprite_player.txt");
     }
 }
 
+/// Tick Functions
 // Graphic Update for the score
-void score_update(slot board, score_tab* score) {
+void score_update(slot* board, score_tab* score) {
     int i = 0;
-    int _score = (*score).score;
-    int _bestScore = (*score).bestScore[ID].bestScore;
+    int _score = score->score;
+    int _bestScore = score->bestScore[ID].bestScore;
     if (_score > _bestScore) {
-        (*score).bestScore[ID].bestScore = _score;
+        score->bestScore[ID].bestScore = _score;
         _bestScore = _score;
         saveBestScore(*score);
     }
@@ -451,87 +453,106 @@ void score_update(slot board, score_tab* score) {
     _bestScore /= SCORE_DIVISOR;
     i = lenHelper(_score);
     for (int j = 1; j <= i; j++) {
-        board.val[ROW - 3][DISPLAY_POS + 7 + j] = 48 + (_score / ipow(10, i - j)) % 10;
-        board.type[ROW - 3][DISPLAY_POS + 7 + j] = DISPLAY;
+        board->val[ROW - 3][DISPLAY_POS + 7 + j] = 48 + (_score / ipow(10, i - j)) % 10;
+        board->type[ROW - 3][DISPLAY_POS + 7 + j] = DISPLAY;
     }
     i = lenHelper(_bestScore);
     for (int j = 1; j <= i; j++) {
-        board.val[ROW - 2][DISPLAY_POS + 12 + j] = 48 + (_bestScore / ipow(10, i - j)) % 10;
-        board.type[ROW - 2][DISPLAY_POS + 12 + j] = DISPLAY;
+        board->val[ROW - 2][DISPLAY_POS + 12 + j] = 48 + (_bestScore / ipow(10, i - j)) % 10;
+        board->type[ROW - 2][DISPLAY_POS + 12 + j] = DISPLAY;
     }
 }
 // Update ultimate charge
-void ultimate_update(slot board) {
+void ultimate_update(slot* board) {
     for (int i = 1; i <= 10; i++) {
         if (i <= ULTIMATE_CHARGE) {
-            board.val[ROW - 3][(COL / 2) - 6 + i] = '#';
+            board->val[ROW - 3][(COL / 2) - 6 + i] = '#';
         } else {
-            board.val[ROW - 3][(COL / 2) - 6 + i] = ' ';
+            board->val[ROW - 3][(COL / 2) - 6 + i] = ' ';
         }
     }
 }
 // Update cooldown charge
-void cooldown_update(slot board) {
+void cooldown_update(slot* board) {
     for (int i = 1; i <= 6; i++) {
         if (i <= FIRE_COOLDOWN) {
             if (i <= FIRE_COOLDOWN_CHARGE) {
-                board.val[ROW - 3][COL - 11 + i] = '#';
+                board->val[ROW - 3][COL - 11 + i] = '#';
             } else {
-                board.val[ROW - 3][COL - 11 + i] = ' ';
+                board->val[ROW - 3][COL - 11 + i] = ' ';
             }
         } else {
-            board.val[ROW - 3][COL - 11 + i] = '-';
+            board->val[ROW - 3][COL - 11 + i] = '-';
         }
     }
 }
 // Radius of power force (8 rows)
-void ultimate_power(int x, slot board) {
+void ultimate_power(int x, slot* board) {
     for (int i = 1; i <= 8; i++) {
         for (int j = x; j <= x + 1; j++) {
-            if (board.type[i][j] != NONE && board.type[i][j] != ULTIMATE) {
-                board.type[i][j] = NONE;
-                board.val[i][j] = ' ';
+            if (board->type[i][j] != NONE && board->type[i][j] != ULTIMATE) {
+                board->type[i][j] = NONE;
+                board->val[i][j] = ' ';
             }
         }
     }
 }
 // Remove the leftover
-void ultimate_remove(int y, slot board) {
+void ultimate_remove(int y, slot* board) {
     for (int i = y - 1; i <= y + 1; i++) {
         for (int j = PLAYER_POS + 1; j <= COL - 1; j++) {
-            if (board.type[i][j] == ULTIMATE) {
-                board.type[i][j] = NONE;
-                board.val[i][j] = ' ';
+            if (board->type[i][j] == ULTIMATE) {
+                board->type[i][j] = NONE;
+                board->val[i][j] = ' ';
             }
         }
     }
     for (int i = 0; i <= 11; i++)
-        board.type[ROW - 3][(COL / 2) - 6 + i] = ULTIMATE;
+        board->type[ROW - 3][(COL / 2) - 6 + i] = ULTIMATE;
 
     ULTIMATE_CHARGE = 0;
     IS_ULTIMATE_FIRED = false;
 }
 // Kill Bird (5*10 radius)
-void kill_bird(int y, int x, slot board) {
+void kill_bird(int y, int x, slot* board) {
     if (ULTIMATE_CHARGE < 10) {
         ULTIMATE_CHARGE += 1;
         if (ULTIMATE_CHARGE == 10) {
             for (int i = 0; i <= 11; i++)
-                board.type[ROW - 3][(COL / 2) - 6 + i] = PLAYER;
+                board->type[ROW - 3][(COL / 2) - 6 + i] = PLAYER;
         }
     }
     for (int i = y - 2; i < y + 3; i++) {
         for (int j = x - 3; j < x + 7; j++) {
-            if (board.type[i][j] == BIRD || board.type[i][j] == AMMO) {
-                board.type[i][j] = NONE;
-                board.val[i][j] = ' ';
+            if (board->type[i][j] == BIRD || board->type[i][j] == AMMO) {
+                board->type[i][j] = NONE;
+                board->val[i][j] = ' ';
             }
         }
     }
 }
-
+// Enemy Generation
+void generate_enemy(slot* board, enemies* e) {
+    if (e->last_obstacle % e->obstacle_time == 0) {
+        int enemy_type = rand() % (min(GAME_PHASE, HELL - 1) + 1);
+        if (enemy_type == 0) {
+            place(COL - 7, 1, board, OBSTACLE, S_ENEMY1, 2, 3);
+        } else if (enemy_type == 1) {
+            place(COL - 7, 1, board, OBSTACLE, S_ENEMY2, 3, 3);
+        } else if (enemy_type == 2) {
+            place(COL - 7, 1, board, OBSTACLE, S_ENEMY3, 3, 6);
+        }
+        e->obstacle_time = 30 + rand() % 20;
+        e->last_obstacle = 0;
+    }
+    if (GAME_PHASE != EASY && e->last_bird % e->bird_time == 0) {
+        place(COL - 8, 4 + rand() % 2, board, BIRD, S_BIRD, 3, 6);
+        e->bird_time = 15 * (1 + HELL - GAME_PHASE) + rand() % 60;
+        e->last_bird = 0;
+    }
+}
 // Tick execution.
-void tick_loop(slot board, jump_parameters* jump, score_tab* score, int* obstacle_time, int* last_obstacle, int* bird_time, int* last_bird) {
+void tick_loop(slot* board, jump_parameters* jump, score_tab* score, enemies* enemy_spawn) {
     // Difficulty Evolution
     if (TICKS == 150) {
         GAME_PHASE = MEDIUM;
@@ -541,24 +562,7 @@ void tick_loop(slot board, jump_parameters* jump, score_tab* score, int* obstacl
         FIRE_COOLDOWN += 1;
     }
 
-    // Enemy Generation
-    if (*last_obstacle % *obstacle_time == 0) {
-        int enemy_type = rand() % (min(GAME_PHASE, HELL - 1) + 1);
-        if (enemy_type == 0) {
-            place(COL - 7, 1, board, OBSTACLE, S_ENEMY1, 2, 3);
-        } else if (enemy_type == 1) {
-            place(COL - 7, 1, board, OBSTACLE, S_ENEMY2, 3, 3);
-        } else if (enemy_type == 2) {
-            place(COL - 7, 1, board, OBSTACLE, S_ENEMY3, 3, 6);
-        }
-        *obstacle_time = 30 + rand() % 20;
-        *last_obstacle = 0;
-    }
-    if (GAME_PHASE != EASY && *last_bird % *bird_time == 0) {
-        place(COL - 8, 4 + rand() % 2, board, BIRD, S_BIRD, 3, 6);
-        *bird_time = 15 * (1 + HELL - GAME_PHASE) + rand() % 60;
-        *last_bird = 0;
-    }
+    generate_enemy(board, enemy_spawn);
 
     // Temp vars for loop
     jump_parameters jump_temp = *jump;
@@ -570,8 +574,8 @@ void tick_loop(slot board, jump_parameters* jump, score_tab* score, int* obstacl
 
     for (i = mrow - 1; i >= 0; i--) {
         // Temp board row
-        char* i_val = board.val[i];
-        int* i_type = board.type[i];
+        char* i_val = board->val[i];
+        int* i_type = board->type[i];
         for (j = COL - 1; j >= 0; j--) {
             // Most used values
             char c_val = i_val[j];
@@ -642,22 +646,22 @@ void tick_loop(slot board, jump_parameters* jump, score_tab* score, int* obstacl
                     if (monte && TICKS % 2 == 0) {
                         i_val[j] = ' ';
                         i_type[j] = NONE;
-                        if (board.type[i + 1][j] != OBSTACLE) {
-                            board.val[i + 1][j] = c_val;
-                            board.type[i + 1][j] = PLAYER;
+                        if (board->type[i + 1][j] != OBSTACLE) {
+                            board->val[i + 1][j] = c_val;
+                            board->type[i + 1][j] = PLAYER;
                         } else {
                             IS_GAME_OVER = true;
                         }
                     }
                 }
-                if (board.type[mrow - 1 - i][j] == PLAYER /*jump movement (3st phase)*/) {
+                if (board->type[mrow - 1 - i][j] == PLAYER /*jump movement (3st phase)*/) {
                     if (descend && TICKS % 2 == 0) {
-                        char c = board.val[mrow - 1 - i][j];
-                        board.val[mrow - 1 - i][j] = ' ';
-                        board.type[mrow - 1 - i][j] = NONE;
-                        if (board.type[mrow - 2 - i][j] != OBSTACLE) {
-                            board.val[mrow - 2 - i][j] = c;
-                            board.type[mrow - 2 - i][j] = PLAYER;
+                        char c = board->val[mrow - 1 - i][j];
+                        board->val[mrow - 1 - i][j] = ' ';
+                        board->type[mrow - 1 - i][j] = NONE;
+                        if (board->type[mrow - 2 - i][j] != OBSTACLE) {
+                            board->val[mrow - 2 - i][j] = c;
+                            board->type[mrow - 2 - i][j] = PLAYER;
                         } else {
                             IS_GAME_OVER = true;
                         }
@@ -668,39 +672,40 @@ void tick_loop(slot board, jump_parameters* jump, score_tab* score, int* obstacl
     }
     if (!IS_ULTIMATE_FIRED && jump_temp.isJumping && TICKS % 2 == 0 /*update jump status*/) {
         if (jump_temp.jumpPhase == jump_temp.jumpLength) {
-            (*jump).isJumping = false;
-            (*jump).jumpPhase = 0;
+            jump->isJumping = false;
+            jump->jumpPhase = 0;
         } else {
             if (monte) {
                 PLAYER_HEIGHT += 1;
             } else if (descend) {
                 PLAYER_HEIGHT -= 1;
             }
-            (*jump).jumpPhase += 1;
+            jump->jumpPhase += 1;
         }
     }
     if (!IS_GAME_OVER /*score update*/) {
-        (*score).score += 1;
+        score->score += 1;
         score_update(board, score);
         ultimate_update(board);
         cooldown_update(board);
     }
 }
-// Evaluate the pressed character
-void compute_entry(int n, slot board, jump_parameters* jump) {
+
+/// Evaluate the pressed character. TIPS -> press h to toggle color (can increase perfs)
+void compute_entry(int n, slot* board, jump_parameters* jump) {
     if (!IS_ULTIMATE_FIRED && FIRE_COOLDOWN_CHARGE == FIRE_COOLDOWN && (n == 72 || n == 40) /*ammo (X / x)?*/) {
-        board.val[2 + PLAYER_HEIGHT][PLAYER_POS + 1] = '>';
-        board.type[2 + PLAYER_HEIGHT][PLAYER_POS + 1] = AMMO;
+        board->val[2 + PLAYER_HEIGHT][PLAYER_POS + 1] = '>';
+        board->type[2 + PLAYER_HEIGHT][PLAYER_POS + 1] = AMMO;
         FIRE_COOLDOWN_CHARGE = 0;
     } else if (ULTIMATE_CHARGE == 10 && (n == 22 || n == 54) /*ultimate fire (F / f)*/) {
-        board.val[2 + PLAYER_HEIGHT][PLAYER_POS + 1] = '=';
-        board.type[2 + PLAYER_HEIGHT][PLAYER_POS + 1] = ULTIMATE;
-        board.val[1 + PLAYER_HEIGHT][PLAYER_POS + 1] = '=';
-        board.type[1 + PLAYER_HEIGHT][PLAYER_POS + 1] = ULTIMATE;
+        board->val[2 + PLAYER_HEIGHT][PLAYER_POS + 1] = '=';
+        board->type[2 + PLAYER_HEIGHT][PLAYER_POS + 1] = ULTIMATE;
+        board->val[1 + PLAYER_HEIGHT][PLAYER_POS + 1] = '=';
+        board->type[1 + PLAYER_HEIGHT][PLAYER_POS + 1] = ULTIMATE;
         IS_ULTIMATE_FIRED = true;
     } else if (n == -16 /*jump*/) {
-        if ((*jump).isJumping != true) {
-            (*jump).isJumping = true;
+        if (jump->isJumping != true) {
+            jump->isJumping = true;
         }
     } else if (n == 24 || n == 56 /*light mode (H / h)*/) {
         COLOR = !COLOR;
@@ -708,14 +713,15 @@ void compute_entry(int n, slot board, jump_parameters* jump) {
     }
 }
 
+/// Screens
 // Death Animation
-void player_death(slot board, bool* death) {
+void player_death(slot* board, bool* death) {
     // Delete player part by part
     for (int i = ROW - 1; i >= 0; i--) {
         for (int j = 0; j < COL; j++) {
-            if (board.type[i][j] == PLAYER) {
-                board.val[i][j] = ' ';
-                board.type[i][j] = NONE;
+            if (board->type[i][j] == PLAYER) {
+                board->val[i][j] = ' ';
+                board->type[i][j] = NONE;
                 return;
             }
         }
@@ -729,43 +735,43 @@ void player_death(slot board, bool* death) {
     *death = false;
 }
 
-// Sort score array
+// Sort score array (doesn't need to be quick)
 void sort_score(score_tab* score) {
     int c = -1;
     for (int j = 1; j < MAX_PLAYER && c != 0; j++) {
         c = 0;
         for (int i = 1; i < MAX_PLAYER; i++) {
-            if ((*score).bestScore[(*score).ids[i]].bestScore > (*score).bestScore[(*score).ids[i - 1]].bestScore) {
-                swap((*score).ids, i, i - 1);
+            if (score->bestScore[score->ids[i]].bestScore > score->bestScore[score->ids[i - 1]].bestScore) {
+                swap(score->ids, i, i - 1);
                 c++;
             }
         }
     }
 }
 // Print leaderboard position
-void print_pos(int row, int col, bool reverse, int pos, slot board) {
+void print_pos(int row, int col, bool reverse, int pos, slot* board) {
     int len = lenHelper(pos);
     col = reverse ? col - len : col;
 
-    board.val[row][col] = '(';
-    board.type[row][col] = DISPLAY;
-    board.val[row][col + len + 1] = ')';
-    board.type[row][col + len + 1] = DISPLAY;
+    board->val[row][col] = '(';
+    board->type[row][col] = DISPLAY;
+    board->val[row][col + len + 1] = ')';
+    board->type[row][col + len + 1] = DISPLAY;
     for (int j = 0; j < len; j++) {
-        board.val[row][col + 1 + j] = 48 + (pos / ipow(10, len - 1 - j)) % 10;
-        board.type[row][col + 1 + j] = DISPLAY;
+        board->val[row][col + 1 + j] = 48 + (pos / ipow(10, len - 1 - j)) % 10;
+        board->type[row][col + 1 + j] = DISPLAY;
     }
 }
 // Get player position in the leaderboard
 void score_pos(score_tab* score) {
     for (int i = 0; i < MAX_PLAYER; i++) {
-        if ((*score).ids[i] == ID) {
+        if (score->ids[i] == ID) {
             SCORE_POS = i;
         }
     }
 }
 // Print the leaderboard
-void leaderboard(slot board, score_tab* score) {
+void leaderboard(slot* board, score_tab* score) {
     sort_score(score);
     score_pos(score);
     load_sprite(COL / 2 - 27, ROW - 10, board, MENU, "leaderboard.txt");
@@ -779,14 +785,14 @@ void leaderboard(slot board, score_tab* score) {
 
     for (int i = 0; i < total; i++) {
         // Force user to appear even if last
-        id = !isUser && i == 18 ? ID : (*score).ids[i];
+        id = !isUser && i == 18 ? ID : score->ids[i];
         isUser = id == ID || isUser;
         // Player highlighting
         type = id == ID ? FLOOR : LEADERBOARD;
 
-        relative_score = (*score).bestScore[id].bestScore / SCORE_DIVISOR;
+        relative_score = score->bestScore[id].bestScore / SCORE_DIVISOR;
 
-        len1 = strlen((*score).bestScore[id].pseudo);
+        len1 = strlen(score->bestScore[id].pseudo);
         len2 = lenHelper(relative_score);
         len = len1 + len2 + 3;
 
@@ -806,28 +812,28 @@ void leaderboard(slot board, score_tab* score) {
         }
         // Print Player : Score
         for (int j = 0; j < len1; j++) {
-            board.val[y][x + j] = (*score).bestScore[id].pseudo[j];
-            board.type[y][x + j] = type;
+            board->val[y][x + j] = score->bestScore[id].pseudo[j];
+            board->type[y][x + j] = type;
         }
 
-        board.val[y][x + len1 + 1] = ':';
-        board.type[y][x + len1 + 1] = type;
+        board->val[y][x + len1 + 1] = ':';
+        board->type[y][x + len1 + 1] = type;
 
         for (int j = 0; j < len2; j++) {
-            board.val[y][x + len - len2 + j] = 48 + (relative_score / ipow(10, len2 - 1 - j)) % 10;
-            board.type[y][x + len - len2 + j] = type;
+            board->val[y][x + len - len2 + j] = 48 + (relative_score / ipow(10, len2 - 1 - j)) % 10;
+            board->type[y][x + len - len2 + j] = type;
         }
     }
     print_board(board);
 }
 
 // Use ESCAPE to quit
-void game_loop(slot board, double* refresh_rate, score_tab* score) {
+void game_loop(slot* board, double* refresh_rate, score_tab* score) {
     // Time variables
     struct timeval last, now;
 
     // Var init
-    int obstacle_time, last_obstacle, bird_time, last_bird;
+    enemies e_s = {1, 1, 1, 1};  // enemy spawn
     jump_parameters jump = {false, 4, 12, 0};
     bool death = false;
     int n = 0;
@@ -846,11 +852,11 @@ void game_loop(slot board, double* refresh_rate, score_tab* score) {
 
         if (time_taken > *refresh_rate /*Update Loop*/) {
             if (!IS_GAME_OVER /*Tick Loop*/) {
-                tick_loop(board, &jump, score, &obstacle_time, &last_obstacle, &bird_time, &last_bird);
+                tick_loop(board, &jump, score, &e_s);
                 TICKS += 1;
                 FIRE_COOLDOWN_CHARGE += FIRE_COOLDOWN_CHARGE < FIRE_COOLDOWN ? 1 : 0;
-                last_obstacle += 1; /*2* ?*/
-                last_bird += 1;
+                e_s.last_obstacle += 1; /*2* ?*/
+                e_s.last_bird += 1;
             } else if (death /*Death Animation*/) {
                 COLOR = 1; /*I like colors*/
                 ANIMATION = 1;
@@ -866,8 +872,8 @@ void game_loop(slot board, double* refresh_rate, score_tab* score) {
 
                 jump.jumpHeight = PLAYER_POS = 4;
                 jump.jumpLength = 12;
-                jump.jumpPhase = TICKS = (*score).score = n = IS_GAME_OVER = ULTIMATE_CHARGE = IS_ULTIMATE_FIRED = 0;
-                jump.isJumping = death = PLAYER_HEIGHT = obstacle_time = last_obstacle = bird_time = last_bird = 1;
+                jump.jumpPhase = TICKS = score->score = n = IS_GAME_OVER = ULTIMATE_CHARGE = IS_ULTIMATE_FIRED = 0;
+                jump.isJumping = death = PLAYER_HEIGHT = e_s.obstacle_time = e_s.last_obstacle = e_s.bird_time = e_s.last_bird = 1;
 
                 init_board(board);
             } else if (n == 28 || n == 60 /*Leaderboard (L/l)*/) {
@@ -878,8 +884,8 @@ void game_loop(slot board, double* refresh_rate, score_tab* score) {
     }
 }
 
-// Diapositive for presentation
-void intro(slot board) {
+// Diapositive for presentation (one time call)
+void intro(slot* board) {
     FILE* file = fopen("animation.txt", "r");
     if (file == NULL) {
         perror("Error opening file");
@@ -921,8 +927,8 @@ void intro(slot board) {
                 if (j >= horse_max_pos && i != 0)
                     t = GAME_OVER;
                 c = fgetc(file);
-                board.val[i][j] = c;
-                board.type[i][j] = t;
+                board->val[i][j] = c;
+                board->type[i][j] = t;
             }
             c = fgetc(file);
             if (c != EOF)
@@ -945,7 +951,7 @@ void intro(slot board) {
     fclose(file);
 }
 // Ask politely for your pseudonym
-void ask_username(slot board) {
+void ask_username(slot* board) {
     init_board(board);
     load_sprite(COL / 2 - 27, ROW / 2 - 3, board, MENU, "sprite_username.txt");
 
@@ -974,7 +980,7 @@ int main() {
     slot board = generate_board();
     PLAYER_POS = 4;
 
-    ask_username(board);
+    ask_username(&board);
     printf("\33[?25l");
     getBestScore(score);
 
@@ -985,11 +991,11 @@ int main() {
     S_BIRD = load("sprite_piaf.txt");
 
     // Welcome Screen
-    intro(board);
-    init_board(board);
-    load_sprite(COL / 2 - 43, ROW / 2 - 5, board, MENU, "sprite_jump_to_start_big.txt");
-    print_board(board);
+    intro(&board);
+    init_board(&board);
+    load_sprite(COL / 2 - 43, ROW / 2 - 5, &board, MENU, "sprite_jump_to_start_big.txt");
+    print_board(&board);
 
-    game_loop(board, &refresh_rate, &score);
+    game_loop(&board, &refresh_rate, &score);
 }
 /// Les milles et une ligne !
