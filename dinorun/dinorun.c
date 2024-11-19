@@ -11,13 +11,6 @@
 
 /// Alternative plus 'trans-plateforme' que 'system("clear")'
 #define clear_screen() printf("\033[H\033[J")
-#define red() printf("\x1b[31;1m");
-#define gray() printf("\x1b[30;1m");
-#define green() printf("\033[1;32m");
-#define cyan() printf("\033[0;36m");
-#define yellow() printf("\x1b[33;1m");
-#define light_blue() printf("\x1b[34;1m");
-#define reset() printf("\033[0m");
 
 const int DISPLAY_POS = 2;
 const int SCORE_DIVISOR = 2;
@@ -32,6 +25,7 @@ int MAX_PLAYER = 0;
 int ID = -1;
 
 int COLOR = 1;
+int ANIMATION = 1;
 
 int ULTIMATE_CHARGE, FIRE_COOLDOWN_CHARGE = 0;
 int FIRE_COOLDOWN = 4;
@@ -48,7 +42,6 @@ char** S_BIRD;
 // in which case it returns ?
 int getch() {
     int acquisition_time = 50;
-
     int ch;
     struct termios oldattr, newattr;
 
@@ -57,7 +50,6 @@ int getch() {
     }
 
     newattr = oldattr;
-
     // Disable canonical mode and echo
     newattr.c_lflag &= ~(ICANON | ECHO);
 
@@ -84,7 +76,6 @@ int getch() {
     if (tcsetattr(STDIN_FILENO, TCSANOW, &oldattr) != 0) {
         perror("tcsetattr");
     }
-
     return ch;
 }
 /// Fin /!\
@@ -298,9 +289,8 @@ int load_sprite(int x, int y, slot board, int t, char* sprite) {
             }
         }
         c = fgetc(file);
-        if (c != EOF) {
+        if (c != EOF)
             c = fgetc(file);
-        }
     }
 
     fclose(file);
@@ -308,11 +298,13 @@ int load_sprite(int x, int y, slot board, int t, char* sprite) {
 }
 // Place a hard loaded sprite
 void place(int x, int y, slot board, int t, char** sprite, int height, int length) {
-    for (int i = height - 1; i >= 0; i--) {
+    for (register int i = height - 1; i >= 0; i--) {
+        int row = i + y;
         for (int j = 0; j < length; j++) {
-            if (board.type[i + y][j + x] == NONE && sprite[i][j] != ' ') {
-                board.val[i + y][j + x] = sprite[i][j];
-                board.type[i + y][j + x] = t;
+            int col = j + x;
+            if (board.type[row][col] == NONE && sprite[i][j] != ' ') {
+                board.val[row][col] = sprite[i][j];
+                board.type[row][col] = t;
             }
         }
     }
@@ -349,9 +341,8 @@ char** load(char* sprite) {
         }
         sprite_array[i] = col_;
         c = fgetc(file);
-        if (c != EOF) {
+        if (c != EOF)
             c = fgetc(file);
-        }
     }
 
     fclose(file);
@@ -565,7 +556,7 @@ void tick_loop(slot board, jump_parameters* jump, score_tab* score, int* obstacl
     }
     if (GAME_PHASE != EASY && *last_bird % *bird_time == 0) {
         place(COL - 8, 4 + rand() % 2, board, BIRD, S_BIRD, 3, 6);
-        *bird_time = 10 * (1 + HELL - GAME_PHASE) + rand() % 40;
+        *bird_time = 15 * (1 + HELL - GAME_PHASE) + rand() % 60;
         *last_bird = 0;
     }
 
@@ -587,71 +578,72 @@ void tick_loop(slot board, jump_parameters* jump, score_tab* score, int* obstacl
             int c_type = i_type[j];
             int c_1 = j + 1;
             int c_n1 = COL - c_1;
-
-            if (c_type == ULTIMATE /*ultimate firing*/) {
-                char ulti = c_val;
-                if (j != COL - 1) {
-                    i_val[c_1] = ulti;
-                    i_type[c_1] = ULTIMATE;
-                    ultimate_power(j, board);
-                } else {
-                    ultimate_remove(i, board);
-                }
-            } else if (c_type == AMMO /*ammo firing*/) {
-                char ammo = c_val;
-                i_val[j] = ' ';
-                i_type[j] = NONE;
-                if (j != COL - 1) {
-                    if (i_type[c_1] == NONE) {
-                        i_val[c_1] = ammo;
-                        i_type[c_1] = AMMO;
-                    } else if (i_type[c_1] == BIRD) {
-                        kill_bird(i, c_1, board);
+            if (c_val != ' ') {
+                if (c_type == ULTIMATE /*ultimate firing*/) {
+                    if (j != COL - 1) {
+                        i_val[c_1] = c_val;
+                        i_type[c_1] = ULTIMATE;
+                        ultimate_power(j, board);
+                    } else {
+                        ultimate_remove(i, board);
+                    }
+                } else if (c_type == AMMO /*ammo firing*/) {
+                    i_val[j] = ' ';
+                    i_type[j] = NONE;
+                    if (j != COL - 1) {
+                        if (i_type[c_1] == NONE) {
+                            i_val[c_1] = c_val;
+                            i_type[c_1] = AMMO;
+                        } else if (i_type[c_1] == BIRD) {
+                            kill_bird(i, c_1, board);
+                        }
                     }
                 }
             }
-            if (i_type[c_n1] == BIRD /*bird movement*/) {
-                char bird = i_val[c_n1];
-                i_val[c_n1] = ' ';
-                i_type[c_n1] = NONE;
-                if (j != 0) {
-                    if (i_type[c_n1 - 1] == AMMO || i_type[c_n1 - 2] == AMMO) {
-                        kill_bird(i, c_n1 - 1, board);
-                    } else if (i_type[c_n1 - 1] == NONE && i_type[c_n1 - 2] == NONE) {
-                        i_val[c_n1 - 2] = bird;
-                        i_type[c_n1 - 2] = BIRD;
-                    } else if (i_type[c_n1 - 1] == PLAYER || i_type[c_n1 - 2] == PLAYER) {
-                        IS_GAME_OVER = true;
+            if (i_val[c_n1] != ' ') {
+                if (i_type[c_n1] == BIRD /*bird movement*/) {
+                    char bird = i_val[c_n1];
+                    i_val[c_n1] = ' ';
+                    i_type[c_n1] = NONE;
+                    if (j != 0) {
+                        if (i_type[c_n1 - 1] == AMMO || i_type[c_n1 - 2] == AMMO) {
+                            kill_bird(i, c_n1 - 1, board);
+                        } else if (i_type[c_n1 - 1] == NONE && i_type[c_n1 - 2] == NONE) {
+                            i_val[c_n1 - 2] = bird;
+                            i_type[c_n1 - 2] = BIRD;
+                        } else if (i_type[c_n1 - 1] == PLAYER || i_type[c_n1 - 2] == PLAYER) {
+                            IS_GAME_OVER = true;
+                        }
                     }
-                }
-            } else if (i_type[c_n1] == OBSTACLE /*obstacle movement*/) {
-                char obs = i_val[c_n1];
-                i_val[c_n1] = ' ';
-                i_type[c_n1] = NONE;
-                if (j != 0) {
-                    if (i_type[c_n1 - 1] != PLAYER) {
-                        i_val[c_n1 - 1] = obs;
-                        i_type[c_n1 - 1] = OBSTACLE;
-                    } else if (i_type[c_n1 - 1] == PLAYER) {
-                        IS_GAME_OVER = true;
+                } else if (i_type[c_n1] == OBSTACLE /*obstacle movement*/) {
+                    char obs = i_val[c_n1];
+                    i_val[c_n1] = ' ';
+                    i_type[c_n1] = NONE;
+                    if (j != 0) {
+                        if (i_type[c_n1 - 1] != PLAYER) {
+                            i_val[c_n1 - 1] = obs;
+                            i_type[c_n1 - 1] = OBSTACLE;
+                        } else if (i_type[c_n1 - 1] == PLAYER) {
+                            IS_GAME_OVER = true;
+                        }
                     }
                 }
             }
-
-            if (c_type == FLOOR /*infinite floor effect*/) {
-                i_val[j] = (i_val[j] == '_') ? '-' : '_';
-            } else if (!jump_temp.isJumping && TICKS % 5 == 0 && c_type == PLAYER && (c_val == '/' || c_val == '\\') /*player animation*/) {
-                i_val[j] = (i_val[j] == '/') ? '\\' : '/';
+            if (ANIMATION) {
+                if (i == 0 && c_type == FLOOR /*infinite floor effect*/) {
+                    i_val[j] = (i_val[j] == '_') ? '-' : '_';
+                } else if (j < PLAYER_POS && !jump_temp.isJumping && TICKS % 5 == 0 && c_type == PLAYER && (c_val == '/' || c_val == '\\') /*player animation*/) {
+                    i_val[j] = (i_val[j] == '/') ? '\\' : '/';
+                }
             }
 
             if (!IS_ULTIMATE_FIRED) {
                 if (c_type == PLAYER /*jump movement (1st phase)*/) {
                     if (monte && TICKS % 2 == 0) {
-                        char c = c_val;
                         i_val[j] = ' ';
                         i_type[j] = NONE;
                         if (board.type[i + 1][j] != OBSTACLE) {
-                            board.val[i + 1][j] = c;
+                            board.val[i + 1][j] = c_val;
                             board.type[i + 1][j] = PLAYER;
                         } else {
                             IS_GAME_OVER = true;
@@ -700,7 +692,7 @@ void compute_entry(int n, slot board, jump_parameters* jump) {
         board.val[2 + PLAYER_HEIGHT][PLAYER_POS + 1] = '>';
         board.type[2 + PLAYER_HEIGHT][PLAYER_POS + 1] = AMMO;
         FIRE_COOLDOWN_CHARGE = 0;
-    } else if (ULTIMATE_CHARGE == 10 && (n == 37 || n == 69) /*ultimate fire (U / u)*/) {
+    } else if (ULTIMATE_CHARGE == 10 && (n == 22 || n == 54) /*ultimate fire (F / f)*/) {
         board.val[2 + PLAYER_HEIGHT][PLAYER_POS + 1] = '=';
         board.type[2 + PLAYER_HEIGHT][PLAYER_POS + 1] = ULTIMATE;
         board.val[1 + PLAYER_HEIGHT][PLAYER_POS + 1] = '=';
@@ -710,8 +702,9 @@ void compute_entry(int n, slot board, jump_parameters* jump) {
         if ((*jump).isJumping != true) {
             (*jump).isJumping = true;
         }
-    } else if (n == 24 || n == 56 /*color switch (H / h)*/) {
+    } else if (n == 24 || n == 56 /*light mode (H / h)*/) {
         COLOR = !COLOR;
+        // ANIMATION = !ANIMATION;
     }
 }
 
@@ -860,6 +853,7 @@ void game_loop(slot board, double* refresh_rate, score_tab* score) {
                 last_bird += 1;
             } else if (death /*Death Animation*/) {
                 COLOR = 1; /*I like colors*/
+                ANIMATION = 1;
                 player_death(board, &death);
             }
 
