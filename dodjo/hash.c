@@ -16,20 +16,6 @@ typedef struct hash_map_s {
     list** hash_map;
 } hm;
 
-int ipow(int base, int exp) {
-    int result = 1;
-    for (;;) {
-        if (exp & 1)
-            result *= base;
-        exp >>= 1;
-        if (!exp)
-            break;
-        base *= base;
-    }
-
-    return result;
-}
-
 int hash(int h, int x, int y) {
     const unsigned int FNV_prime = 16777619;
     unsigned int hash = 2166136261;
@@ -189,13 +175,4 @@ void print_hm(hm* t) {
             printf("]\n");
         }
     }
-}
-
-int main() {
-    hm* t = create();
-    srand(time(NULL));
-    for (int i = 0; i < 10000; i++) {
-        set(t, (rand() % 100000), (rand() % 100000), NULL);
-    }
-    print_hm(t);
 }
