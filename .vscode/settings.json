@@ -123,6 +123,8 @@
     "stdbool.h": "c",
     "poll.h": "c",
     "_time.h": "c",
-    "hash.h": "c"
+    "hash.h": "c",
+    "xtree": "c",
+    "xutility": "c"
   }
 }

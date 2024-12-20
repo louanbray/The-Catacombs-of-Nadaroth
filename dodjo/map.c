@@ -18,9 +18,8 @@ enum Direction {
     WEST,
     SOUTH
 };
-
-/// @brief items/accessories/enemies in chunk
-typedef void* elements;
+/// @brief Player
+typedef struct player player;
 /// @brief define link to an array of chunk*
 typedef chunk** link;
 typedef struct chunk {
@@ -28,13 +27,13 @@ typedef struct chunk {
     int x;
     int y;
     int type;
-    elements elements;
+    dynarray* elements;
 } chunk;
 
 typedef struct map {
     hm* hashmap;
     chunk* spawn;
-    void (*free_fun)(chunk*);
+    player* player;
 } map;
 
 /// @brief Create an empty set of links
@@ -61,16 +60,32 @@ chunk* create_chunk(int x, int y) {
 /// @brief Create a map, a hashmap of chunk* with spawn value
 /// @param free_fun Free elements function
 /// @return map
-map* create_map(void (*free_fun)(chunk*)) {
+map* create_map(player* p) {
     map* m = malloc(sizeof(map));
     hm* hashmap = create_hashmap();
 
     m->hashmap = hashmap;
     chunk* ck = create_chunk(0, 0);
     m->spawn = ck;
+    m->player = p;
     set_hm(m->hashmap, 0, 0, ck);
-    m->free_fun = free_fun;
     return m;
+}
+
+chunk* get_spawn(map* m) {
+    return m->spawn;
+}
+
+player* get_player(map* m) {
+    return m->player;
+}
+
+dynarray* get_chunk_furniture(chunk* ck) {
+    return ck->elements;
+}
+
+void set_chunk_type(chunk* ck, int type) {
+    ck->type = type;
 }
 
 /// @brief Get the chunk in x,y or create it
@@ -119,12 +134,18 @@ chunk* getChunkFrom(map* m, chunk* c1, int dir) {
 
 /// @brief Free full chunk in the map and itself (FUNCTION PASSED TO HASHMAP)
 /// @param m map
-/// @param ck chunk to
-/// @param free_fun free function for elements
-void purge_chunk(hm* m, chunk* ck, void (*free_fun)(chunk*)) {
+/// @param ck chunk to purge
+void purge_chunk(hm* m, chunk* ck) {
+    //? Allow delete spawn ?
     purge_hm(m, ck->x, ck->y);
+    for (int i = 0; i < 5; i++) {
+        int s = i == 0 ? 0 : (i < 3 ? 1 : -1);
+        if (ck->link[i] != NULL) {
+            ck->link[i]->link[(i + 2 * s)] = NULL;
+        }
+    }
     free(ck->link);
-    free_fun(ck->elements);
+    free_dyn(ck->elements);
     free(ck);
 }
 
@@ -132,7 +153,7 @@ void purge_chunk(hm* m, chunk* ck, void (*free_fun)(chunk*)) {
 /// @param m map
 /// @param ck chunk to free
 void destroy_chunk(map* m, chunk* ck) {
-    purge_chunk(m->hashmap, ck, m->free_fun);
+    purge_chunk(m->hashmap, ck);
 }
 
 /// @brief Print the chunk with his coords, pointer, the link pointer and the linked chunks
@@ -154,13 +175,10 @@ void print_map(map* m) {
     print_chunk(m->spawn);
 }
 
-// void test(chunk* c) {
-//     return;
-// }
 //
 // int main() {
 //     srand(time(NULL));
-//     map* m = create_map(*test);
+//     map* m = create_map();
 //     print_map(m);
 //     chunk* ck = getChunkFrom(m, m->spawn, STARGATE);
 //     /*print_map(m);
