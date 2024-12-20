@@ -135,10 +135,8 @@ void destroy_chunk(map* m, chunk* ck) {
     purge_chunk(m->hashmap, ck, m->free_fun);
 }
 
-void test(chunk* c) {
-    return;
-}
-
+/// @brief Print the chunk with his coords, pointer, the link pointer and the linked chunks
+/// @param ck chunk to lookup
 void print_chunk(chunk* ck) {
     printf("CHUNK: %p [", ck);
     printf("x: %d, y: %d, type: %d, element: %p]\n", ck->x, ck->y, ck->type, ck->elements);
@@ -149,10 +147,17 @@ void print_chunk(chunk* ck) {
     }
 }
 
+/// @brief Print the @map->hashtable and the @map->spawn chunk
+/// @param m map
 void print_map(map* m) {
     print_hm(m->hashmap);
     print_chunk(m->spawn);
 }
+
+// void test(chunk* c) {
+//     return;
+// }
+//
 // int main() {
 //     srand(time(NULL));
 //     map* m = create_map(*test);
