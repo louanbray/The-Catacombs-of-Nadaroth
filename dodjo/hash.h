@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 typedef struct hash_map_s hm;
-typedef int chunk;
+typedef void* chunk;
 
 int hash(int h, int x, int y);
 hm* create();
