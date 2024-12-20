@@ -1,4 +1,7 @@
-#include "hash.h"
+#include "hash.h";
+
+#include <stdio.h>
+#include <time.h>
 
 typedef struct list {
     int x, y;
@@ -28,14 +31,20 @@ int ipow(int base, int exp) {
 }
 
 int hash(int h, int x, int y) {
-    return (ipow(2, x) * ipow(3, y)) % h;
+    const unsigned int FNV_prime = 16777619;
+    unsigned int hash = 2166136261;
+
+    hash = (hash ^ x) * FNV_prime;
+    hash = (hash ^ y) * FNV_prime;
+
+    return hash % h;
 }
 
 hm* create() {
     hm* ht = malloc(sizeof(hm));
     ht->length = 100;
     ht->nb_e = 0;
-    ht->hash_map = malloc(sizeof(list*) * ht->length);
+    ht->hash_map = calloc(ht->length, sizeof(list*));
     ht->max_collide = 5;
     return ht;
 }
@@ -48,7 +57,7 @@ int len(hm* t) {
     return t->length;
 }
 
-chunk get(hm* t, int x, int y) {
+chunk* get(hm* t, int x, int y) {
     int index = hash(t->length, x, y);
 
     list* hd = t->hash_map[index];
@@ -66,10 +75,10 @@ void setCell(list* cell, int x, int y, chunk* val) {
     cell->y = y;
     cell->ck = val;
     cell->next = NULL;
-};
+}
 
 bool check_resize(hm* t, list* l) {
-    int i = 1;
+    int i = 0;
     while (l != NULL) {
         l = l->next;
         i++;
@@ -80,39 +89,59 @@ bool check_resize(hm* t, list* l) {
 void resize(hm* t) {
     list** old = t->hash_map;
     int len = t->length;
-    list** n_hm = malloc(sizeof(list*) * len * 2);
-    t->hash_map = n_hm;
+    t->hash_map = calloc(len * 2, sizeof(list*));
     t->length = len * 2;
     for (int i = 0; i < len; i++) {
         list* l = old[i];
         while (l != NULL) {
-            set(t, l->x, l->y, l->ck);
+            int index = hash(t->length, l->x, l->y);
+            list* l2 = malloc(sizeof(list));
+
+            setCell(l2, l->x, l->y, l->ck);
+            l2->next = NULL;
+            if (t->hash_map[index] == NULL) {
+                t->hash_map[index] = l2;
+            } else {
+                l2->next = t->hash_map[index];
+                t->hash_map[index] = l2;
+            }
             l = l->next;
+        }
+    }
+    for (int i = 0; i < len; i++) {
+        list* l3 = old[i];
+        while (l3 != NULL) {
+            list* k = l3;
+            l3 = l3->next;
+            if (k->ck != NULL) {
+                free(k->ck);
+            }
+            free(k);
         }
     }
     free(old);
 }
 
-void set(hm* t, int x, int y, chunk e) {
-    int index = hash(t, x, y);
+void set(hm* t, int x, int y, chunk* e) {
+    int index = hash(t->length, x, y);
     list* l = malloc(sizeof(list));
 
     setCell(l, x, y, e);
-
+    l->next = NULL;
     if (t->hash_map[index] == NULL) {
         t->hash_map[index] = l;
     } else {
         l->next = t->hash_map[index];
         t->hash_map[index] = l;
-        if (check_resize(t, l->next)) {
+        if (check_resize(t, l)) {
             resize(t);
         }
     }
     t->nb_e += 1;
 }
 
-void remove(hm* t, int x, int y) {
-    int index = hash(t, x, y);
+void purge(hm* t, int x, int y) {
+    int index = hash(t->length, x, y);
     list* prev = NULL;
     list* curr = t->hash_map[index];
 
@@ -136,9 +165,12 @@ void free_hm(hm* t) {
     for (int i = 0; i < t->length; i++) {
         list* l = t->hash_map[i];
         while (l != NULL) {
-            list* t = l;
+            list* k = l;
             l = l->next;
-            free(t);
+            if (k->ck != NULL) {
+                free(k->ck);
+            }
+            free(k);
         }
     }
     free(t->hash_map);
@@ -148,11 +180,22 @@ void free_hm(hm* t) {
 void print_hm(hm* t) {
     for (int i = 0; i < t->length; i++) {
         list* l = t->hash_map[i];
-        printf("hash: %d [", i);
-        while (l != NULL) {
-            printf("x: %d, y: %d, chunk: %p | ", i, l->x, l->y, l->ck);
-            l = l->next;
+        if (l != NULL) {
+            printf("hash: %d [", i);
+            while (l != NULL) {
+                printf("x: %d, y: %d, chunk: %p | ", l->x, l->y, l->ck);
+                l = l->next;
+            }
+            printf("]\n");
         }
-        printf("]\n");
     }
+}
+
+int main() {
+    hm* t = create();
+    srand(time(NULL));
+    for (int i = 0; i < 10000; i++) {
+        set(t, (rand() % 100000), (rand() % 100000), NULL);
+    }
+    print_hm(t);
 }

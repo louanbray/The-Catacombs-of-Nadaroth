@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/Louan/Documents/GitHub/informatique/dinorun",
-      "program": "c:/Users/Louan/Documents/GitHub/informatique/dinorun/build/Debug/outDebug",
+      "cwd": "c:/Users/Louan/Documents/GitHub/informatique/dodjo",
+      "program": "c:/Users/Louan/Documents/GitHub/informatique/dodjo/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
