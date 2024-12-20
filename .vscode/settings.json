@@ -122,6 +122,7 @@
     "time.h": "c",
     "stdbool.h": "c",
     "poll.h": "c",
-    "_time.h": "c"
+    "_time.h": "c",
+    "hash.h": "c"
   }
 }

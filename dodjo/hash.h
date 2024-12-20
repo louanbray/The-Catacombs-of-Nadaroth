@@ -9,12 +9,12 @@ typedef struct hash_map_s hm;
 typedef void* chunk_h;
 
 int hash(int h, int x, int y);
-hm* create();
-int len(hm* t);
-int size(hm* t);
-chunk* get(hm* t, int x, int y);
-void set(hm* t, int x, int y, chunk_h e);
-void purge(hm* t, int x, int y);
+hm* create_hashmap();
+int len_hm(hm* t);
+int size_hm(hm* t);
+chunk_h get_hm(hm* t, int x, int y);
+void set_hm(hm* t, int x, int y, chunk_h e);
+void purge_hm(hm* t, int x, int y);
 void free_hm(hm* t);
 void print_hm(hm* t);
 

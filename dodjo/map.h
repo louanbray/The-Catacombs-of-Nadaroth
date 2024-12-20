@@ -5,13 +5,12 @@
 typedef struct map map;
 typedef struct chunk chunk;
 typedef struct element element;
-typedef struct link link;
-enum Direction;
+typedef chunk** link;
 
 map* create_map();
 chunk* getChunk(map* m, int x, int y);
-chunk* getChunkFrom(map* m, chunk* c1, Direction dir);
-void link(chunk* c1, chunk* c2, Direction dir);
+chunk* getChunkFrom(map* m, chunk* c1, int dir);
 void destroy_chunk(map* m, chunk* ck);
-
+void print_chunk(chunk* ck);
+void print_map(map* m);
 #endif
