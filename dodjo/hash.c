@@ -178,9 +178,6 @@ void free_hm(hm* t) {
         while (l != NULL) {
             list* k = l;
             l = l->next;
-            if (k->ck != NULL) {
-                free(k->ck);
-            }
             free(k);
         }
     }
