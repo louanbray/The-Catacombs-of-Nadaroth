@@ -5,7 +5,7 @@
 
 typedef struct list {
     int x, y;
-    chunk* ck;
+    chunk_h ck;
     struct list* next;
 } list;
 
@@ -43,7 +43,7 @@ int len(hm* t) {
     return t->length;
 }
 
-chunk* get(hm* t, int x, int y) {
+chunk_h get(hm* t, int x, int y) {
     int index = hash(t->length, x, y);
 
     list* hd = t->hash_map[index];
@@ -56,7 +56,7 @@ chunk* get(hm* t, int x, int y) {
     return NULL;
 }
 
-void setCell(list* cell, int x, int y, chunk* val) {
+void setCell(list* cell, int x, int y, chunk_h val) {
     cell->x = x;
     cell->y = y;
     cell->ck = val;
@@ -108,7 +108,7 @@ void resize(hm* t) {
     free(old);
 }
 
-void set(hm* t, int x, int y, chunk* e) {
+void set(hm* t, int x, int y, chunk_h e) {
     int index = hash(t->length, x, y);
     list* l = malloc(sizeof(list));
 
