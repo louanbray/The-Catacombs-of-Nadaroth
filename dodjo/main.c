@@ -1,8 +1,10 @@
 #include <errno.h>
+#include <locale.h>
 #include <poll.h>
 #include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
+#include <wchar.h>
 
 #include "inventory.h"
 #include "item.h"
@@ -72,6 +74,7 @@ void compute_entry(int n, board b, player* p) {
 }
 
 int main() {
+    setlocale(LC_CTYPE, "");
     board b = new_screen();
     map* m = create_map();
 
@@ -83,7 +86,7 @@ int main() {
     render(b, m);
     update_screen(b);
 
-    item* i = create_item(0, 0, 0, false, false, '#', NULL);
+    item* i = create_item(0, 0, 0, false, false, 10026, NULL);
     pickup(h, i);
 
     int n = 0;

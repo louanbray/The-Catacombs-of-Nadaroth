@@ -52,7 +52,7 @@ hotbar* get_player_hotbar(player* p);
 /// @brief Return player design (char)
 /// @param p player
 /// @return char design
-char get_player_design(player* p);
+int get_player_design(player* p);
 
 /// @brief Return player name
 /// @param p player

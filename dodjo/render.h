@@ -3,6 +3,7 @@
 #define RENDER_H
 
 #include <stdio.h>
+#include <wchar.h>
 
 /// @brief Inventory
 typedef struct hotbar hotbar;
@@ -16,7 +17,7 @@ typedef struct chunk chunk;
 typedef struct map map;
 
 /// @brief Screen
-typedef char** board;
+typedef wchar_t** board;
 
 /// @brief Returns a white screen of const size
 /// @return board

@@ -15,7 +15,7 @@ typedef struct item item;
 /// @param display Display char
 /// @param spec Array of specs (different for each type | not handled here)
 /// @return item
-item* create_item(int x, int y, int type, bool hidden, bool used, char display, void* spec);
+item* create_item(int x, int y, int type, bool hidden, bool used, int display, void* spec);
 
 /// @brief Get item x
 /// @param i item
@@ -35,7 +35,7 @@ int get_item_type(item* i);
 /// @brief Get item display char
 /// @param i item
 /// @return display char
-char get_item_display(item* i);
+int get_item_display(item* i);
 
 /// @brief Get item specs
 /// @param i item
@@ -65,7 +65,7 @@ void set_item_used(item* i, bool used);
 /// @brief Set display to given parameter
 /// @param i item
 /// @param display char
-void set_item_display(item* i, char display);
+void set_item_display(item* i, int display);
 
 /// @brief Set spec to given parameter
 /// @param i item

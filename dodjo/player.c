@@ -8,7 +8,7 @@ typedef struct player {
     chunk* current_chunk;
     hotbar* hotbar;
     int health;
-    char design;
+    int design;
     char* name;
 } player;
 
@@ -21,7 +21,7 @@ player* create_player(map* m) {
     p->current_chunk = get_spawn(m);
     p->health = 1;
     p->hotbar = NULL;
-    p->design = 'O';
+    p->design = 3486;
     p->name = NULL;
     p->map = m;
     set_map_player(m, p);
@@ -52,7 +52,7 @@ hotbar* get_player_hotbar(player* p) {
     return p->hotbar;
 }
 
-char get_player_design(player* p) {
+int get_player_design(player* p) {
     return p->design;
 }
 
