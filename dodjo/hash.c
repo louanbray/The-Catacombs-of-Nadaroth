@@ -181,12 +181,3 @@ void print_hm(hm* t) {
         }
     }
 }
-
-// int main() {
-//     hm* t = create_hashmap();
-//     srand(time(NULL));
-//     for (int i = 0; i < 100000; i++) {
-//         set_hm(t, (rand() % 100000), (rand() % 100000), NULL);
-//     }
-//     print_hm(t);
-// }

@@ -9,13 +9,18 @@
 typedef struct item item;
 
 /// @brief Create item using given parameters
-/// @param type type of item
-/// @param hidden Is hidden ?
-/// @param used Is used ?
-/// @param display Display char
-/// @param spec Array of specs (different for each type | not handled here)
+/// @param x pos x
+/// @param y pos y
+/// @param type Type
 /// @return item
-item* create_item(int x, int y, int type, bool hidden, bool used, int display, void* spec);
+item* create_item(int x, int y, int type);
+
+/// @brief Create item using given parameters with the specs based on his type
+/// @param x pos x
+/// @param y pos y
+/// @param type Type
+/// @return item
+item* generate_item(int x, int y, int type);
 
 /// @brief Get item x
 /// @param i item

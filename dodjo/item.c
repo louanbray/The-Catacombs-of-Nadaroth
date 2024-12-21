@@ -7,15 +7,22 @@ typedef struct item {
     void* spec;
 } item;
 
-item* create_item(int x, int y, int type, bool hidden, bool used, int display, void* spec) {
+item* create_item(int x, int y, int type) {
     item* i = malloc(sizeof(item));
     i->x = x;
     i->y = y;
     i->type = type;
-    i->hidden = hidden;
-    i->used = used;
-    i->display = display;
-    i->spec = spec;
+    i->display = 9733;  //! TO REMOVE
+    return i;
+}
+
+item* generate_item(int x, int y, int type) {
+    item* i = create_item(x, y, type);
+    // specialize(i); // TODO: THE FOLLOWING, TYPE GEN BASED
+    // i->hidden = hidden;
+    // i->used = used;
+    // i->display = display;
+    // i->spec = spec;
     return i;
 }
 

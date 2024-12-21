@@ -75,16 +75,17 @@ void render_char(board b, int x, int y, int c) {
     b[y + RENDER_HEIGHT / 2][x + RENDER_WIDTH / 2] = c;
 }
 
-void render_elements(board b, dynarray* d) {
-}
-
 void render_chunk(board b, chunk* c) {
-    // TODO : Print chunk based on his type
-    // render_char(b, -11, 1, 'x');
-    // render_char(b, -11, 2, 'y');
-    // render_char(b, -10, 1, get_chunk_x(c) + 48);
-    // render_char(b, -10, 2, get_chunk_y(c) + 48);
-    // render_elements(b, get_chunk_furniture_list(c));
+    dynarray* d = get_chunk_furniture_list(c);
+    for (int i = 0; i < len_dyn(d); i++) {
+        item* it = get_dyn(d, i);
+        render_char(b, get_item_x(it), get_item_y(it), get_item_display(it));
+    }
+
+    render_char(b, -41, 15, 'x');
+    render_char(b, -41, 14, 'y');
+    render_char(b, -40, 15, get_chunk_x(c) + 48);
+    render_char(b, -40, 14, get_chunk_y(c) + 48);
 }
 
 void render_player(board b, player* p) {
@@ -111,7 +112,12 @@ void render_hotbar(board b, hotbar* h) {
 
 void render(board b, map* m) {
     player* p = get_player(m);
+    render_from_player(b, p);
+}
+
+void render_from_player(board b, player* p) {
     chunk* curr = get_player_chunk(p);
+    white_screen(b);
     render_chunk(b, curr);
     render_player(b, p);
     render_hotbar(b, get_player_hotbar(p));

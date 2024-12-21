@@ -3,21 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "dynarray.h"
-
-/// @brief chunk type (0,0) -> SPAWN
-enum Type {
-    SPAWN
-};
-
-typedef struct chunk {
-    chunk_link link;
-    int x;
-    int y;
-    int type;
-    dynarray* elements;
-    hm* hashmap;
-} chunk;
+#include "generation.h"
 
 typedef struct map {
     hm* hashmap;
@@ -41,19 +27,21 @@ chunk* create_chunk(int x, int y) {
     ck->link = create_link();
     ck->x = x;
     ck->y = y;
-    ck->type = SPAWN;  // TODO: ADD RANDOM TYPEGEN
-    ck->elements = NULL;
+    ck->type = SPAWN;
+    ck->elements = create_dyn();
     ck->hashmap = create_hashmap();
     return ck;
 }
 
 chunk* generate_chunk(int x, int y) {
-    return create_chunk(x, y);
+    chunk* c = create_chunk(x, y);
+    decorate(c, x, y);
+    return c;
 }
 
 map* create_map(player* p) {
     map* m = malloc(sizeof(map));
-    chunk* ck = create_chunk(0, 0);
+    chunk* ck = generate_chunk(0, 0);
 
     m->hashmap = create_hashmap();
     m->spawn = ck;
@@ -70,26 +58,6 @@ player* get_player(map* m) {
     return m->player;
 }
 
-dynarray* get_chunk_furniture_list(chunk* ck) {
-    return ck->elements;
-}
-
-hm* get_chunk_furniture_coords(chunk* ck) {
-    return ck->hashmap;
-}
-
-int get_chunk_x(chunk* c) {
-    return c->x;
-}
-
-int get_chunk_y(chunk* c) {
-    return c->y;
-}
-
-void set_chunk_type(chunk* ck, int type) {
-    ck->type = type;
-}
-
 void set_map_player(map* m, player* p) {
     m->player = p;
 }
@@ -99,7 +67,7 @@ chunk* get_chunk(map* m, int x, int y) {
     if (ck != NULL) {
         return ck;
     }
-    ck = create_chunk(x, y);
+    ck = generate_chunk(x, y);
     set_hm(m->hashmap, x, y, ck);
     return ck;
 }
@@ -141,6 +109,7 @@ void purge_chunk(hm* m, chunk* ck) {
         }
     }
     free(ck->link);
+    // TODO : FREE ITEMS SPECS
     free_dyn(ck->elements);
     free_hm(ck->hashmap);
     free(ck);
@@ -164,28 +133,3 @@ void print_map(map* m) {
     print_hm(m->hashmap);
     print_chunk(m->spawn);
 }
-
-//
-// int main() {
-//     srand(time(NULL));
-//     map* m = create_map();
-//     print_map(m);
-//     chunk* ck = get_chunk_from(m, m->spawn, STARGATE);
-//     /*print_map(m);
-//     print_chunk(ck);*/
-//     printf("(x: %d, y: %d) -> ", ck->x, ck->y);
-//     for (int i = 0; i < 50; i++) {
-//         int d = rand() % 5;
-//         ck = get_chunk_from(m, ck, d);
-//         if (!d) {
-//             printf("(x: %d, y: %d) -> ", ck->x, ck->y);
-//         } else {
-//             printf("[...]");
-//         }
-//         /*print_map(m);
-//         print_chunk(ck);*/
-//     }
-//     printf("\n");
-//     print_map(m);
-//     print_chunk(ck);
-// }

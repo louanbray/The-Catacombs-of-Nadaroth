@@ -30,7 +30,7 @@ int getch() {
     if (tcsetattr(STDIN_FILENO, TCSANOW, &newattr) != 0) {
         perror("tcsetattr");
     }
-    struct pollfd mypoll = {STDIN_FILENO, POLLIN | POLLPRI};
+    struct pollfd mypoll = {STDIN_FILENO, POLLIN | POLLPRI, POLLOUT};
 
     if (poll(&mypoll, 1, acquisition_time) > 0) {
         ch = getchar();
@@ -59,6 +59,12 @@ void compute_entry(int n, board b, player* p) {
     } else if (n == 100 || n == 68 /*D-d*/) {
         move_player(p, EAST);
         // move_player_chunk(p, EAST);
+    } else if (n == 110 || n == 78 /*N-n*/) {
+        move_player_chunk(p, NORTH);
+        render_from_player(b, p);
+    } else if (n == 98 || n == 66 /*B-b*/) {
+        move_player_chunk(p, SOUTH);
+        render_from_player(b, p);
     } else if (n >= 49 && n <= 57) {
         select_slot(get_player_hotbar(p), n - 49);
         render_hotbar(b, get_player_hotbar(p));
@@ -86,7 +92,7 @@ int main() {
     render(b, m);
     update_screen(b);
 
-    item* i = create_item(0, 0, 0, false, false, 10026, NULL);
+    item* i = create_item(0, 0, 0);
     pickup(h, i);
 
     int n = 0;

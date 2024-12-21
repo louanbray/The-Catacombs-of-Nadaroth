@@ -2,18 +2,12 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include "hash.h"
+#include "generation.h"
 
 /// @brief Map
 typedef struct map map;
-/// @brief Chunk
-typedef struct chunk chunk;
-/// @brief Dynarray
-typedef struct dynarray dynarray;
 /// @brief Player
 typedef struct player player;
-/// @brief define link to an array of chunk*
-typedef chunk** chunk_link;
 
 /// @brief Gate position/type
 enum Direction {
@@ -52,31 +46,6 @@ chunk* get_spawn(map* m);
 /// @param m map
 /// @return player
 player* get_player(map* m);
-
-/// @brief Return a dynarray of chunk decoration
-/// @param ck chunk
-/// @return dynarray of decoration
-dynarray* get_chunk_furniture_list(chunk* ck);
-
-/// @brief Return a hashmap containing the chunk decorations (key: x, y)
-/// @param ck chunk
-/// @return hashmap
-hm* get_chunk_furniture_coords(chunk* ck);
-
-/// @brief Get chunk x
-/// @param c chunk
-/// @return x
-int get_chunk_x(chunk* c);
-
-/// @brief Get chunk y
-/// @param c chunk
-/// @return y
-int get_chunk_y(chunk* c);
-
-/// @brief Change the chunk type
-/// @param c chunk
-/// @param type new type
-void set_chunk_type(chunk* c, int type);
 
 /// @brief Link a player to a map
 /// @param m map

@@ -27,11 +27,6 @@ board new_screen();
 /// @param b board
 void white_screen(board b);
 
-/// @brief Modify the board to display chunk elements
-/// @param b board
-/// @param d chunk decoration
-void render_elements(board b, dynarray* d);
-
 /// @brief Modify the board to display the chunk (depending on the type)
 /// @param b board
 /// @param c chunk to display
@@ -51,6 +46,11 @@ void render_hotbar(board b, hotbar* h);
 /// @param b board
 /// @param map map
 void render(board b, map* map);
+
+/// @brief Render the current chunk (chunk -> elements -> player)
+/// @param b board
+/// @param player player
+void render_from_player(board b, player* p);
 
 /// @brief Clear the output and print the board
 /// @param b board
