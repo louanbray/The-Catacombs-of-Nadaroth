@@ -3,9 +3,10 @@
 #include <stdio.h>
 #include <time.h>
 
+/// @brief Bucketlist
 typedef struct list {
     int x, y;
-    chunk_h ck;
+    element_h ck;
     struct list* next;
 } list;
 
@@ -16,11 +17,6 @@ typedef struct hash_map_s {
     list** hash_map;
 } hm;
 
-/// @brief Hash function
-/// @param h max length
-/// @param x chunk x
-/// @param y chunk y
-/// @return hash within (0->h)
 int hash(int h, int x, int y) {
     const unsigned int FNV_prime = 16777619;
     unsigned int hash = 2166136261;
@@ -31,8 +27,6 @@ int hash(int h, int x, int y) {
     return hash % h;
 }
 
-/// @brief Create empty hashmap
-/// @return hashmap*
 hm* create_hashmap() {
     hm* ht = malloc(sizeof(hm));
     ht->length = 100;
@@ -42,26 +36,15 @@ hm* create_hashmap() {
     return ht;
 }
 
-/// @brief Get the number of entries in hashmap @t
-/// @param t hashmap*
-/// @return entries number of hashmap
 int size_hm(hm* t) {
     return t->nb_e;
 }
 
-/// @brief Get the max pool of hashmap
-/// @param t hashmap*
-/// @return pool size
 int len_hm(hm* t) {
     return t->length;
 }
 
-/// @brief Get value from hashmap with keys
-/// @param t hashmap*
-/// @param x chunk x
-/// @param y chunk y
-/// @return NULL if empty else matching value
-chunk_h get_hm(hm* t, int x, int y) {
+element_h get_hm(hm* t, int x, int y) {
     int index = hash(t->length, x, y);
 
     list* hd = t->hash_map[index];
@@ -78,8 +61,8 @@ chunk_h get_hm(hm* t, int x, int y) {
 /// @param cell bucketlist cell
 /// @param x chunk x
 /// @param y chunk y
-/// @param val chunk_h (value)
-void setCell(list* cell, int x, int y, chunk_h val) {
+/// @param val element_h (value)
+void setCell(list* cell, int x, int y, element_h val) {
     cell->x = x;
     cell->y = y;
     cell->ck = val;
@@ -101,7 +84,7 @@ bool check_resize(hm* t, list* l) {
 
 /// @brief Resize hashmap with 2* pool length
 /// @param t hashmap*
-void resize(hm* t) {
+void resize_hm(hm* t) {
     list** old = t->hash_map;
     int len = t->length;
     t->hash_map = calloc(len * 2, sizeof(list*));
@@ -134,7 +117,7 @@ void resize(hm* t) {
     free(old);
 }
 
-void set_hm(hm* t, int x, int y, chunk_h e) {
+void set_hm(hm* t, int x, int y, element_h e) {
     int index = hash(t->length, x, y);
     list* l = malloc(sizeof(list));
 
@@ -146,7 +129,7 @@ void set_hm(hm* t, int x, int y, chunk_h e) {
         l->next = t->hash_map[index];
         t->hash_map[index] = l;
         if (check_resize(t, l)) {
-            resize(t);
+            resize_hm(t);
         }
     }
     t->nb_e += 1;
