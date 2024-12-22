@@ -32,12 +32,19 @@ chunk* create_chunk(int x, int y) {
     return ck;
 }
 
+/// @brief Generate a random decorated chunk
+/// @param x chunk x
+/// @param y chunk y
+/// @return generated chunk
 chunk* generate_chunk(int x, int y) {
     chunk* c = create_chunk(x, y);
     decorate(c, x, y);
     return c;
 }
 
+/// @brief Create a core map bound the the player
+/// @param p player
+/// @return map
 map* create_map(player* p) {
     map* m = malloc(sizeof(map));
     chunk* ck = generate_chunk(0, 0);

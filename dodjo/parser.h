@@ -10,7 +10,9 @@ enum ChunkType {
     DEFAULT
 };
 
+/// @brief Get and add the chunk decoration based on its type
+/// @param d Array of items/decorations
+/// @param type chunk type
 void parse_chunk(dynarray* d, int type);
-void parse_item(item* i, int type);
 
 #endif

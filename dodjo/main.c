@@ -47,6 +47,10 @@ int getch() {
     return ch;
 }
 
+/// @brief Handle the player movement and use the appropriate render
+/// @param b board
+/// @param p player
+/// @param dir direction
 void move(board b, player* p, int dir) {
     switch (move_player(p, dir)) {
         case 1:
@@ -60,6 +64,10 @@ void move(board b, player* p, int dir) {
     }
 }
 
+/// @brief Handle the user keyboard entries
+/// @param n entry
+/// @param b board
+/// @param p player
 void compute_entry(int n, board b, player* p) {
     if (n == 122 || n == 90 /*Z-z*/) {
         move(b, p, NORTH);
@@ -69,7 +77,7 @@ void compute_entry(int n, board b, player* p) {
         move(b, p, WEST);
     } else if (n == 100 || n == 68 /*D-d*/) {
         move(b, p, EAST);
-    } else if (n >= 49 && n <= 57) {
+    } else if (n >= 49 && n <= 57 /*1-9*/) {
         select_slot(get_player_hotbar(p), n - 49);
         render_hotbar(b, get_player_hotbar(p));
     } else if (n == 119 || n == 87 /*W-w*/) {
@@ -82,6 +90,8 @@ void compute_entry(int n, board b, player* p) {
     update_screen(b);
 }
 
+/// @brief Where it all begins
+/// @return I dream of a 0
 int main() {
     srand(time(NULL));
     setlocale(LC_CTYPE, "");
@@ -100,10 +110,10 @@ int main() {
     pickup(h, i);
 
     int n = 0;
-    while (n != 27) {
+    while (true) {  //? Can't put [ESC] char as it is also triggered by the arrows and I don't want the program to close because of an habit. TODO: other char
         n = getch();
         if (n != 0 && n != 7) {
-            printf("");  //! REQUIRED BUT WEIRD
+            printf("%d\n", n);  //! REQUIRED BUT WEIRD
             compute_entry(n, b, p);
         }
     }

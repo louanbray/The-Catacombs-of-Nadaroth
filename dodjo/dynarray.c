@@ -8,6 +8,10 @@ typedef struct dynarray {
     int memlen;
 } dynarray;
 
+/// @brief Return the max value between n1 and n2
+/// @param n1 number to compare
+/// @param n2 number to compare
+/// @return max value
 int max(int n1, int n2) {
     return n1 > n2 ? n1 : n2;
 }

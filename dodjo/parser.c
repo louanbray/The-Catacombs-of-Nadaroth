@@ -2,6 +2,9 @@
 
 #include <stdio.h>
 
+/// @brief Read and parse the given file using the dodjo format to update the chunk decorations
+/// @param d Array of chunk decorations/items
+/// @param filename file to read
 void parse_chunk_file(dynarray* d, char* filename) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {

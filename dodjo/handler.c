@@ -3,6 +3,11 @@
 #include <stdio.h>
 
 #include "generation.h"
+
+/// @brief Return the part of the map the player is in as a direction
+/// @param x player x
+/// @param y player y
+/// @return int direction
 int get_direction(int x, int y) {
     if (x > 10) {
         return EAST;

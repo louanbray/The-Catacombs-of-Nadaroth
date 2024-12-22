@@ -16,6 +16,9 @@ item* create_item(int x, int y, int type, int display) {
     return i;
 }
 
+/// @brief Complete the item specs depending on its type
+/// @param i item
+/// @param type type
 void specialize(item* i, int type) {
     switch (type) {
         default:

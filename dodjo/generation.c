@@ -20,6 +20,8 @@ void set_chunk_type(chunk* ck, int type) {
     ck->type = type;
 }
 
+/// @brief Copy the content of the items dynarrray to put it into the hashmap
+/// @param c chunk
 void fill_chunk_hm_from_dyn(chunk* c) {
     dynarray* dyn = get_chunk_furniture_list(c);
     hm* hashmap = get_chunk_furniture_coords(c);
@@ -29,6 +31,9 @@ void fill_chunk_hm_from_dyn(chunk* c) {
     }
 }
 
+/// @brief Add all elements of the chunk depending of the type
+/// @param c chunk
+/// @param type type
 void fill_furniture(chunk* c, int type) {
     parse_chunk(get_chunk_furniture_list(c), type);
     fill_chunk_hm_from_dyn(c);

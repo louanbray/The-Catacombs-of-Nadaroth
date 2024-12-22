@@ -13,6 +13,8 @@ typedef struct player {
     char* name;
 } player;
 
+/// @brief Set player pos to chunk center
+/// @param p
 void center_player(player* p) {
     p->x = 0;
     p->y = 0;
