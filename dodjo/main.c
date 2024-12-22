@@ -12,6 +12,7 @@
 #include "map.h"
 #include "player.h"
 #include "render.h"
+
 /// @brief Get input char, return immediatly
 /// @return return char typed
 int getch() {
