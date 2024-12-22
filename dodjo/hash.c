@@ -1,7 +1,6 @@
 #include "hash.h"
 
 #include <stdio.h>
-#include <time.h>
 
 /// @brief Bucketlist
 typedef struct list {

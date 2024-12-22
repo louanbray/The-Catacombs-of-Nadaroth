@@ -1,5 +1,6 @@
 #include "player.h"
 
+#include "handler.h"
 #include "map.h"
 
 typedef struct player {
@@ -12,12 +13,16 @@ typedef struct player {
     char* name;
 } player;
 
-player* create_player(map* m) {
-    player* p = malloc(sizeof(player));
+void center_player(player* p) {
     p->x = 0;
     p->y = 0;
     p->px = 0;
     p->py = 0;
+}
+
+player* create_player(map* m) {
+    player* p = malloc(sizeof(player));
+    center_player(p);
     p->current_chunk = get_spawn(m);
     p->health = 1;
     p->hotbar = NULL;
@@ -68,15 +73,24 @@ void link_hotbar(player* p, hotbar* h) {
     p->hotbar = h;
 }
 
-void move_player(player* p, int dir) {
+int move_player(player* p, int dir) {
     int s = dir < 3 ? 1 : -1;
     p->px = p->x;
     p->py = p->y;
-    p->x += dir % 2 * s;
-    p->y += s * (dir - 1) % 2;
+    int new_x = p->x + dir % 2 * s;
+    int new_y = p->y + s * (dir - 1) % 2;
+    if (!is_in_box(new_x, new_y))
+        return 2;
+    if (handle(p, new_x, new_y)) {
+        p->x = new_x;
+        p->y = new_y;
+        return 0;
+    }
+    return 1;
 }
 
 void move_player_chunk(player* p, int dir) {
+    center_player(p);
     p->current_chunk = get_chunk_from(p->map, p->current_chunk, dir);
 }
 

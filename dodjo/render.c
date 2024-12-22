@@ -72,7 +72,7 @@ void white_screen(board b) {
 /// @param y centered y pos
 /// @param c char to display
 void render_char(board b, int x, int y, int c) {
-    b[y + RENDER_HEIGHT / 2][x + RENDER_WIDTH / 2] = c;
+    b[y + 1 + RENDER_HEIGHT / 2][x + RENDER_WIDTH / 2] = c;
 }
 
 void render_chunk(board b, chunk* c) {

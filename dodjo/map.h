@@ -9,15 +9,6 @@ typedef struct map map;
 /// @brief Player
 typedef struct player player;
 
-/// @brief Gate position/type
-enum Direction {
-    STARGATE,
-    EAST,
-    NORTH,
-    WEST,
-    SOUTH
-};
-
 /// @brief Create a map, a hashmap of chunk* with spawn value
 /// @param free_fun Free elements function
 /// @return map

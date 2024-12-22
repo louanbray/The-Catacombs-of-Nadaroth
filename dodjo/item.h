@@ -8,19 +8,26 @@
 /// @brief Item
 typedef struct item item;
 
+/// @brief item type
+enum ItemType {
+    WALL,
+    GATE,
+    SGATE,
+};
+
 /// @brief Create item using given parameters
 /// @param x pos x
 /// @param y pos y
 /// @param type Type
 /// @return item
-item* create_item(int x, int y, int type);
+item* create_item(int x, int y, int type, int display);
 
 /// @brief Create item using given parameters with the specs based on his type
 /// @param x pos x
 /// @param y pos y
 /// @param type Type
 /// @return item
-item* generate_item(int x, int y, int type);
+item* generate_item(int x, int y, int type, int display);
 
 /// @brief Get item x
 /// @param i item

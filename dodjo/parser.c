@@ -11,6 +11,7 @@ void parse_chunk_file(dynarray* d, char* filename) {
     int x = 0;
     int y = 0;
     int t = 0;
+    int di = 0;
     char c = fgetc(file);
     while (c != EOF) {
         x = 0;
@@ -36,10 +37,16 @@ void parse_chunk_file(dynarray* d, char* filename) {
                 t = t * 10 + (c - 48);
             c = fgetc(file);
         }
+        c = fgetc(file);
+        di = 0;
+        while (c != ',') {
+            di = di * 10 + (c - 48);
+            c = fgetc(file);
+        }
         x = m1 ? -x : x;
         y = m2 ? -y : y;
         t = m3 ? -t : t;
-        item* i = create_item(x, y, t);
+        item* i = create_item(x, y, t, di);
         append(d, i);
         c = fgetc(file);
         c = fgetc(file);
@@ -58,4 +65,3 @@ void parse_chunk(dynarray* d, int type) {
             break;
     }
 }
-void parse_item(item* i, int type) {}

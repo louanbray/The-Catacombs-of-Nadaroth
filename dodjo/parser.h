@@ -5,7 +5,7 @@
 #include "item.h"
 
 /// @brief chunk type (0,0) -> SPAWN
-enum Type {
+enum ChunkType {
     SPAWN,
     DEFAULT
 };

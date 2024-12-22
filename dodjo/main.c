@@ -3,6 +3,7 @@
 #include <poll.h>
 #include <stdlib.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 #include <wchar.h>
 
@@ -46,25 +47,28 @@ int getch() {
     return ch;
 }
 
+void move(board b, player* p, int dir) {
+    switch (move_player(p, dir)) {
+        case 1:
+            render_from_player(b, p);
+            break;
+        case 2:
+            break;
+        default:
+            render_player(b, p);
+            break;
+    }
+}
+
 void compute_entry(int n, board b, player* p) {
     if (n == 122 || n == 90 /*Z-z*/) {
-        move_player(p, NORTH);
-        // move_player_chunk(p, NORTH);
+        move(b, p, NORTH);
     } else if (n == 115 || n == 83 /*S-s*/) {
-        move_player(p, SOUTH);
-        // move_player_chunk(p, SOUTH);
+        move(b, p, SOUTH);
     } else if (n == 113 || n == 81 /*Q-q*/) {
-        move_player(p, WEST);
-        // move_player_chunk(p, WEST);
+        move(b, p, WEST);
     } else if (n == 100 || n == 68 /*D-d*/) {
-        move_player(p, EAST);
-        // move_player_chunk(p, EAST);
-    } else if (n == 110 || n == 78 /*N-n*/) {
-        move_player_chunk(p, NORTH);
-        render_from_player(b, p);
-    } else if (n == 98 || n == 66 /*B-b*/) {
-        move_player_chunk(p, SOUTH);
-        render_from_player(b, p);
+        move(b, p, EAST);
     } else if (n >= 49 && n <= 57) {
         select_slot(get_player_hotbar(p), n - 49);
         render_hotbar(b, get_player_hotbar(p));
@@ -74,12 +78,12 @@ void compute_entry(int n, board b, player* p) {
     } else {
         return;
     }
-    // render_chunk(b, get_player_chunk(p));
-    render_player(b, p);
+
     update_screen(b);
 }
 
 int main() {
+    srand(time(NULL));
     setlocale(LC_CTYPE, "");
     board b = new_screen();
     map* m = create_map();
@@ -92,7 +96,7 @@ int main() {
     render(b, m);
     update_screen(b);
 
-    item* i = create_item(0, 0, 0);
+    item* i = create_item(0, 0, 0, 9733);
     pickup(h, i);
 
     int n = 0;
