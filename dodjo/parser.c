@@ -11,49 +11,9 @@ void parse_chunk_file(dynarray* d, char* filename) {
         perror("Error opening file");
         return;
     }
-    int x = 0;
-    int y = 0;
-    int t = 0;
-    int di = 0;
-    char c = fgetc(file);
-    while (c != EOF) {
-        x = 0;
-        bool m1 = c == '-';
-        while (c != ',') {
-            if (c != '-')
-                x = x * 10 + (c - 48);
-            c = fgetc(file);
-        }
-        c = fgetc(file);
-        y = 0;
-        bool m2 = c == '-';
-        while (c != ',') {
-            if (c != '-')
-                y = y * 10 + (c - 48);
-            c = fgetc(file);
-        }
-        c = fgetc(file);
-        t = 0;
-        bool m3 = c == '-';
-        while (c != ',') {
-            if (c != '-')
-                t = t * 10 + (c - 48);
-            c = fgetc(file);
-        }
-        c = fgetc(file);
-        di = 0;
-        while (c != ',') {
-            di = di * 10 + (c - 48);
-            c = fgetc(file);
-        }
-        x = m1 ? -x : x;
-        y = m2 ? -y : y;
-        t = m3 ? -t : t;
-        item* i = create_item(x, y, t, di);
-        append(d, i);
-        c = fgetc(file);
-        c = fgetc(file);
-    }
+    int x, y, t, di;
+    while (fscanf(file, "%d,%d,%d,%d", &x, &y, &t, &di) == 4)
+        append(d, create_item(x, y, t, di));
 
     fclose(file);
 }
