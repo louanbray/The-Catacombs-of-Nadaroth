@@ -14,6 +14,8 @@
 #include "player.h"
 #include "render.h"
 
+#define CHAR_TO_INT 49
+
 // Function to set the terminal to raw mode
 void set_raw_mode() {
     struct termios t;
@@ -104,10 +106,10 @@ int compute_entry(int n, renderbuffer* screen, player* p) {
         move(screen, p, WEST);
     } else if (n == KEY_D_LOW || n == KEY_D_HIGH) {
         move(screen, p, EAST);
-    } else if (n >= 49 && n <= 57 /*1-9*/) {
-        select_slot(get_player_hotbar(p), n - 49);
+    } else if (n <= KEY_9 && n >= KEY_1) {
+        select_slot(get_player_hotbar(p), n - CHAR_TO_INT);
         render_hotbar(screen, get_player_hotbar(p));
-    } else if (n == 119 || n == 87 /*W-w*/) {
+    } else if (n == KEY_W_HIGH || n == KEY_W_LOW) {
         drop(get_player_hotbar(p), get_selected_slot(get_player_hotbar(p)));
         render_hotbar(screen, get_player_hotbar(p));
     } else {

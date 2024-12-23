@@ -42,7 +42,16 @@ void fill_furniture(chunk* c, int type) {
 void decorate(chunk* c, int x, int y) {
     int type = SPAWN;
     if (x != 0 || y != 0) {
-        type = SPAWN;  // TODO: DARK MAGIC
+        int t = rand() % 2;
+        switch (t) {
+            case 1:
+                type = DEFAULT;
+                break;
+
+            default:
+                type = DEFAULT2;  // TODO: DARK MAGIC
+                break;
+        }
     }
     fill_furniture(c, type);
 }

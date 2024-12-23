@@ -7,7 +7,8 @@
 /// @brief chunk type (0,0) -> SPAWN
 enum ChunkType {
     SPAWN,
-    DEFAULT
+    DEFAULT,
+    DEFAULT2,
 };
 
 /// @brief Get and add the chunk decoration based on its type

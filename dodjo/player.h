@@ -13,6 +13,10 @@
 #define KEY_S_HIGH 83
 #define KEY_D_LOW 100
 #define KEY_D_HIGH 68
+#define KEY_W_LOW 119
+#define KEY_W_HIGH 87
+#define KEY_1 49
+#define KEY_9 57
 #define KEY_ARROW_UP 65
 #define KEY_ARROW_DOWN 66
 #define KEY_ARROW_RIGHT 67
