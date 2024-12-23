@@ -24,7 +24,7 @@ int get_direction(int x, int y) {
     return 0;
 }
 
-bool handle(player* p, int x, int y) {
+int handle(player* p, int x, int y) {
     chunk* ck = get_player_chunk(p);
     hm* h = get_chunk_furniture_coords(ck);
     item* i = get_hm(h, x, y);
@@ -32,18 +32,18 @@ bool handle(player* p, int x, int y) {
         switch (get_item_type(i)) {
             case GATE:
                 move_player_chunk(p, get_direction(x, y));
-                return false;
+                return 1;
                 break;
             case SGATE:
                 move_player_chunk(p, STARGATE);
-                return false;
+                return 1;
                 break;
             default:
-                return false;
+                return 2;
                 break;
         }
     }
-    return true;
+    return 0;
 }
 
 bool is_in_box(int x, int y) {

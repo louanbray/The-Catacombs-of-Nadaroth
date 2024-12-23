@@ -8,7 +8,7 @@
 /// @param x player next x
 /// @param y player next y
 /// @return true if can move else return false
-bool handle(player* p, int x, int y);
+int handle(player* p, int x, int y);
 
 /// @brief Check if coords are in chunk bounds
 /// @param x pos x

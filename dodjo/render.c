@@ -131,4 +131,5 @@ void update_screen(board b) {
         swprintf(&buffer[0], s, &b[i][0]);
         wprintf(L"%ls\n", buffer);
     }
+    fflush(stdout);
 }

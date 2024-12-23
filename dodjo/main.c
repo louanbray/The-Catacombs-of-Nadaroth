@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <fcntl.h>
 #include <locale.h>
 #include <poll.h>
 #include <stdlib.h>
@@ -13,39 +14,39 @@
 #include "player.h"
 #include "render.h"
 
-/// @brief Get input char, return immediatly
-/// @return return char typed
-int getch() {
-    int acquisition_time = 50;
-    int ch;
-    struct termios oldattr, newattr;
+// Function to set the terminal to raw mode
+void set_raw_mode() {
+    struct termios t;
 
-    if (tcgetattr(STDIN_FILENO, &oldattr) != 0) {
+    // Get the current terminal attributes
+    if (tcgetattr(STDIN_FILENO, &t) < 0) {
         perror("tcgetattr");
+        exit(EXIT_FAILURE);
     }
 
-    newattr = oldattr;
-    newattr.c_lflag &= ~(ICANON | ECHO);
-    newattr.c_cc[VMIN] = 1;
-    newattr.c_cc[VTIME] = 0;
+    // Modify the terminal attributes for raw mode
+    t.c_lflag &= ~(ICANON | ECHO);  // Disable canonical mode and echo
+    t.c_cc[VMIN] = 0;               // Minimum number of characters to read
+    t.c_cc[VTIME] = 0;              // Timeout (deciseconds) for read
 
-    if (tcsetattr(STDIN_FILENO, TCSANOW, &newattr) != 0) {
+    // Set the modified attributes
+    if (tcsetattr(STDIN_FILENO, TCSANOW, &t) < 0) {
         perror("tcsetattr");
+        exit(EXIT_FAILURE);
     }
-    struct pollfd mypoll = {STDIN_FILENO, POLLIN | POLLPRI, POLLOUT};
+}
 
-    if (poll(&mypoll, 1, acquisition_time) > 0) {
-        ch = getchar();
-    } else if (errno != 0) {
-        perror("poll");
+// Function to set the file descriptor to non-blocking mode
+void set_nonblocking_mode(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) {
+        perror("fcntl F_GETFL");
+        exit(EXIT_FAILURE);
     }
-
-    tcflush(STDIN_FILENO, TCIFLUSH);
-
-    if (tcsetattr(STDIN_FILENO, TCSANOW, &oldattr) != 0) {
-        perror("tcsetattr");
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        perror("fcntl F_SETFL");
+        exit(EXIT_FAILURE);
     }
-    return ch;
 }
 
 /// @brief Handle the player movement and use the appropriate render
@@ -65,18 +66,43 @@ void move(board b, player* p, int dir) {
     }
 }
 
+int arrow_move(board b, player* p, int c) {
+    int k = 10000;
+    switch (c) {
+        case KEY_ARROW_UP:
+            move(b, p, NORTH);
+            k = 50000;
+            break;
+        case KEY_ARROW_DOWN:
+            move(b, p, SOUTH);
+            k = 50000;
+            break;
+        case KEY_ARROW_RIGHT:
+            move(b, p, EAST);
+            break;
+        case KEY_ARROW_LEFT:
+            move(b, p, WEST);
+            break;
+    }
+    update_screen(b);
+    return k;
+}
+
 /// @brief Handle the user keyboard entries
 /// @param n entry
 /// @param b board
 /// @param p player
-void compute_entry(int n, board b, player* p) {
-    if (n == 122 || n == 90 /*Z-z*/) {
+int compute_entry(int n, board b, player* p) {
+    int k = 10000;
+    if (n == KEY_Z_LOW || n == KEY_Z_HIGH) {
         move(b, p, NORTH);
-    } else if (n == 115 || n == 83 /*S-s*/) {
+        k = 50000;
+    } else if (n == KEY_S_LOW || n == KEY_S_HIGH) {
         move(b, p, SOUTH);
-    } else if (n == 113 || n == 81 /*Q-q*/) {
+        k = 50000;
+    } else if (n == KEY_Q_LOW || n == KEY_Q_HIGH) {
         move(b, p, WEST);
-    } else if (n == 100 || n == 68 /*D-d*/) {
+    } else if (n == KEY_D_LOW || n == KEY_D_HIGH) {
         move(b, p, EAST);
     } else if (n >= 49 && n <= 57 /*1-9*/) {
         select_slot(get_player_hotbar(p), n - 49);
@@ -85,17 +111,23 @@ void compute_entry(int n, board b, player* p) {
         drop(get_player_hotbar(p), get_selected_slot(get_player_hotbar(p)));
         render_hotbar(b, get_player_hotbar(p));
     } else {
-        return;
+        return 0;
     }
 
     update_screen(b);
+    return k;
 }
 
 /// @brief Where it all begins
 /// @return I dream of a 0
 int main() {
+    set_raw_mode();
+    set_nonblocking_mode(STDIN_FILENO);
+
     srand(time(NULL));
     setlocale(LC_CTYPE, "");
+    wprintf(L"\33[?25l");
+
     board b = new_screen();
     map* m = create_map();
 
@@ -107,15 +139,23 @@ int main() {
     render(b, m);
     update_screen(b);
 
-    item* i = create_item(0, 0, 0, 9733);
-    pickup(h, i);
+    item* it = create_item(0, 0, 0, 9733);
+    pickup(h, it);
 
-    int n = 0;
-    while (true) {  //? Can't put [ESC] char as it is also triggered by the arrows and I don't want the program to close because of an habit. TODO: other char
-        n = getch();
-        if (n != 0 && n != 7) {
-            printf("%d\n", n);  //! REQUIRED BUT WEIRD
-            compute_entry(n, b, p);
+    while (1) {
+        char buffer[10];
+        int n = read(STDIN_FILENO, buffer, sizeof(buffer));
+        int w = 10000;
+        if (n > 0) {
+            for (int i = 0; i < 3; i++) {
+                if (i > 1 && buffer[i - 1] == '[' && buffer[i - 2] == '\033') {
+                    w = arrow_move(b, p, buffer[i]);
+                    break;
+                } else if (i == 0)
+                    w = compute_entry(buffer[i], b, p);
+            }
         }
+        usleep(w);
     }
+    return EXIT_SUCCESS;
 }

@@ -83,12 +83,12 @@ int move_player(player* p, int dir) {
     int new_y = p->y + s * (dir - 1) % 2;
     if (!is_in_box(new_x, new_y))
         return 2;
-    if (handle(p, new_x, new_y)) {
+    int n = handle(p, new_x, new_y);
+    if (n == 0) {
         p->x = new_x;
         p->y = new_y;
-        return 0;
     }
-    return 1;
+    return n;
 }
 
 void move_player_chunk(player* p, int dir) {
