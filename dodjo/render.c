@@ -1,6 +1,8 @@
 #include "render.h"
 
 #include <locale.h>
+#include <omp.h>
+#include <string.h>
 
 #include "dynarray.h"
 #include "inventory.h"
@@ -8,7 +10,11 @@
 #include "map.h"
 #include "player.h"
 
-#define clear_screen() wprintf(L"\033[H\033[J")
+typedef struct renderbuffer {
+    board bd;
+    board pv;
+    int* rc;
+} renderbuffer;
 
 /// @brief Render Constants
 const int RENDER_WIDTH = 130;
@@ -16,17 +22,25 @@ const int RENDER_HEIGHT = 40;
 
 int abs(int x) { return x > 0 ? x : -x; }
 
-board new_screen() {
+/// @brief Create a board object
+/// @return board
+board create_board() {
+    wchar_t* data = malloc(sizeof(wchar_t) * RENDER_WIDTH * RENDER_HEIGHT);
     board b = malloc(sizeof(wchar_t*) * RENDER_HEIGHT);
     for (int i = 0; i < RENDER_HEIGHT; i++) {
-        wchar_t* row = malloc(sizeof(wchar_t) * RENDER_WIDTH);
-        b[i] = row;
+        b[i] = &data[i * RENDER_WIDTH];
     }
-    white_screen(b);
     return b;
 }
 
-void white_screen(board b) {
+void blank_screen(board b) {
+    for (int i = 0; i < RENDER_HEIGHT; i++) {
+        for (int j = 0; j < RENDER_WIDTH; j++) {
+            b[i][j] = ' ';
+        }
+    }
+}
+void default_screen(board b) {
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         for (int j = 0; j < RENDER_WIDTH; j++) {
             if (i > 0 && (j == 0 || j == RENDER_WIDTH - 1)) {
@@ -66,6 +80,31 @@ void white_screen(board b) {
     }
 }
 
+/// @brief Create the row changed flag array
+/// @return row changed array
+int* create_rc() {
+    return calloc(RENDER_HEIGHT, sizeof(int));
+}
+
+renderbuffer* create_screen() {
+    renderbuffer* r = malloc(sizeof(renderbuffer));
+
+    board b = create_board();
+    default_screen(b);
+
+    board pv = create_board();
+    blank_screen(pv);
+
+    r->bd = b;
+    r->pv = pv;
+    r->rc = create_rc();
+    return r;
+}
+
+board get_board(renderbuffer* r) {
+    return r->bd;
+}
+
 /// @brief Place char c on the board with center based coordinates
 /// @param b board
 /// @param x centered x pos
@@ -75,8 +114,9 @@ void render_char(board b, int x, int y, int c) {
     b[y + 1 + RENDER_HEIGHT / 2][x + RENDER_WIDTH / 2] = c;
 }
 
-void render_chunk(board b, chunk* c) {
+void render_chunk(renderbuffer* r, chunk* c) {
     dynarray* d = get_chunk_furniture_list(c);
+    board b = r->bd;
     for (int i = 0; i < len_dyn(d); i++) {
         item* it = get_dyn(d, i);
         render_char(b, get_item_x(it), get_item_y(it), get_item_display(it));
@@ -88,48 +128,89 @@ void render_chunk(board b, chunk* c) {
     render_char(b, -40, 14, get_chunk_y(c) + 48);
 }
 
-void render_player(board b, player* p) {
-    render_char(b, get_player_px(p), get_player_py(p), ' ');
-    render_char(b, get_player_x(p), get_player_y(p), get_player_design(p));
+void render_player(renderbuffer* r, player* p) {
+    render_char(r->bd, get_player_px(p), get_player_py(p), ' ');
+    render_char(r->bd, get_player_x(p), get_player_y(p), get_player_design(p));
 }
 
-void render_hotbar(board b, hotbar* h) {
+void render_hotbar(renderbuffer* r, hotbar* h) {
     int display = 57;
     for (int i = 0; i < get_hotbar_max_size(h); i++) {
         if (get_hotbar(h, i) == NULL) {
-            b[2][display] = ' ';
+            r->bd[2][display] = ' ';
         } else {
-            b[2][display] = get_item_display(get_hotbar(h, i));
+            r->bd[2][display] = get_item_display(get_hotbar(h, i));
         }
         if (get_selected_slot(h) == i) {
-            b[1][display] = 9651;
+            r->bd[1][display] = 9651;
         } else {
-            b[1][display] = ' ';
+            r->bd[1][display] = ' ';
         }
         display += 2;
     }
 }
 
-void render(board b, map* m) {
+void render(renderbuffer* r, map* m) {
     player* p = get_player(m);
-    render_from_player(b, p);
+    render_from_player(r, p);
 }
 
-void render_from_player(board b, player* p) {
+void render_from_player(renderbuffer* r, player* p) {
     chunk* curr = get_player_chunk(p);
-    white_screen(b);
-    render_chunk(b, curr);
-    render_player(b, p);
-    render_hotbar(b, get_player_hotbar(p));
+    default_screen(r->bd);
+    render_chunk(r, curr);
+    render_player(r, p);
+    render_hotbar(r, get_player_hotbar(p));
 }
 
-void update_screen(board b) {
-    clear_screen();
+/// @brief Print only modified parts of the screen based on the buffer
+/// @param r render buffer
+void update_screen_(renderbuffer* r) {
     for (int i = RENDER_HEIGHT - 1; i >= 0; i--) {
-        wchar_t buffer[RENDER_WIDTH + 2];
-        size_t s = 131;
-        swprintf(&buffer[0], s, &b[i][0]);
-        wprintf(L"%ls\n", buffer);
+        if (!r->rc[i]) continue;
+
+        int screen_row = RENDER_HEIGHT - i;
+        r->rc[i] = 0;
+        wchar_t buffer[RENDER_WIDTH + 1];
+        buffer[RENDER_WIDTH] = L'\0';  // Null-terminate the buffer
+
+        int start = -1;
+        for (int j = 0; j < RENDER_WIDTH; j++) {
+            if (r->bd[i][j] != r->pv[i][j]) {
+                if (start == -1) start = j;
+                buffer[j] = r->bd[i][j];
+                r->pv[i][j] = r->bd[i][j];
+            } else if (start != -1) {
+                buffer[j] = L'\0';
+                wprintf(L"\033[%d;%dH%ls", screen_row, start + 1, &buffer[start]);
+                start = -1;
+            }
+        }
+        if (start != -1) {
+            buffer[RENDER_WIDTH] = L'\0';
+            wprintf(L"\033[%d;%dH%ls", screen_row, start + 1, &buffer[start]);
+        }
     }
     fflush(stdout);
+}
+
+/// @brief Update changed rows between buffer arrays
+/// @param r render buffer
+void mark_changed_rows(renderbuffer* r) {
+#pragma omp parallel for
+    for (int i = 0; i < RENDER_HEIGHT; i++) {
+        int changed = 0;
+        for (int j = 0; j < RENDER_WIDTH; j++) {
+            if (r->bd[i][j] != r->pv[i][j]) {
+                changed = 1;
+                break;
+            }
+        }
+        r->rc[i] = changed;
+    }
+}
+
+void update_screen(renderbuffer* r) {
+    mark_changed_rows(r);
+    update_screen_(r);
 }

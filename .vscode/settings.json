@@ -107,6 +107,7 @@
     "piochée",
     "plateforme",
     "remplacer",
+    "renderbuffer",
     "STARGATE",
     "stocké",
     "Taux",
@@ -134,6 +135,10 @@
     "handler.h": "c",
     "player.h": "c",
     "generation.h": "c",
-    "parser.h": "c"
+    "parser.h": "c",
+    "inventory.h": "c",
+    "item.h": "c",
+    "string.h": "c",
+    "omp.h": "c"
   }
 }

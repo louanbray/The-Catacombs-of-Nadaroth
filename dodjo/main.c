@@ -53,38 +53,38 @@ void set_nonblocking_mode(int fd) {
 /// @param b board
 /// @param p player
 /// @param dir direction
-void move(board b, player* p, int dir) {
+void move(renderbuffer* screen, player* p, int dir) {
     switch (move_player(p, dir)) {
         case 1:
-            render_from_player(b, p);
+            render_from_player(screen, p);
             break;
         case 2:
             break;
         default:
-            render_player(b, p);
+            render_player(screen, p);
             break;
     }
 }
 
-int arrow_move(board b, player* p, int c) {
+int arrow_move(renderbuffer* screen, player* p, int c) {
     int k = 10000;
     switch (c) {
         case KEY_ARROW_UP:
-            move(b, p, NORTH);
+            move(screen, p, NORTH);
             k = 50000;
             break;
         case KEY_ARROW_DOWN:
-            move(b, p, SOUTH);
+            move(screen, p, SOUTH);
             k = 50000;
             break;
         case KEY_ARROW_RIGHT:
-            move(b, p, EAST);
+            move(screen, p, EAST);
             break;
         case KEY_ARROW_LEFT:
-            move(b, p, WEST);
+            move(screen, p, WEST);
             break;
     }
-    update_screen(b);
+    update_screen(screen);
     return k;
 }
 
@@ -92,29 +92,29 @@ int arrow_move(board b, player* p, int c) {
 /// @param n entry
 /// @param b board
 /// @param p player
-int compute_entry(int n, board b, player* p) {
+int compute_entry(int n, renderbuffer* screen, player* p) {
     int k = 10000;
     if (n == KEY_Z_LOW || n == KEY_Z_HIGH) {
-        move(b, p, NORTH);
-        k = 50000;
+        move(screen, p, NORTH);
+        k = 30000;
     } else if (n == KEY_S_LOW || n == KEY_S_HIGH) {
-        move(b, p, SOUTH);
-        k = 50000;
+        move(screen, p, SOUTH);
+        k = 30000;
     } else if (n == KEY_Q_LOW || n == KEY_Q_HIGH) {
-        move(b, p, WEST);
+        move(screen, p, WEST);
     } else if (n == KEY_D_LOW || n == KEY_D_HIGH) {
-        move(b, p, EAST);
+        move(screen, p, EAST);
     } else if (n >= 49 && n <= 57 /*1-9*/) {
         select_slot(get_player_hotbar(p), n - 49);
-        render_hotbar(b, get_player_hotbar(p));
+        render_hotbar(screen, get_player_hotbar(p));
     } else if (n == 119 || n == 87 /*W-w*/) {
         drop(get_player_hotbar(p), get_selected_slot(get_player_hotbar(p)));
-        render_hotbar(b, get_player_hotbar(p));
+        render_hotbar(screen, get_player_hotbar(p));
     } else {
         return 0;
     }
 
-    update_screen(b);
+    update_screen(screen);
     return k;
 }
 
@@ -125,10 +125,13 @@ int main() {
     set_nonblocking_mode(STDIN_FILENO);
 
     srand(time(NULL));
+
     setlocale(LC_CTYPE, "");
     wprintf(L"\33[?25l");
+    wprintf(L"\033[H\033[J");
 
-    board b = new_screen();
+    renderbuffer* screen = create_screen();
+
     map* m = create_map();
 
     player* p = create_player(m);
@@ -136,8 +139,8 @@ int main() {
 
     link_hotbar(p, h);
 
-    render(b, m);
-    update_screen(b);
+    render(screen, m);
+    update_screen(screen);
 
     item* it = create_item(0, 0, 0, 9733);
     pickup(h, it);
@@ -149,10 +152,10 @@ int main() {
         if (n > 0) {
             for (int i = 0; i < 3; i++) {
                 if (i > 1 && buffer[i - 1] == '[' && buffer[i - 2] == '\033') {
-                    w = arrow_move(b, p, buffer[i]);
+                    w = arrow_move(screen, p, buffer[i]);
                     break;
                 } else if (i == 0)
-                    w = compute_entry(buffer[i], b, p);
+                    w = compute_entry(buffer[i], screen, p);
             }
         }
         usleep(w);

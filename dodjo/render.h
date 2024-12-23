@@ -18,42 +18,53 @@ typedef struct map map;
 
 /// @brief Screen
 typedef wchar_t** board;
+/// @brief Render Buffer
+typedef struct renderbuffer renderbuffer;
 
 /// @brief Returns a white screen of const size
 /// @return board
-board new_screen();
+renderbuffer* create_screen();
+
+/// @brief Clear the board to the default board
+/// @param b board
+void default_screen(board b);
 
 /// @brief Clear the board
 /// @param b board
-void white_screen(board b);
+void blank_screen(board b);
+
+/// @brief Get the board from the render buffer
+/// @param r render buffer
+/// @return board
+board get_board(renderbuffer* r);
 
 /// @brief Modify the board to display the chunk (depending on the type)
 /// @param b board
 /// @param c chunk to display
-void render_chunk(board b, chunk* c);
+void render_chunk(renderbuffer* r, chunk* c);
 
 /// @brief Modify the board to display the player (if he moved, delete last pos)
 /// @param b board
 /// @param p player
-void render_player(board b, player* p);
+void render_player(renderbuffer* r, player* p);
 
 /// @brief Render hotbar
 /// @param b board
 /// @param h hotbar
-void render_hotbar(board b, hotbar* h);
+void render_hotbar(renderbuffer* r, hotbar* h);
 
 /// @brief Render the given map (chunk -> elements -> player)
 /// @param b board
 /// @param map map
-void render(board b, map* map);
+void render(renderbuffer* r, map* map);
 
 /// @brief Render the current chunk (chunk -> elements -> player)
 /// @param b board
 /// @param player player
-void render_from_player(board b, player* p);
+void render_from_player(renderbuffer* r, player* p);
 
 /// @brief Clear the output and print the board
 /// @param b board
-void update_screen(board b);
+void update_screen(renderbuffer* r);
 
 #endif
