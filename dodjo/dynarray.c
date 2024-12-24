@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include "item.h"
+
 typedef struct dynarray {
     element* elt;
     int len;

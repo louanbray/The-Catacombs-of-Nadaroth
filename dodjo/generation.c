@@ -55,3 +55,11 @@ void decorate(chunk* c, int x, int y) {
     }
     fill_furniture(c, type);
 }
+
+void remove_item(chunk* ck, item* i) {
+    if (i == NULL) return;
+    hm* h = ck->hashmap;
+    dynarray* d = ck->elements;
+    purge_hm(h, get_item_x(i), get_item_y(i));
+    set_dyn(d, get_item_index(i), NULL);
+}

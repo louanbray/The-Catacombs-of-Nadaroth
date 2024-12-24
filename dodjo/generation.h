@@ -58,4 +58,6 @@ int get_chunk_y(chunk* c);
 /// @param type new type
 void set_chunk_type(chunk* c, int type);
 
+void remove_item(chunk* ck, item* i);
+
 #endif

@@ -3,6 +3,7 @@
 #define ITEMS_H
 
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 /// @brief Item
@@ -13,6 +14,7 @@ enum ItemType {
     WALL,
     GATE,
     SGATE,
+    PICKABLE,
 };
 
 /// @brief Create item using given parameters
@@ -20,14 +22,14 @@ enum ItemType {
 /// @param y pos y
 /// @param type Type
 /// @return item
-item* create_item(int x, int y, int type, int display);
+item* create_item(int x, int y, int type, int display, int index);
 
 /// @brief Create item using given parameters with the specs based on his type
 /// @param x pos x
 /// @param y pos y
 /// @param type Type
 /// @return item
-item* generate_item(int x, int y, int type, int display);
+item* generate_item(int x, int y, int type, int display, int index);
 
 /// @brief Get item x
 /// @param i item
@@ -53,6 +55,10 @@ int get_item_display(item* i);
 /// @param i item
 /// @return spec array
 void* get_item_spec(item* i);
+
+int get_item_index(item* i);
+
+void set_item_index(item* i, int index);
 
 /// @brief Is item hidden (true if yes)
 /// @param i item
@@ -87,5 +93,7 @@ void set_item_spec(item* i, void* spec);
 /// @brief Free item
 /// @param i item
 void free_item(item* i);
+
+// void debug(char* str);
 
 #endif

@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "dynarray.h"
-#include "inventory.h"
 #include "item.h"
 #include "map.h"
 #include "player.h"
@@ -119,6 +118,7 @@ void render_chunk(renderbuffer* r, chunk* c) {
     board b = r->bd;
     for (int i = 0; i < len_dyn(d); i++) {
         item* it = get_dyn(d, i);
+        if (it == NULL) continue;
         render_char(b, get_item_x(it), get_item_y(it), get_item_display(it));
     }
 

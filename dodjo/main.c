@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <wchar.h>
 
-#include "inventory.h"
 #include "item.h"
 #include "map.h"
 #include "player.h"
@@ -61,6 +60,10 @@ void move(renderbuffer* screen, player* p, int dir) {
             render_from_player(screen, p);
             break;
         case 2:
+            break;
+        case 3:
+            render_hotbar(screen, get_player_hotbar(p));
+            render_player(screen, p);
             break;
         default:
             render_player(screen, p);
@@ -144,8 +147,8 @@ int main() {
     render(screen, m);
     update_screen(screen);
 
-    item* it = create_item(0, 0, 0, 9733);
-    pickup(h, it);
+    // item* it = create_item(0, 0, 0, 9733, -1);
+    // pickup(h, it);
 
     while (1) {
         char buffer[10];

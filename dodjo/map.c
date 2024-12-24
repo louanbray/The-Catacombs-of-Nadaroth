@@ -107,6 +107,8 @@ chunk* get_chunk_from(map* m, chunk* c1, int dir) {
 /// @param ck chunk to purge
 void purge_chunk(hm* m, chunk* ck) {
     //? Allow delete spawn ?
+    if (ck->x == 0 && ck->y == 0) return;
+
     purge_hm(m, ck->x, ck->y);
     for (int i = 0; i < 5; i++) {
         int s = i == 0 ? 0 : (i < 3 ? 1 : -1);
@@ -115,7 +117,7 @@ void purge_chunk(hm* m, chunk* ck) {
         }
     }
     free(ck->link);
-    // TODO : FREE ITEMS SPECS
+    //? : FREE ITEMS SPECS
     free_dyn(ck->elements);
     free_hm(ck->hashmap);
     free(ck);

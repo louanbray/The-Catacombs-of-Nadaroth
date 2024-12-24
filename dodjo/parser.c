@@ -12,9 +12,11 @@ void parse_chunk_file(dynarray* d, char* filename) {
         return;
     }
     int x, y, t, di, r;
+    int j = 0;
     while (fscanf(file, "%d,%d,%d,%d,%d", &x, &y, &t, &di, &r) == 5) {
         for (int i = 0; i < r; i++) {
-            append(d, create_item(x - i, y, t, di));
+            append(d, create_item(x - i, y, t, di, j));
+            j++;
         }
     }
 

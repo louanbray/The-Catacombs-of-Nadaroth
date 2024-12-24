@@ -65,6 +65,7 @@ void pickup(hotbar* h, item* e) {
 }
 
 void drop(hotbar* h, int index) {
+    if (h->items[index] == NULL) return;
     free_item(h->items[index]);
     h->items[index] = NULL;
     if (h->selected == index) {

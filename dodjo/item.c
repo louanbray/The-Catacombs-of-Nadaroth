@@ -3,16 +3,17 @@
 typedef struct item {
     int x, y, type;
     bool hidden, used;
-    int display;
+    int display, index;
     void* spec;
 } item;
 
-item* create_item(int x, int y, int type, int display) {
+item* create_item(int x, int y, int type, int display, int index) {
     item* i = malloc(sizeof(item));
     i->x = x;
     i->y = y;
     i->type = type;
     i->display = display;
+    i->index = index;
     return i;
 }
 
@@ -29,8 +30,8 @@ void specialize(item* i, int type) {
     }
 }
 
-item* generate_item(int x, int y, int type, int display) {
-    item* i = create_item(x, y, type, display);
+item* generate_item(int x, int y, int type, int display, int index) {
+    item* i = create_item(x, y, type, display, index);
     specialize(i, type);
     return i;
 }
@@ -49,6 +50,14 @@ int get_item_type(item* i) {
 
 int get_item_display(item* i) {
     return i->display;
+}
+
+int get_item_index(item* i) {
+    return i->index;
+}
+
+void set_item_index(item* i, int index) {
+    i->index = index;
 }
 
 void* get_item_spec(item* i) {
@@ -80,6 +89,25 @@ void set_item_spec(item* i, void* spec) {
 }
 
 void free_item(item* i) {
-    //? The free of the specs is to be handled separately
     free(i);
+    // item* it = (item*)i;
+    // if (i != NULL) {
+    //     if (it->spec != NULL) {
+    //         free(it->spec);
+    //     }
+    //     free(it);
+    // }
 }
+
+// void debug(char* str) {
+//     FILE* fptr;
+
+//     // Open a file in append mode
+//     fptr = fopen("filename.txt", "a");
+
+//     // Append some text to the file
+//     fprintf(fptr, "\n%s", str);
+
+//     // Close the file
+//     fclose(fptr);
+// }

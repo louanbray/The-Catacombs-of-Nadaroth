@@ -8,7 +8,7 @@ typedef struct player {
     int x, y, px, py;
     chunk* current_chunk;
     hotbar* hotbar;
-    int health;
+    int health, max_health;
     int design;
     char* name;
 } player;
@@ -27,6 +27,7 @@ player* create_player(map* m) {
     center_player(p);
     p->current_chunk = get_spawn(m);
     p->health = 1;
+    p->max_health = 1;
     p->hotbar = NULL;
     p->design = 3486;
     p->name = NULL;
@@ -71,6 +72,14 @@ int get_player_health(player* p) {
     return p->health;
 }
 
+int get_player_max_health(player* p) {
+    return p->max_health;
+}
+
+void set_player_max_health(player* p, unsigned int health) {
+    p->max_health = health;
+}
+
 void link_hotbar(player* p, hotbar* h) {
     p->hotbar = h;
 }
@@ -84,7 +93,7 @@ int move_player(player* p, int dir) {
     if (!is_in_box(new_x, new_y))
         return 2;
     int n = handle(p, new_x, new_y);
-    if (n == 0) {
+    if (n == 0 || n == 3) {
         p->x = new_x;
         p->y = new_y;
     }
@@ -102,4 +111,12 @@ void damage_player(player* p, int damage) {
         return;
     }
     p->health += -damage;
+}
+
+void heal_player(player* p, int heal) {
+    if (p->health + heal > p->max_health) {
+        p->health = p->max_health;
+        return;
+    }
+    p->health += heal;
 }

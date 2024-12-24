@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "inventory.h"
+
 #define KEY_Z_LOW 122
 #define KEY_Z_HIGH 90
 #define KEY_Q_LOW 113
@@ -81,6 +83,11 @@ char* get_player_name(player* p);
 /// @return health
 int get_player_health(player* p);
 
+/// @brief Return player max health
+/// @param p player
+/// @return health
+int get_player_max_health(player* p);
+
 /// @brief Link a hotbar to the player
 /// @param p player
 /// @param h
@@ -99,7 +106,17 @@ void move_player_chunk(player* p, int dir);
 
 /// @brief Damage the player health and set to 0 if dead
 /// @param p player
-/// @param damage damage (>=0)
+/// @param damage damage (>=0) else use heal
 void damage_player(player* p, int damage);
+
+/// @brief Heal the player and set to max if too high
+/// @param p player
+/// @param damage heal (>=0) else use heal
+void heal_player(player* p, int heal);
+
+/// @brief Change the player max health
+/// @param p player
+/// @param health new health
+void set_player_max_health(player* p, unsigned int health);
 
 #endif
