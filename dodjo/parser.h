@@ -5,7 +5,7 @@
 #include "item.h"
 
 /// @brief chunk type (0,0) -> SPAWN
-enum ChunkType {
+enum ChunkType {  //? MODIFY TO ADD LEVELS
     SPAWN,
     DEFAULT,
     DEFAULT2,

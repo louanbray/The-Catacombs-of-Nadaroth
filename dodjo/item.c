@@ -26,7 +26,7 @@ item* create_item(int x, int y, int type, int display, int index) {
 /// @param i item
 /// @param type type
 void specialize(item* i, int type) {
-    switch (type) {
+    switch (type) {  //? Modify to add different types of items
         default:
             i->hidden = false;
             i->used = false;

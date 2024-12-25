@@ -37,7 +37,7 @@ int handle(player* p, int x, int y) {
     item* i = get_hm(h, x, y);
     if (i != NULL) {
         if (is_item_hidden(i)) return 0;
-        switch (get_item_type(i)) {
+        switch (get_item_type(i)) {  //? Modify to an item-player interaction
             case GATE:
                 move_player_chunk(p, get_direction(x, y));
                 return 1;

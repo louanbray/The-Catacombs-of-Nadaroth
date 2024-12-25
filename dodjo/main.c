@@ -15,6 +15,41 @@
 
 #define CHAR_TO_INT 49
 
+static struct termios original_termios;  // Global to store original terminal settings
+
+/// @brief Save the current terminal settings
+void save_original_mode() {
+    if (tcgetattr(STDIN_FILENO, &original_termios) < 0) {
+        perror("tcgetattr");
+        exit(EXIT_FAILURE);
+    }
+}
+
+/// @brief Restore the terminal to its original mode
+void restore_terminal_mode() {
+    if (tcsetattr(STDIN_FILENO, TCSANOW, &original_termios) < 0) {
+        perror("tcsetattr");
+        exit(EXIT_FAILURE);
+    }
+    wprintf(L"\33[?25h");      // Re-enable cursor visibility
+    wprintf(L"\033[H\033[J");  // Clear the screen
+    fflush(stdout);
+}
+
+/// @brief Signal handler to restore terminal on unexpected termination
+void handle_signal(int signo) {
+    restore_terminal_mode();
+    exit(EXIT_FAILURE);
+}
+
+/// @brief Ensure restoration on program exit
+void setup_terminal_restoration() {
+    save_original_mode();
+    atexit(restore_terminal_mode);   // Ensure restoration on normal exit
+    signal(SIGINT, handle_signal);   // Handle Ctrl+C (SIGINT)
+    signal(SIGTERM, handle_signal);  // Handle termination signals
+}
+
 // Function to set the terminal to raw mode
 void set_raw_mode() {
     struct termios t;
@@ -126,6 +161,8 @@ int compute_entry(int n, renderbuffer* screen, player* p) {
 /// @brief Where it all begins
 /// @return I dream of a 0
 int main() {
+    setup_terminal_restoration();
+
     set_raw_mode();
     set_nonblocking_mode(STDIN_FILENO);
 
@@ -146,9 +183,6 @@ int main() {
 
     render(screen, m);
     update_screen(screen);
-
-    // item* it = create_item(0, 0, 0, 9733, -1);
-    // pickup(h, it);
 
     while (1) {
         char buffer[10];

@@ -10,7 +10,7 @@
 typedef struct item item;
 
 /// @brief item type
-enum ItemType {
+enum ItemType {  //? MODIFY to add different types of items
     WALL,
     GATE,
     SGATE,
@@ -86,7 +86,5 @@ void set_item_spec(item* i, void* spec);
 /// @brief Free item
 /// @param i item
 void free_item(item* i);
-
-// void debug(char* str);
 
 #endif

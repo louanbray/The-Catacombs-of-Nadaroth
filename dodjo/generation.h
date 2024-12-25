@@ -5,7 +5,7 @@
 #include "parser.h"
 
 /// @brief Gate position/type
-enum Direction {
+enum Direction {  //! DO NOT MODIFY
     STARGATE,
     EAST,
     NORTH,

@@ -22,6 +22,7 @@ void parse_chunk_file(dynarray* d, char* filename) {
     fclose(file);
 }
 
+//? TO ADD A LEVEL: modify
 void parse_chunk(dynarray* d, int type) {
     switch (type) {
         case SPAWN:
