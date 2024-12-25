@@ -26,8 +26,8 @@ player* create_player(map* m) {
     player* p = malloc(sizeof(player));
     center_player(p);
     p->current_chunk = get_spawn(m);
-    p->health = 1;
-    p->max_health = 1;
+    p->health = 3;
+    p->max_health = 3;
     p->hotbar = NULL;
     p->design = 3486;
     p->name = NULL;

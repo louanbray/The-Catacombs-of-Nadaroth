@@ -39,32 +39,37 @@ void blank_screen(board b);
 board get_board(renderbuffer* r);
 
 /// @brief Modify the board to display the chunk (depending on the type)
-/// @param b board
+/// @param r renderbuffer
 /// @param c chunk to display
 void render_chunk(renderbuffer* r, chunk* c);
 
 /// @brief Modify the board to display the player (if he moved, delete last pos)
-/// @param b board
+/// @param r renderbuffer
 /// @param p player
 void render_player(renderbuffer* r, player* p);
 
 /// @brief Render hotbar
-/// @param b board
+/// @param r renderbuffer
 /// @param h hotbar
 void render_hotbar(renderbuffer* r, hotbar* h);
 
+/// @brief Render player health
+/// @param r renderbuffer
+/// @param p
+void render_health(renderbuffer* r, player* p);
+
 /// @brief Render the given map (chunk -> elements -> player)
-/// @param b board
+/// @param r renderbuffer
 /// @param map map
 void render(renderbuffer* r, map* map);
 
 /// @brief Render the current chunk (chunk -> elements -> player)
-/// @param b board
+/// @param r renderbuffer
 /// @param player player
 void render_from_player(renderbuffer* r, player* p);
 
 /// @brief Clear the output and print the board
-/// @param b board
+/// @param r renderbuffer
 void update_screen(renderbuffer* r);
 
 #endif

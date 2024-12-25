@@ -77,6 +77,7 @@ void default_screen(board b) {
             }
         }
     }
+    swprintf(&b[2][2], 9, L"HEALTH: ");
 }
 
 /// @brief Create the row changed flag array
@@ -122,10 +123,8 @@ void render_chunk(renderbuffer* r, chunk* c) {
         render_char(b, get_item_x(it), get_item_y(it), get_item_display(it));
     }
 
-    render_char(b, -41, 15, 'x');
-    render_char(b, -41, 14, 'y');
-    render_char(b, -40, 15, get_chunk_x(c) + 48);
-    render_char(b, -40, 14, get_chunk_y(c) + 48);
+    swprintf(&b[38][2], 15, L"CHUNK X: %d ", get_chunk_x(c));
+    swprintf(&b[37][2], 15, L"CHUNK Y: %d ", get_chunk_y(c));
 }
 
 void render_player(renderbuffer* r, player* p) {
@@ -133,9 +132,24 @@ void render_player(renderbuffer* r, player* p) {
     render_char(r->bd, get_player_x(p), get_player_y(p), get_player_design(p));
 }
 
+void render_health(renderbuffer* r, player* p) {
+    int display = 10;
+    int health = get_player_health(p);
+    int max_health = get_player_max_health(p);
+    for (int i = 0; i < max_health; i++) {
+        if (i < health) {
+            r->bd[2][display] = 9829;
+        } else {
+            r->bd[2][display] = 9825;
+        }
+        display += 2;
+    }
+}
+
 void render_hotbar(renderbuffer* r, hotbar* h) {
     int display = 57;
-    for (int i = 0; i < get_hotbar_max_size(h); i++) {
+    int ms = get_hotbar_max_size(h);
+    for (int i = 0; i < ms; i++) {
         if (get_hotbar(h, i) == NULL) {
             r->bd[2][display] = ' ';
         } else {
@@ -161,6 +175,7 @@ void render_from_player(renderbuffer* r, player* p) {
     render_chunk(r, curr);
     render_player(r, p);
     render_hotbar(r, get_player_hotbar(p));
+    render_health(r, p);
 }
 
 /// @brief Print only modified parts of the screen based on the buffer
