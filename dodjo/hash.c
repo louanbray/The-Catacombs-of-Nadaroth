@@ -1,8 +1,11 @@
 #include "hash.h"
 
+#include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-/// @brief Bucketlist
+/// @brief Bucket list
 typedef struct list {
     int x, y;
     element_h ck;
@@ -27,10 +30,10 @@ int hash(int h, int x, int y) {
 }
 
 hm* create_hashmap() {
-    hm* ht = malloc(sizeof(hm));
+    hm* ht = (hm*)malloc(sizeof(hm));
     ht->length = 100;
     ht->nb_e = 0;
-    ht->hash_map = calloc(ht->length, sizeof(list*));
+    ht->hash_map = (list**)calloc(ht->length, sizeof(list*));
     ht->max_collide = 5;
     return ht;
 }
@@ -45,7 +48,6 @@ int len_hm(hm* t) {
 
 element_h get_hm(hm* t, int x, int y) {
     int index = hash(t->length, x, y);
-
     list* hd = t->hash_map[index];
     while (hd != NULL) {
         if (hd->x == x && hd->y == y) {
@@ -56,11 +58,11 @@ element_h get_hm(hm* t, int x, int y) {
     return NULL;
 }
 
-/// @brief Used to update bucket list
-/// @param cell bucketlist cell
-/// @param x chunk x
-/// @param y chunk y
-/// @param val element_h (value)
+/// @brief Set a cell in the bucket list
+/// @param cell Bucket list cell
+/// @param x X-coordinate
+/// @param y Y-coordinate
+/// @param val Element value
 void setCell(list* cell, int x, int y, element_h val) {
     cell->x = x;
     cell->y = y;
@@ -68,10 +70,10 @@ void setCell(list* cell, int x, int y, element_h val) {
     cell->next = NULL;
 }
 
-/// @brief Check if resize needed (collisions in a bucket > max_collisions)
-/// @param t hashmap*
-/// @param l current bucketlist
-/// @return true if resize needed
+/// @brief Check if resizing is needed
+/// @param t Hash map
+/// @param l Current bucket list
+/// @return True if resizing is needed
 bool check_resize(hm* t, list* l) {
     int i = 0;
     while (l != NULL) {
@@ -81,36 +83,26 @@ bool check_resize(hm* t, list* l) {
     return i > t->max_collide;
 }
 
-/// @brief Resize hashmap with 2* pool length
-/// @param t hashmap*
+/// @brief Resize the hash map to twice its capacity
+/// @param t Hash map
 void resize_hm(hm* t) {
     list** old = t->hash_map;
-    int len = t->length;
-    t->hash_map = calloc(len * 2, sizeof(list*));
-    t->length = len * 2;
-    for (int i = 0; i < len; i++) {
+    int old_length = t->length;
+    t->length = old_length * 2;
+    t->hash_map = (list**)calloc(t->length, sizeof(list*));
+
+    for (int i = 0; i < old_length; i++) {
         list* l = old[i];
         while (l != NULL) {
             int index = hash(t->length, l->x, l->y);
-            list* l2 = malloc(sizeof(list));
-
+            list* l2 = (list*)malloc(sizeof(list));
             setCell(l2, l->x, l->y, l->ck);
-            l2->next = NULL;
-            if (t->hash_map[index] == NULL) {
-                t->hash_map[index] = l2;
-            } else {
-                l2->next = t->hash_map[index];
-                t->hash_map[index] = l2;
-            }
+            l2->next = t->hash_map[index];
+            t->hash_map[index] = l2;
+
+            list* temp = l;
             l = l->next;
-        }
-    }
-    for (int i = 0; i < len; i++) {
-        list* l3 = old[i];
-        while (l3 != NULL) {
-            list* k = l3;
-            l3 = l3->next;
-            free(k);
+            free(temp);
         }
     }
     free(old);
@@ -118,20 +110,15 @@ void resize_hm(hm* t) {
 
 void set_hm(hm* t, int x, int y, element_h e) {
     int index = hash(t->length, x, y);
-    list* l = malloc(sizeof(list));
-
+    list* l = (list*)malloc(sizeof(list));
     setCell(l, x, y, e);
-    l->next = NULL;
-    if (t->hash_map[index] == NULL) {
-        t->hash_map[index] = l;
-    } else {
-        l->next = t->hash_map[index];
-        t->hash_map[index] = l;
-        if (check_resize(t, l)) {
-            resize_hm(t);
-        }
+    l->next = t->hash_map[index];
+    t->hash_map[index] = l;
+
+    if (check_resize(t, l)) {
+        resize_hm(t);
     }
-    t->nb_e += 1;
+    t->nb_e++;
 }
 
 void purge_hm(hm* t, int x, int y) {
@@ -140,14 +127,15 @@ void purge_hm(hm* t, int x, int y) {
     list* curr = t->hash_map[index];
 
     while (curr != NULL) {
-        if (x == curr->x && y == curr->y) {
-            if (curr == t->hash_map[index]) {
+        if (curr->x == x && curr->y == y) {
+            if (prev == NULL) {
                 t->hash_map[index] = curr->next;
             } else {
                 prev->next = curr->next;
             }
-            t->nb_e += -1;
-            break;
+            free(curr);
+            t->nb_e--;
+            return;
         }
         prev = curr;
         curr = curr->next;
@@ -158,9 +146,9 @@ void free_hm(hm* t) {
     for (int i = 0; i < t->length; i++) {
         list* l = t->hash_map[i];
         while (l != NULL) {
-            list* k = l;
+            list* temp = l;
             l = l->next;
-            free(k);
+            free(temp);
         }
     }
     free(t->hash_map);
@@ -171,9 +159,9 @@ void print_hm(hm* t) {
     for (int i = 0; i < t->length; i++) {
         list* l = t->hash_map[i];
         if (l != NULL) {
-            printf("hash: %d [", i);
+            printf("hash: %d, (len: %d) [", i, t->nb_e);
             while (l != NULL) {
-                printf("x: %d, y: %d, chunk: %p | ", l->x, l->y, l->ck);
+                printf("x: %d, y: %d, chunk: %p | ", l->x, l->y, (void*)l->ck);
                 l = l->next;
             }
             printf("]\n");

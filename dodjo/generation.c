@@ -23,11 +23,13 @@ void set_chunk_type(chunk* ck, int type) {
 /// @brief Copy the content of the items dynarrray to put it into the hashmap
 /// @param c chunk
 void fill_chunk_hm_from_dyn(chunk* c) {
-    dynarray* dyn = get_chunk_furniture_list(c);
-    hm* hashmap = get_chunk_furniture_coords(c);
+    dynarray* dyn = c->elements;
+    hm* hashmap = c->hashmap;
     for (int i = 0; i < len_dyn(dyn); i++) {
-        void* e = get_dyn(dyn, i);
-        set_hm(hashmap, get_item_x(e), get_item_y(e), e);
+        item* e = get_dyn(dyn, i);
+        if (e != NULL) {
+            set_hm(hashmap, get_item_x(e), get_item_y(e), e);
+        }
     }
 }
 
@@ -35,7 +37,7 @@ void fill_chunk_hm_from_dyn(chunk* c) {
 /// @param c chunk
 /// @param type type
 void fill_furniture(chunk* c, int type) {
-    parse_chunk(get_chunk_furniture_list(c), type);
+    parse_chunk(c->elements, type);
     fill_chunk_hm_from_dyn(c);
 }
 
@@ -53,6 +55,7 @@ void decorate(chunk* c, int x, int y) {
                 break;
         }
     }
+    c->type = type;
     fill_furniture(c, type);
 }
 

@@ -17,13 +17,6 @@ enum ItemType {
     PICKABLE,
 };
 
-/// @brief Create item using given parameters
-/// @param x pos x
-/// @param y pos y
-/// @param type Type
-/// @return item
-item* create_item(int x, int y, int type, int display, int index);
-
 /// @brief Create item using given parameters with the specs based on his type
 /// @param x pos x
 /// @param y pos y

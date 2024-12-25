@@ -7,6 +7,11 @@ typedef struct item {
     void* spec;
 } item;
 
+/// @brief Create item using given parameters
+/// @param x pos x
+/// @param y pos y
+/// @param type Type
+/// @return item
 item* create_item(int x, int y, int type, int display, int index) {
     item* i = malloc(sizeof(item));
     i->x = x;
@@ -89,25 +94,8 @@ void set_item_spec(item* i, void* spec) {
 }
 
 void free_item(item* i) {
+    if (i->spec != NULL) {
+        free(i->spec);
+    }
     free(i);
-    // item* it = (item*)i;
-    // if (i != NULL) {
-    //     if (it->spec != NULL) {
-    //         free(it->spec);
-    //     }
-    //     free(it);
-    // }
 }
-
-// void debug(char* str) {
-//     FILE* fptr;
-
-//     // Open a file in append mode
-//     fptr = fopen("filename.txt", "a");
-
-//     // Append some text to the file
-//     fprintf(fptr, "\n%s", str);
-
-//     // Close the file
-//     fclose(fptr);
-// }
