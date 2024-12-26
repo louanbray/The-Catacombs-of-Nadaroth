@@ -25,6 +25,9 @@ void parse_chunk_file(dynarray* d, char* filename) {
 //? TO ADD A LEVEL: modify
 void parse_chunk(dynarray* d, int type) {
     switch (type) {
+        case LABY:
+            parse_chunk_file(d, "assets/chunk_laby1.dodjo");
+            break;
         case SPAWN:
             parse_chunk_file(d, "assets/chunk_spawn.dodjo");
             break;

@@ -20,8 +20,8 @@ typedef chunk** chunk_link;
 /// @brief Chunk
 typedef struct chunk {
     chunk_link link;
-    int x;
-    int y;
+    int x, spawn_x;
+    int y, spawn_y;
     int type;
     dynarray* elements;
     hm* hashmap;
@@ -52,6 +52,16 @@ int get_chunk_x(chunk* c);
 /// @param c chunk
 /// @return y
 int get_chunk_y(chunk* c);
+
+/// @brief Get chunk spawn pos x
+/// @param c chunk
+/// @return spawn x
+int get_chunk_spawn_x(chunk* c);
+
+/// @brief Get chunk spawn pos y
+/// @param c chunk
+/// @return spawn y
+int get_chunk_spawn_y(chunk* c);
 
 /// @brief Change the chunk type
 /// @param c chunk

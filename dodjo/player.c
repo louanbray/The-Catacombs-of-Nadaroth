@@ -16,15 +16,14 @@ typedef struct player {
 /// @brief Set player pos to chunk center
 /// @param p
 void center_player(player* p) {
-    p->x = 0;
-    p->y = 0;
-    p->px = 0;
-    p->py = 0;
+    p->x = get_chunk_spawn_x(p->current_chunk);
+    p->y = get_chunk_spawn_y(p->current_chunk);
+    p->px = p->x;
+    p->py = p->y;
 }
 
 player* create_player(map* m) {
     player* p = malloc(sizeof(player));
-    center_player(p);
     p->current_chunk = get_spawn(m);
     p->health = 3;
     p->max_health = 3;
@@ -32,6 +31,7 @@ player* create_player(map* m) {
     p->design = 3486;
     p->name = NULL;
     p->map = m;
+    center_player(p);
     set_map_player(m, p);
     return p;
 }
@@ -101,8 +101,8 @@ int move_player(player* p, int dir) {
 }
 
 void move_player_chunk(player* p, int dir) {
-    center_player(p);
     p->current_chunk = get_chunk_from(p->map, p->current_chunk, dir);
+    center_player(p);
 }
 
 void damage_player(player* p, int damage) {

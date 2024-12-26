@@ -16,6 +16,14 @@ int get_chunk_y(chunk* c) {
     return c->y;
 }
 
+int get_chunk_spawn_x(chunk* c) {
+    return c->spawn_x;
+}
+
+int get_chunk_spawn_y(chunk* c) {
+    return c->spawn_y;
+}
+
 void set_chunk_type(chunk* ck, int type) {
     ck->type = type;
 }
@@ -43,9 +51,16 @@ void fill_furniture(chunk* c, int type) {
 
 void decorate(chunk* c, int x, int y) {
     int type = SPAWN;
+    int spawn_x = 0;
+    int spawn_y = 0;
     if (x != 0 || y != 0) {
-        int t = rand() % 2;  //? MODIFY TO ADD A LEVEL (% Number of types)
+        int t = rand() % 3;  //? MODIFY TO ADD A LEVEL (% Number of types)
         switch (t) {
+            case 2:
+                spawn_x = -63;
+                spawn_y = 15;
+                type = LABY;
+                break;
             case 1:
                 type = DEFAULT;
                 break;
@@ -55,6 +70,8 @@ void decorate(chunk* c, int x, int y) {
         }
     }
     c->type = type;
+    c->spawn_x = spawn_x;
+    c->spawn_y = spawn_y;
     fill_furniture(c, type);
 }
 

@@ -9,6 +9,7 @@ enum ChunkType {  //? MODIFY TO ADD LEVELS
     SPAWN,
     DEFAULT,
     DEFAULT2,
+    LABY,
 };
 
 /// @brief Get and add the chunk decoration based on its type
