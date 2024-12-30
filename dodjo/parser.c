@@ -12,13 +12,11 @@ void parse_chunk_file(dynarray* d, char* filename) {
         return;
     }
     int x, y, type, display, row_repeat, size, col_repeat;
-    int item_index = 0;
     while (fscanf(file, "%d,%d,%d,%d,%d,%d,%d", &x, &y, &type, &display, &row_repeat, &size, &col_repeat) == 7) {
         for (int i = 0; i < row_repeat; i++) {
             for (int j = 0; j < col_repeat; j++) {
-                append(d, generate_item(x - (1 + size) * i, y - j, type, display, item_index));
+                append(d, generate_item(x - (1 + size) * i, y - j, type, display, len_dyn(d)));
             }
-            item_index++;
         }
     }
     fclose(file);
