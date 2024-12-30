@@ -51,16 +51,16 @@ void fill_furniture(chunk* c, int type) {
 
 void decorate(chunk* c, int x, int y) {
     int type = SPAWN;
-    int spawn_x = 0;
+    int spawn_x = 1;  //! TO CENTER THE PLAYER
     int spawn_y = 0;
     if (x != 0 || y != 0) {
-        int t = rand() % 3;  //? MODIFY TO ADD A LEVEL (% Number of types)
+        int t = rand() % 2;  //? MODIFY TO ADD A LEVEL (% Number of types)
         switch (t) {
-            case 2:
-                spawn_x = -63;
-                spawn_y = 15;
-                type = LABY;
-                break;
+            // case ?:
+            //     spawn_x = ?;
+            //     spawn_y = ?;
+            //     type = DUMMY;
+            //     break;
             case 1:
                 type = DEFAULT;
                 break;

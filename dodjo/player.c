@@ -88,7 +88,7 @@ int move_player(player* p, int dir) {
     int s = dir < 3 ? 1 : -1;
     p->px = p->x;
     p->py = p->y;
-    int new_x = p->x + dir % 2 * s;
+    int new_x = p->x + (dir % 2 * s) * 2;
     int new_y = p->y + s * (dir - 1) % 2;
     if (!is_in_box(new_x, new_y))
         return 2;

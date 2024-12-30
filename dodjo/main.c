@@ -106,16 +106,13 @@ void move(renderbuffer* screen, player* p, int dir) {
     }
 }
 
-int arrow_move(renderbuffer* screen, player* p, int c) {
-    int k = 10000;
+void arrow_move(renderbuffer* screen, player* p, int c) {
     switch (c) {
         case KEY_ARROW_UP:
             move(screen, p, NORTH);
-            k = 50000;
             break;
         case KEY_ARROW_DOWN:
             move(screen, p, SOUTH);
-            k = 50000;
             break;
         case KEY_ARROW_RIGHT:
             move(screen, p, EAST);
@@ -125,21 +122,17 @@ int arrow_move(renderbuffer* screen, player* p, int c) {
             break;
     }
     update_screen(screen);
-    return k;
 }
 
 /// @brief Handle the user keyboard entries
 /// @param n entry
 /// @param b board
 /// @param p player
-int compute_entry(int n, renderbuffer* screen, player* p) {
-    int k = 10000;
+void compute_entry(int n, renderbuffer* screen, player* p) {
     if (n == KEY_Z_LOW || n == KEY_Z_HIGH) {
         move(screen, p, NORTH);
-        k = 30000;
     } else if (n == KEY_S_LOW || n == KEY_S_HIGH) {
         move(screen, p, SOUTH);
-        k = 30000;
     } else if (n == KEY_Q_LOW || n == KEY_Q_HIGH) {
         move(screen, p, WEST);
     } else if (n == KEY_D_LOW || n == KEY_D_HIGH) {
@@ -151,11 +144,10 @@ int compute_entry(int n, renderbuffer* screen, player* p) {
         drop(get_player_hotbar(p), get_selected_slot(get_player_hotbar(p)));
         render_hotbar(screen, get_player_hotbar(p));
     } else {
-        return 0;
+        return;
     }
 
     update_screen(screen);
-    return k;
 }
 
 /// @brief Where it all begins
@@ -187,17 +179,16 @@ int main() {
     while (1) {
         char buffer[10];
         int n = read(STDIN_FILENO, buffer, sizeof(buffer));
-        int w = 10000;
         if (n > 0) {
             for (int i = 0; i < 3; i++) {
                 if (i > 1 && buffer[i - 1] == '[' && buffer[i - 2] == '\033') {
-                    w = arrow_move(screen, p, buffer[i]);
+                    arrow_move(screen, p, buffer[i]);
                     break;
                 } else if (i == 0)
-                    w = compute_entry(buffer[i], screen, p);
+                    compute_entry(buffer[i], screen, p);
             }
         }
-        usleep(w);
+        usleep(10000);
     }
     return EXIT_SUCCESS;
 }

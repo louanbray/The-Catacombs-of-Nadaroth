@@ -16,7 +16,7 @@ typedef struct renderbuffer {
 } renderbuffer;
 
 /// @brief Render Constants
-const int RENDER_WIDTH = 130;
+const int RENDER_WIDTH = 129;
 const int RENDER_HEIGHT = 40;
 
 int abs(int x) { return x > 0 ? x : -x; }
@@ -70,7 +70,7 @@ void default_screen(board b) {
                         b[i][j] = 9565;
                     }
                 }
-            } else if (i == 2 && (abs(RENDER_WIDTH / 2 - j) < 10 && j % 2 == 0)) {
+            } else if (i == 2 && (abs((RENDER_WIDTH + 1) / 2 - j) < 10 && j % 2 == 0)) {
                 b[i][j] = 9145;
             } else {
                 b[i][j] = ' ';
@@ -187,7 +187,7 @@ void update_screen_(renderbuffer* r) {
         int screen_row = RENDER_HEIGHT - i;
         r->rc[i] = 0;
         wchar_t buffer[RENDER_WIDTH + 1];
-        buffer[RENDER_WIDTH] = L'\0';  // Null-terminate the buffer
+        buffer[RENDER_WIDTH] = L'\0';
 
         int start = -1;
         for (int j = 0; j < RENDER_WIDTH; j++) {

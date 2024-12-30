@@ -11,12 +11,14 @@ void parse_chunk_file(dynarray* d, char* filename) {
         perror("Error opening file");
         return;
     }
-    int x, y, t, di, r;
-    int j = 0;
-    while (fscanf(file, "%d,%d,%d,%d,%d", &x, &y, &t, &di, &r) == 5) {
-        for (int i = 0; i < r; i++) {
-            append(d, generate_item(x - i, y, t, di, j));
-            j++;
+    int x, y, type, display, row_repeat, size, col_repeat;
+    int item_index = 0;
+    while (fscanf(file, "%d,%d,%d,%d,%d,%d,%d", &x, &y, &type, &display, &row_repeat, &size, &col_repeat) == 7) {
+        for (int i = 0; i < row_repeat; i++) {
+            for (int j = 0; j < col_repeat; j++) {
+                append(d, generate_item(x - (1 + size) * i, y - j, type, display, item_index));
+            }
+            item_index++;
         }
     }
     fclose(file);
@@ -25,9 +27,9 @@ void parse_chunk_file(dynarray* d, char* filename) {
 //? TO ADD A LEVEL: modify
 void parse_chunk(dynarray* d, int type) {
     switch (type) {
-        case LABY:
-            parse_chunk_file(d, "assets/chunk_laby1.dodjo");
-            break;
+        // case DUMMY:
+        //     parse_chunk_file(d, "assets/DUMMY.dodjo");
+        //     break;
         case SPAWN:
             parse_chunk_file(d, "assets/chunk_spawn.dodjo");
             break;
