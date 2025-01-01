@@ -17,4 +17,11 @@ enum ChunkType {  //? MODIFY TO ADD LEVELS
 /// @param type chunk type
 void parse_chunk(dynarray* d, int type);
 
+// TODO: IMPLEMENT THE FOLLOWING METHODS
+
+/*
+void parse_item(...)
+void parse_entity(...)
+*/
+
 #endif

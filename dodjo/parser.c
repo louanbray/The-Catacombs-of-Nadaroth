@@ -26,16 +26,16 @@ void parse_chunk_file(dynarray* d, char* filename) {
 void parse_chunk(dynarray* d, int type) {
     switch (type) {
         // case DUMMY:
-        //     parse_chunk_file(d, "assets/DUMMY.dodjo");
+        //     parse_chunk_file(d, "assets/chunks/DUMMY.dodjo");
         //     break;
         case SPAWN:
-            parse_chunk_file(d, "assets/chunk_spawn.dodjo");
+            parse_chunk_file(d, "assets/chunks/spawn.dodjo");
             break;
         case DEFAULT2:
-            parse_chunk_file(d, "assets/chunk_default2.dodjo");
+            parse_chunk_file(d, "assets/chunks/default2.dodjo");
             break;
         default:
-            parse_chunk_file(d, "assets/chunk_default.dodjo");
+            parse_chunk_file(d, "assets/chunks/default.dodjo");
             break;
     }
 }

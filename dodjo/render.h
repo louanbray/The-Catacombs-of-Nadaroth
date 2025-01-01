@@ -72,4 +72,16 @@ void render_from_player(renderbuffer* r, player* p);
 /// @param r renderbuffer
 void update_screen(renderbuffer* r);
 
+// TODO: IMPLEMENT THE FOLLOWING METHODS
+
+/// @brief Display the board read on the given file //! MAYBE LATER DO A PRELOADING OF THE ASSETS TO PREVENT I/O SATURATION
+/// @param r renderbuffer
+/// @param filename the file you want to display the content of
+void display_interface(renderbuffer* r, char* filename);
+
+/// @brief Display the cinematic read on the given file //! BE CAREFUL OF THE FILE FORMAT
+/// @param r renderbuffer
+/// @param filename the file you want to display the content of
+void play_cinematic(renderbuffer* r, char* filename);
+
 #endif
