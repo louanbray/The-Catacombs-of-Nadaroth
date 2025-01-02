@@ -1,0 +1,24 @@
+# Le signe ~ sert à remplacer les fins de ligne écrites par des espaces et ainsi écraser ce qui était anciennement écrit    EOL~
+# Le DIÈSE permet de faire passer un temps de frame, on peu en mettre plusieurs d'affilée pour multiplier ce temps
+# Un ligne vide permet de conserver ce qui était anciennement écrit sur cette ligne
+Bonjour,~
+[INSERT NAME]~
+#
+Comment vas-tu ?~
+###
+Moi je vais super et toi ?~
+#
+[...]~
+#
+Prêt pour l'aventure ⍟ ?~
+#
+
+3...~
+#
+
+2...
+#
+
+1...
+#
+#

@@ -3,6 +3,7 @@
 #include <locale.h>
 #include <omp.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "dynarray.h"
 #include "item.h"
@@ -223,6 +224,81 @@ void mark_changed_rows(renderbuffer* r) {
         }
         r->rc[i] = changed;
     }
+}
+
+void display_interface(renderbuffer* r, char* filename) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return;
+    }
+
+    wchar_t buffer[RENDER_WIDTH - 1];
+    int i = 0;
+
+    while (fgetws(buffer, RENDER_WIDTH - 1, file) != NULL && i < RENDER_HEIGHT - 2) {
+        int a = 0;
+        for (int j = 0; j < RENDER_WIDTH - 2; j++) {
+            if (buffer[j] == '~') a = 1;
+            if (a == 1) buffer[j] = L' ';
+        }
+
+        swprintf(&r->bd[RENDER_HEIGHT - i - 2][1], RENDER_WIDTH - 1, L"%ls", buffer);
+        i++;
+    }
+
+    for (; i < RENDER_HEIGHT - 2; i++) {
+        for (int j = 0; j < RENDER_WIDTH - 1; j++) {
+            if (i != 35) {
+                buffer[j] = ' ';
+                wcsncpy(&r->bd[RENDER_HEIGHT - i - 2][1], buffer, RENDER_WIDTH - 2);
+            }
+        }
+    }
+
+    fclose(file);
+    update_screen(r);
+}
+
+void play_cinematic(renderbuffer* r, char* filename, int delay) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return;
+    }
+
+    wchar_t buffer[180];
+
+    int row = 0;
+
+    //* +4 pour gérer les \r \t \0 \n
+    while (fgetws(buffer, RENDER_WIDTH + 4, file) != NULL && row < RENDER_HEIGHT - 2) {
+        if (buffer[0] == '#') {
+            int timeout = 0;
+            for (; row < RENDER_HEIGHT - 2; row++) {
+                for (int j = 0; j < RENDER_WIDTH - 1; j++) {
+                    if (buffer[j] == '#') timeout++;
+                    buffer[j] = ' ';
+                }
+                if (row != 35) wcsncpy(&r->bd[RENDER_HEIGHT - row - 2][1], buffer, RENDER_WIDTH - 2);
+            }
+
+            row = 0;
+            update_screen(r);
+            usleep(delay * timeout);
+        } else {
+            int eol = 0;
+            for (int j = 0; j < RENDER_WIDTH - 2; j++) {
+                if (buffer[j] == '~') eol = 1;
+                if (eol == 1) buffer[j] = L' ';
+            }
+
+            swprintf(&r->bd[RENDER_HEIGHT - row - 2][1], RENDER_WIDTH - 1, L"%ls", buffer);
+            row++;
+        }
+    }
+
+    fclose(file);
 }
 
 void update_screen(renderbuffer* r) {
