@@ -1,8 +1,31 @@
-chars = {"V":[1,9608,0],
-         "U":[1,9600,0],
-         "D":[1,9604,0],
-         "S":[3,9055,1],
-         "T":[0,69,0]}
+from enum import IntEnum
+
+class Type(IntEnum): # Item Type
+    WALL = 0
+    GATE = 1
+    SGATE = 2
+    PICKABLE = 3
+
+class Size(IntEnum): # Space between identical items
+    COLLAPSE = 0
+    SPACED = 1
+
+class Sprite(IntEnum):
+    WALL = 69
+    STARGATE = 9055
+    VGATE = 9608
+    UGATE = 9600
+    DGATE = 9604
+
+CHUNK_WIDTH = 127 # RENDER_WIDTH - 2 for the walls
+CHUNK_HEIGHT = 35 # without the hotbar space
+
+items = {"V":[Type.GATE,Sprite.VGATE,Size.COLLAPSE],
+         "U":[Type.GATE,Sprite.UGATE,Size.COLLAPSE],
+         "D":[Type.GATE,Sprite.DGATE,Size.COLLAPSE],
+         "S":[Type.PICKABLE,Sprite.STARGATE,Size.SPACED],
+         "T":[Type.WALL,Sprite.WALL,Size.COLLAPSE]}
+
         #                                                               C
         #                                                               E
         #                                                               N
@@ -52,31 +75,33 @@ chunk =[" * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *UUUUUU * 
         #                                                               T
         #                                                               E
         #                                                               R
-for i in range(35):
-    t = 1
-    h = 1
-    row = []
-    row[:] = chunk[i]
-    for j in range(127):
-        if row[j] != ' ':
-            if row[j] == '*':
+
+if __name__ == "__main__":
+    for i in range(CHUNK_HEIGHT):
+        row_repeat = col_repeat = 1
+        
+        row = []
+        row[:] = chunk[i]
+        for j in range(CHUNK_WIDTH):
+            if row[j] == '*' or row[j] == ' ':
                 pass
-            elif j < 126-chars[row[j]][2] and row[j] == row[j+1+chars[row[j]][2]]:
-                t+=1              
+            elif j < CHUNK_WIDTH-1-items[row[j]][2] and row[j] == row[j+1+items[row[j]][2]]:
+                row_repeat += 1              
             else:
-                if i < 34 and t == 1:
-                    for k in range(34-i):
-                        orow = []
-                        orow[:] = chunk[i+1+k]
-                        if row[j] == orow[j]:
-                            h+=1
-                            orow[j] = ' '
-                            chunk[i+1+k] = "".join(orow)
+                if i < CHUNK_HEIGHT - 1 and row_repeat == 1:
+                    for k in range(CHUNK_HEIGHT - 1 - i):
+                        col = []
+                        col[:] = chunk[i+1+k]
+                        if row[j] == col[j]:
+                            col_repeat += 1
+                            col[j] = ' '
+                            chunk[i+1+k] = "".join(col)
                         else:
                             break
-                print(f"{j-63},{-i+17},{chars[row[j]][0]},{chars[row[j]][1]},{t},{chars[row[j]][2]},{h}", sep='\n')
-                t = 1
-                h = 1
+                print(f"{j-63},{-i+17},{items[row[j]][0]},{items[row[j]][1]},{row_repeat},{items[row[j]][2]},{col_repeat}") # X, Y, TYPE, DISPLAY CHAR, ROW REPEAT, SPACE, COL REPEAT
+                row_repeat = col_repeat = 1
+
+            
 '''for r in chunk:
     for i in range(len(r)):
         a = r[i]
@@ -84,3 +109,4 @@ for i in range(35):
             a = '*'
         print(a, sep='', end='')
     print('\n', sep='', end='')'''
+

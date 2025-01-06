@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <locale.h>
 #include <poll.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <termios.h>
 #include <time.h>
