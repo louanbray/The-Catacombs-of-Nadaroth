@@ -4,6 +4,7 @@
 #include <poll.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <string.h>
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
@@ -32,7 +33,8 @@ void restore_terminal_mode() {
         perror("tcsetattr");
         exit(EXIT_FAILURE);
     }
-    wprintf(L"\33[?25h");      // Re-enable cursor visibility
+    wprintf(L"\33[?25h");  // Re-enable cursor visibility
+    wprintf(L"\033[?1003l\033[?1006l");
     wprintf(L"\033[H\033[J");  // Clear the screen
     fflush(stdout);
 }
@@ -63,14 +65,10 @@ void set_raw_mode() {
 
     // Modify the terminal attributes for raw mode
     t.c_lflag &= ~(ICANON | ECHO);  // Disable canonical mode and echo
-    t.c_cc[VMIN] = 0;               // Minimum number of characters to read
+    t.c_cc[VMIN] = 1;               // Minimum number of characters to read
     t.c_cc[VTIME] = 0;              // Timeout (deciseconds) for read
 
-    // Set the modified attributes
-    if (tcsetattr(STDIN_FILENO, TCSANOW, &t) < 0) {
-        perror("tcsetattr");
-        exit(EXIT_FAILURE);
-    }
+    tcsetattr(STDIN_FILENO, TCSANOW, &t);
 }
 
 // Function to set the file descriptor to non-blocking mode
@@ -151,9 +149,8 @@ void compute_entry(int n, renderbuffer* screen, player* p) {
     update_screen(screen);
 }
 
-/// @brief Where it all begins
-/// @return I dream of a 0
-int main() {
+/// @brief Setup the terminal for display and inputs
+void init() {
     setup_terminal_restoration();
 
     set_raw_mode();
@@ -162,8 +159,65 @@ int main() {
     srand(time(NULL));
 
     setlocale(LC_CTYPE, "");
-    wprintf(L"\33[?25l");
-    wprintf(L"\033[H\033[J");
+    wprintf(L"\33[?25l");                // Disable cursor
+    wprintf(L"\033[H\033[J");            // Clear
+    wprintf(L"\033[?1003h\033[?1006h");  // Enable mouse motion events
+    fflush(stdout);
+}
+
+// // Function to draw a line using Bresenham's Algorithm
+// void draw_line(int x0, int y0, int x1, int y1, char symbol) {
+//     int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+//     int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+//     int err = dx + dy, e2;
+
+//     while (1) {
+//         wprintf(L"\033[%d;%dH%c", y0, x0, symbol);  // Move to (y0, x0) and draw symbol
+//         fflush(stdout);
+
+//         if (x0 == x1 && y0 == y1) break;  // Line complete
+//         e2 = 2 * err;
+//         if (e2 >= dy) {
+//             err += dy;
+//             x0 += sx;
+//         }
+//         if (e2 <= dx) {
+//             err += dx;
+//             y0 += sy;
+//         }
+//     }
+// }
+
+// Function to animate a projectile moving from (x0, y0) to (x1, y1)
+void animate_projectile(int x0, int y0, int x1, int y1, player* p, renderbuffer* screen) {
+    int x = 0, y = -101;
+    // wprintf(L"Mouse Event: Button Code = %d, X = %d, Y = %d\n", 1, x1, y1);
+    render_projectile(x0, y0, x1, y1, &x, &y, screen);
+
+    if (y != -101) {
+        item* it = get_hm(get_chunk_furniture_coords(get_player_chunk(p)), x, y);
+        if (it == NULL) return;
+        // wprintf(L"Target hit ! (%lc)", get_item_display(it));
+        fflush(stdout);
+    }
+    //! OK
+}
+
+void parse_sgr_mouse_event(char* buffer, int* target_x, int* target_y, int* left_click) {
+    int button, x, y;
+    char event_type;
+
+    if (sscanf(buffer, "\033[<%d;%d;%d%c", &button, &x, &y, &event_type) == 4) {
+        *left_click = (button & 0x03) == 0 && (event_type == 'M');
+        *target_x = x = (x / 2) * 2;
+        *target_y = y;
+    }
+}
+
+/// @brief Where it all begins
+/// @return I dream of a 0
+int main() {
+    init();
 
     renderbuffer* screen = create_screen();
 
@@ -177,19 +231,37 @@ int main() {
     render(screen, m);
     update_screen(screen);
 
+    // play_cinematic(screen, "assets/cinematics/example.dodjo", 5000000);
+
+    char buffer[32];
+    int target_x = 0, target_y = 1;  // Mouse target position
+    int last_x = 0, last_y = 1;
+    int left_click = 0;  // Flag for left click
     while (1) {
-        char buffer[10];
-        int n = read(STDIN_FILENO, buffer, sizeof(buffer));
-        if (n > 0) {
-            for (int i = 0; i < 3; i++) {
-                if (i > 1 && buffer[i - 1] == '[' && buffer[i - 2] == '\033') {
-                    arrow_move(screen, p, buffer[i]);
-                    break;
-                } else if (i == 0)
-                    compute_entry(buffer[i], screen, p);
+        memset(buffer, 0, sizeof(buffer));           // Clear the buffer
+        read(STDIN_FILENO, buffer, sizeof(buffer));  // Read input
+
+        if (buffer[0] == '\033') {  // Escape sequence detected
+            if (buffer[1] == '[' && buffer[2] == '<') {
+                wprintf(L"\033[?1003l\033[?1006l");
+                parse_sgr_mouse_event(buffer, &target_x, &target_y, &left_click);
+                if (left_click && (target_x != last_x || target_y != last_y)) {
+                    last_x = target_x;
+                    last_y = target_y;
+                    animate_projectile(get_player_x(p) + 65, -get_player_y(p) + 19, target_x, target_y, p, screen);
+                    left_click = 0;
+                }
+                wprintf(L"\033[?1003h\033[?1006h");
+                fflush(stdout);
+                // else {
+                //     draw_line(65, 20, target_x, target_y, '.');
+                // }
+            } else if (buffer[1] == '[') {
+                arrow_move(screen, p, buffer[2]);
             }
+        } else {
+            compute_entry(buffer[0], screen, p);
         }
-        usleep(10000);
     }
     return EXIT_SUCCESS;
 }

@@ -83,4 +83,5 @@ void display_interface(renderbuffer* r, char* filename);
 /// @param delay the delay between each frame
 void play_cinematic(renderbuffer* r, char* filename, int delay);
 
+void render_projectile(int x0, int y0, int x1, int y1, int* xt, int* yt, renderbuffer* r);
 #endif
