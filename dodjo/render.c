@@ -3,6 +3,7 @@
 #include <locale.h>
 #include <omp.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "dynarray.h"
@@ -178,7 +179,10 @@ void render_projectile(int x0, int y0, int x1, int y1, int* xt, int* yt, renderb
         if (x0 != xi || y0 != yi)
             wprintf(L"\033[%d;%dH*", y0, x0 * 2);  // Draw the projectile
         fflush(stdout);
-        usleep(16666);  // 60 FPS = 1/60 seconds = ~16.67ms
+        struct timespec ts;
+        ts.tv_sec = 0;
+        ts.tv_nsec = 16666667;  // 60 FPS = 1/60 seconds = ~16.67ms
+        clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
 
         if (x0 != xi || y0 != yi)
             wprintf(L"\033[%d;%dH ", y0, x0 * 2);  // Draw the projectile
@@ -195,8 +199,8 @@ void render_projectile(int x0, int y0, int x1, int y1, int* xt, int* yt, renderb
         }
     }
 
-    *xt = x0 - 65;
-    *yt = y0 - 19;
+    *xt = x0 * 2 - 65;
+    *yt = 19 - y0;
 }
 
 void render(renderbuffer* r, map* m) {

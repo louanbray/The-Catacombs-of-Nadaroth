@@ -19,25 +19,20 @@ item* create_item(int x, int y, int type, int display, int index) {
     i->type = type;
     i->display = display;
     i->index = index;
+    i->hidden = false;
+    i->used = false;
+    i->spec = NULL;
     return i;
 }
 
-/// @brief Complete the item specs depending on its type
-/// @param i item
-/// @param type type
-void specialize(item* i, int type) {
-    switch (type) {  //? Modify to add different types of items
-        default:
-            i->hidden = false;
-            i->used = false;
-            i->spec = NULL;
-            break;
-    }
+void specialize(item* i, bool used, bool hidden, void* spec) {
+    i->spec = spec;
+    i->used = used;
+    i->hidden = hidden;
 }
 
 item* generate_item(int x, int y, int type, int display, int index) {
     item* i = create_item(x, y, type, display, index);
-    specialize(i, type);
     return i;
 }
 

@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <locale.h>
 #include <poll.h>
+#include <pthread.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +19,13 @@
 #define CHAR_TO_INT 49
 
 static struct termios original_termios;  // Global to store original terminal settings
+
+// Struct to hold arguments for the thread
+typedef struct {
+    int x0, y0, x1, y1;
+    player* p;
+    renderbuffer* r;
+} RenderArgs;
 
 /// @brief Save the current terminal settings
 void save_original_mode() {
@@ -165,42 +173,39 @@ void init() {
     fflush(stdout);
 }
 
-// // Function to draw a line using Bresenham's Algorithm
-// void draw_line(int x0, int y0, int x1, int y1, char symbol) {
-//     int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
-//     int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-//     int err = dx + dy, e2;
-
-//     while (1) {
-//         wprintf(L"\033[%d;%dH%c", y0, x0, symbol);  // Move to (y0, x0) and draw symbol
-//         fflush(stdout);
-
-//         if (x0 == x1 && y0 == y1) break;  // Line complete
-//         e2 = 2 * err;
-//         if (e2 >= dy) {
-//             err += dy;
-//             x0 += sx;
-//         }
-//         if (e2 <= dx) {
-//             err += dx;
-//             y0 += sy;
-//         }
-//     }
-// }
-
 // Function to animate a projectile moving from (x0, y0) to (x1, y1)
 void animate_projectile(int x0, int y0, int x1, int y1, player* p, renderbuffer* screen) {
     int x = 0, y = -101;
-    // wprintf(L"Mouse Event: Button Code = %d, X = %d, Y = %d\n", 1, x1, y1);
     render_projectile(x0, y0, x1, y1, &x, &y, screen);
 
     if (y != -101) {
         item* it = get_hm(get_chunk_furniture_coords(get_player_chunk(p)), x, y);
         if (it == NULL) return;
-        // wprintf(L"Target hit ! (%lc)", get_item_display(it));
+        switch (get_item_type(it)) {
+            case ENEMY: {
+                enemy* e = get_item_spec(it);
+                e->hp -= 1;
+                if (e->hp <= 0) {
+                    remove_item(get_player_chunk(p), it);
+                    render_char(get_board(screen), x, y, ' ');
+                }
+                break;
+            }
+
+            default:
+                break;
+        }
+        update_screen(screen);
         fflush(stdout);
     }
     //! OK
+}
+
+void* animate_projectile_thread(void* args) {
+    RenderArgs* renderArgs = (RenderArgs*)args;
+    animate_projectile(renderArgs->x0, renderArgs->y0, renderArgs->x1, renderArgs->y1,
+                       renderArgs->p, renderArgs->r);
+    return NULL;
 }
 
 void parse_sgr_mouse_event(char* buffer, int* target_x, int* target_y, int* left_click) {
@@ -231,8 +236,6 @@ int main() {
     render(screen, m);
     update_screen(screen);
 
-    // play_cinematic(screen, "assets/cinematics/example.dodjo", 5000000);
-
     char buffer[32];
     int target_x = 0, target_y = 1;  // Mouse target position
     int last_x = 0, last_y = 1;
@@ -248,14 +251,17 @@ int main() {
                 if (left_click && (target_x != last_x || target_y != last_y)) {
                     last_x = target_x;
                     last_y = target_y;
-                    animate_projectile(get_player_x(p) + 65, -get_player_y(p) + 19, target_x, target_y, p, screen);
+                    RenderArgs args = {get_player_x(p) + 65, -get_player_y(p) + 19, target_x, target_y, p, screen};
+                    pthread_t thread_id;
+                    if (pthread_create(&thread_id, NULL, animate_projectile_thread, &args) != 0) {
+                        perror("Failed to create thread");
+                        return 1;
+                    }
+
                     left_click = 0;
                 }
                 wprintf(L"\033[?1003h\033[?1006h");
                 fflush(stdout);
-                // else {
-                //     draw_line(65, 20, target_x, target_y, '.');
-                // }
             } else if (buffer[1] == '[') {
                 arrow_move(screen, p, buffer[2]);
             }

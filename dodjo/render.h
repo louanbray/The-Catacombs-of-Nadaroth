@@ -38,6 +38,13 @@ void blank_screen(board b);
 /// @return board
 board get_board(renderbuffer* r);
 
+/// @brief Render a char on the board
+/// @param b board
+/// @param x x
+/// @param y y
+/// @param c char
+void render_char(board b, int x, int y, int c);
+
 /// @brief Modify the board to display the chunk (depending on the type)
 /// @param r renderbuffer
 /// @param c chunk to display

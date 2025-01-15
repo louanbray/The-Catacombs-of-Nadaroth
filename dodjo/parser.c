@@ -5,7 +5,7 @@
 /// @brief Read and parse the given file using the dodjo format to update the chunk decorations
 /// @param d Array of chunk decorations/items
 /// @param filename file to read
-void parse_chunk_file(dynarray* d, char* filename) {
+void parse_chunk_file(dynarray* d, const char* filename) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         perror("Error opening file");
@@ -15,7 +15,19 @@ void parse_chunk_file(dynarray* d, char* filename) {
     while (fscanf(file, "%d,%d,%d,%d,%d,%d,%d", &x, &y, &type, &display, &row_repeat, &size, &col_repeat) == 7) {
         for (int i = 0; i < row_repeat; i++) {
             for (int j = 0; j < col_repeat; j++) {
-                append(d, generate_item(x - (1 + size) * i, y - j, type, display, len_dyn(d)));
+                item* it = generate_item(x - (1 + size) * i, y - j, type, display, len_dyn(d));
+                switch (type) {
+                    case ENEMY: {
+                        enemy* e = malloc(sizeof(enemy));
+                        e->hp = 4;  // TODO parsing : add a descriptor that point to specs in the chunk data file
+                        specialize(it, false, false, e);
+                        break;
+                    }
+
+                    default:
+                        break;
+                }
+                append(d, it);
             }
         }
     }

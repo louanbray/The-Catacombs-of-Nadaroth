@@ -141,6 +141,8 @@
     "inventory.h": "c",
     "item.h": "c",
     "string.h": "c",
-    "omp.h": "c"
+    "omp.h": "c",
+    "render.h": "c",
+    "signal.h": "c"
   }
 }

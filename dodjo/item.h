@@ -9,12 +9,19 @@
 /// @brief Item
 typedef struct item item;
 
+/// @brief Type of item
+typedef struct enemy {
+    int hp;
+    // int damage; //TODO: IMPLEMENT THIS
+} enemy;
+
 /// @brief item type
 enum ItemType {  //? MODIFY to add different types of items
     WALL,
     GATE,
     SGATE,
     PICKABLE,
+    ENEMY,
 };
 
 /// @brief Create item using given parameters with the specs based on his type
@@ -87,4 +94,8 @@ void set_item_spec(item* i, void* spec);
 /// @param i item
 void free_item(item* i);
 
+/// @brief Complete the item specs depending on its type
+/// @param i item
+/// @param type type
+void specialize(item* i, bool used, bool hidden, void* spec);
 #endif
