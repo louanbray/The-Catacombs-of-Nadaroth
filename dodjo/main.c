@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <wchar.h>
 
+#include "entity.h"
 #include "item.h"
 #include "map.h"
 #include "player.h"
@@ -181,13 +182,24 @@ void animate_projectile(int x0, int y0, int x1, int y1, player* p, renderbuffer*
     if (y != -101) {
         item* it = get_hm(get_chunk_furniture_coords(get_player_chunk(p)), x, y);
         if (it == NULL) return;
+        bool is_entity = is_an_entity(it);
+        entity* ent = NULL;
+        if (is_entity) {
+            ent = get_entity_link(it);
+            it = get_entity_brain(ent);
+        }
         switch (get_item_type(it)) {
             case ENEMY: {
                 enemy* e = get_item_spec(it);
                 e->hp -= 1;
                 if (e->hp <= 0) {
-                    remove_item(get_player_chunk(p), it);
-                    render_char(get_board(screen), x, y, ' ');
+                    if (is_entity) {
+                        destroy_entity_from_chunk(ent);
+                        render_from_player(screen, p);
+                    } else {
+                        remove_item(get_player_chunk(p), it);
+                        render_char(get_board(screen), x, y, ' ');
+                    }
                 }
                 break;
             }

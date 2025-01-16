@@ -5,6 +5,7 @@ typedef struct item {
     bool hidden, used;
     int display, index;
     void* spec;
+    entity* entity_link;
 } item;
 
 /// @brief Create item using given parameters
@@ -22,6 +23,7 @@ item* create_item(int x, int y, int type, int display, int index) {
     i->hidden = false;
     i->used = false;
     i->spec = NULL;
+    i->entity_link = NULL;
     return i;
 }
 
@@ -93,4 +95,16 @@ void free_item(item* i) {
         free(i->spec);
     }
     free(i);
+}
+
+void link_entity(item* i, entity* e) {
+    i->entity_link = e;
+}
+
+bool is_an_entity(item* i) {
+    return i->entity_link != NULL;
+}
+
+entity* get_entity_link(item* i) {
+    return i->entity_link;
 }

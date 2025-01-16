@@ -5,6 +5,7 @@ class Type(IntEnum): # Item Type
     GATE = 1
     SGATE = 2
     PICKABLE = 3
+    ENEMY = 4
 
 class Size(IntEnum): # Space between identical items
     COLLAPSE = 0
@@ -16,15 +17,21 @@ class Sprite(IntEnum):
     VGATE = 9608
     UGATE = 9600
     DGATE = 9604
+    ENTITY = 0
+
+class Entity(IntEnum):
+    NOENTITY = 0
+    ENEMY1 = 1
 
 CHUNK_WIDTH = 127 # RENDER_WIDTH - 2 for the walls
 CHUNK_HEIGHT = 35 # without the hotbar space
 
-items = {"V":[Type.GATE,Sprite.VGATE,Size.COLLAPSE],
-         "U":[Type.GATE,Sprite.UGATE,Size.COLLAPSE],
-         "D":[Type.GATE,Sprite.DGATE,Size.COLLAPSE],
-         "S":[Type.PICKABLE,Sprite.STARGATE,Size.SPACED],
-         "T":[Type.WALL,Sprite.WALL,Size.COLLAPSE]}
+items = {"V":[Type.GATE,Sprite.VGATE,Size.COLLAPSE,Entity.NOENTITY],
+         "U":[Type.GATE,Sprite.UGATE,Size.COLLAPSE,Entity.NOENTITY],
+         "D":[Type.GATE,Sprite.DGATE,Size.COLLAPSE, Entity.NOENTITY],
+         "S":[Type.PICKABLE,Sprite.STARGATE,Size.SPACED,Entity.NOENTITY],
+         "T":[Type.WALL,Sprite.WALL,Size.COLLAPSE,Entity.NOENTITY],
+         "E":[Type.ENEMY,Sprite.ENTITY,Size.COLLAPSE,Entity.ENEMY1]}
 
         #                                                               C
         #                                                               E
@@ -55,7 +62,7 @@ chunk =[" * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *UUUUUU * 
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
-        " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
+        " * * * * * * * * * * * * * * * * * * * * * * *E* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
@@ -98,15 +105,5 @@ if __name__ == "__main__":
                             chunk[i+1+k] = "".join(col)
                         else:
                             break
-                print(f"{j-63},{-i+17},{items[row[j]][0]},{items[row[j]][1]},{row_repeat},{items[row[j]][2]},{col_repeat}") # X, Y, TYPE, DISPLAY CHAR, ROW REPEAT, SPACE, COL REPEAT
+                print(f"{j-63},{-i+17},{items[row[j]][0]},{items[row[j]][1]},{row_repeat},{items[row[j]][2]},{col_repeat},{items[row[j]][3]}") # X, Y, TYPE, DISPLAY CHAR, ROW REPEAT, SPACE, COL REPEAT
                 row_repeat = col_repeat = 1
-
-            
-'''for r in chunk:
-    for i in range(len(r)):
-        a = r[i]
-        if i % 2 == 1 and a == ' ':
-            a = '*'
-        print(a, sep='', end='')
-    print('\n', sep='', end='')'''
-

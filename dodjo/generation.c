@@ -45,7 +45,7 @@ void fill_chunk_hm_from_dyn(chunk* c) {
 /// @param c chunk
 /// @param type type
 void fill_furniture(chunk* c, int type) {
-    parse_chunk(c->elements, type);
+    parse_chunk(c, c->elements, type);
     fill_chunk_hm_from_dyn(c);
 }
 

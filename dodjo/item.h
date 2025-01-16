@@ -6,6 +6,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @struct entity
+ * @brief Represents an entity with parts and a brain.
+ *
+ * @var entity::parts
+ * A dynamic array of parts (items) associated with the entity.
+ *
+ * @var entity::brain
+ * A pointer to the brain (item) of the entity.
+ */
+typedef struct entity entity;
+
 /// @brief Item
 typedef struct item item;
 
@@ -56,8 +68,20 @@ int get_item_display(item* i);
 /// @return spec array
 void* get_item_spec(item* i);
 
+/**
+ * @brief Get the index of the given item.
+ *
+ * @param i Pointer to the item.
+ * @return int The index of the item.
+ */
 int get_item_index(item* i);
 
+/**
+ * @brief Set the index of the given item.
+ *
+ * @param i Pointer to the item.
+ * @param index The index to set for the item.
+ */
 void set_item_index(item* i, int index);
 
 /// @brief Is item hidden (true if yes)
@@ -98,4 +122,30 @@ void free_item(item* i);
 /// @param i item
 /// @param type type
 void specialize(item* i, bool used, bool hidden, void* spec);
+
+/// @brief Link an entity to an item
+/// @param i item
+/// @param e entity
+void link_entity(item* i, entity* e);
+
+/**
+ * @brief Checks if the given item is an entity.
+ *
+ * This function determines whether the provided item has an associated entity link.
+ *
+ * @param i A pointer to the item to be checked.
+ * @return true if the item has an entity link, false otherwise.
+ */
+bool is_an_entity(item* i);
+
+/**
+ * @brief Retrieves the entity link of the given item.
+ *
+ * This function returns the entity link associated with the provided item.
+ *
+ * @param i A pointer to the item whose entity link is to be retrieved.
+ * @return A pointer to the entity link if it exists, otherwise NULL.
+ */
+entity* get_entity_link(item* i);
+
 #endif
