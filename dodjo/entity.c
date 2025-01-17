@@ -41,7 +41,7 @@ void destroy_entity(entity* e) {
     free(e);
 }
 
-void destroy_entity_from_chunk(entity* e) {
+void remove_entity_from_chunk(entity* e) {
     chunk* c = e->c;
     dynarray* d = e->parts;
     int len = len_dyn(d);
@@ -51,5 +51,9 @@ void destroy_entity_from_chunk(entity* e) {
         set_dyn(d, i, NULL);
         free_item(it);
     }
+}
+
+void destroy_entity_from_chunk(entity* e) {
+    remove_entity_from_chunk(e);
     destroy_entity(e);
 }

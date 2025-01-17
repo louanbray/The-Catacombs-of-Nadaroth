@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "entity.h"
 #include "generation.h"
 
 /// @brief Return the part of the map the player is in as a direction
@@ -26,9 +27,16 @@ int get_direction(int x, int y) {
 
 int pickup_from_chunk(player* p, item* i) {
     if (is_hotbar_full(get_player_hotbar(p))) return 2;
+    int isAnEntity = is_an_entity(i);
+    if (isAnEntity) {
+        entity* e = get_entity_link(i);
+        i = get_entity_brain(e);
+        remove_entity_from_chunk(e);
+    } else {
+        remove_item(get_player_chunk(p), i);
+    }
     pickup(get_player_hotbar(p), i);
-    remove_item(get_player_chunk(p), i);
-    return 3;
+    return 3 - isAnEntity * 2;
 }
 
 int handle(player* p, int x, int y) {

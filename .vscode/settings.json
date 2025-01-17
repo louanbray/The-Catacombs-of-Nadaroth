@@ -143,6 +143,7 @@
     "string.h": "c",
     "omp.h": "c",
     "render.h": "c",
-    "signal.h": "c"
+    "signal.h": "c",
+    "entity.h": "c"
   }
 }

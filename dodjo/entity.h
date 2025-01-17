@@ -63,4 +63,6 @@ dynarray* get_entity_parts(entity* e);
  */
 void destroy_entity_from_chunk(entity* e);
 
+void remove_entity_from_chunk(entity* e);
+
 #endif

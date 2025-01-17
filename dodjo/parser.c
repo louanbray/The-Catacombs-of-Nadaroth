@@ -18,19 +18,7 @@ void parse_chunk_file(chunk* c, dynarray* d, const char* filename) {
         if (!entity_type) {
             for (int i = 0; i < row_repeat; i++) {
                 for (int j = 0; j < col_repeat; j++) {
-                    item* it = generate_item(x - (1 + size) * i, y - j, type, display, len_dyn(d));
-                    switch (type) {
-                        case ENEMY: {
-                            enemy* e = malloc(sizeof(enemy));
-                            e->hp = 4;  // TODO parsing : add a descriptor that point to specs in the chunk data file
-                            specialize(it, false, false, e);
-                            break;
-                        }
-
-                        default:
-                            break;
-                    }
-                    append(d, it);
+                    append(d, generate_item(x - (1 + size) * i, y - j, type, display, len_dyn(d)));
                 }
             }
         } else {
@@ -41,7 +29,7 @@ void parse_chunk_file(chunk* c, dynarray* d, const char* filename) {
                 perror("Error opening file");
                 return;
             }
-            item* brain = generate_item(x, y, type, 0, -1);
+            item* brain = generate_item(x, y, type, display, -1);
             entity* e = create_entity(brain, c);
             switch (type) {
                 case ENEMY: {
@@ -55,6 +43,7 @@ void parse_chunk_file(chunk* c, dynarray* d, const char* filename) {
                 default:
                     break;
             }
+
             int nx, ny;
             while (fscanf(entity_file, "%d,%d,%d,%d,%d", &nx, &ny, &display, &row_repeat, &col_repeat) == 5) {
                 for (int i = 0; i < row_repeat; i++) {
