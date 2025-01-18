@@ -38,6 +38,10 @@ item* generate_item(int x, int y, int type, int display, int index) {
     return i;
 }
 
+bool is_in_box(int x, int y) {
+    return (y <= 17 && y >= -17) && (x <= 63 && x >= -64);
+}
+
 int get_item_x(item* i) {
     return i->x;
 }
@@ -72,6 +76,14 @@ bool is_item_hidden(item* i) {
 
 bool is_item_used(item* i) {
     return i->used;
+}
+
+void set_item_x(item* i, int x) {
+    i->x = x;
+}
+
+void set_item_y(item* i, int y) {
+    i->y = y;
 }
 
 void set_item_hidden(item* i, bool hidden) {

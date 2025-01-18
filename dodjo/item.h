@@ -114,6 +114,16 @@ void set_item_display(item* i, int display);
 /// @param spec void*
 void set_item_spec(item* i, void* spec);
 
+/// @brief Set x to given parameter
+/// @param i item
+/// @param x pos x
+void set_item_x(item* i, int x);
+
+/// @brief Set y to given parameter
+/// @param i item
+/// @param y pos y
+void set_item_y(item* i, int y);
+
 /// @brief Free item
 /// @param i item
 void free_item(item* i);
@@ -147,5 +157,11 @@ bool is_an_entity(item* i);
  * @return A pointer to the entity link if it exists, otherwise NULL.
  */
 entity* get_entity_link(item* i);
+
+/// @brief Check if coords are in chunk bounds
+/// @param x pos x
+/// @param y pos y
+/// @return true if in bounds
+bool is_in_box(int x, int y);
 
 #endif

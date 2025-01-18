@@ -64,7 +64,3 @@ int handle(player* p, int x, int y) {
     }
     return 0;
 }
-
-bool is_in_box(int x, int y) {
-    return (y <= 17 && y >= -17) && (x <= 63 && x >= -64);
-}

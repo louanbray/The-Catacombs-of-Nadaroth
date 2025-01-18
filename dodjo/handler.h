@@ -10,10 +10,4 @@
 /// @return true if can move else return false
 int handle(player* p, int x, int y);
 
-/// @brief Check if coords are in chunk bounds
-/// @param x pos x
-/// @param y pos y
-/// @return true if in bounds
-bool is_in_box(int x, int y);
-
 #endif

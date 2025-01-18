@@ -4,15 +4,12 @@
 #include <poll.h>
 #include <pthread.h>
 #include <signal.h>
-#include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
-#include <wchar.h>
 
 #include "entity.h"
-#include "item.h"
 #include "map.h"
 #include "player.h"
 #include "render.h"
@@ -194,7 +191,8 @@ void animate_projectile(int x0, int y0, int x1, int y1, player* p, renderbuffer*
                 e->hp -= 1;
                 if (e->hp <= 0) {
                     if (is_entity) {
-                        destroy_entity_from_chunk(ent);
+                        // destroy_entity_from_chunk(ent);
+                        move_entity(ent, EAST);
                         render_from_player(screen, p);
                     } else {
                         remove_item(get_player_chunk(p), it);

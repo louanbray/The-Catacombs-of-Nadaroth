@@ -144,6 +144,7 @@
     "omp.h": "c",
     "render.h": "c",
     "signal.h": "c",
-    "entity.h": "c"
+    "entity.h": "c",
+    "assert.h": "c"
   }
 }

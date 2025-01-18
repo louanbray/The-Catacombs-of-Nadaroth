@@ -63,6 +63,13 @@ dynarray* get_entity_parts(entity* e);
  */
 void destroy_entity_from_chunk(entity* e);
 
+/// @brief Unlink all entity parts from the chunk but keep the entity
+/// @param e entity
 void remove_entity_from_chunk(entity* e);
+
+/// @brief Move the entity of 1 unit in a chunk following the direction (if possible)
+/// @param e entity
+/// @param dir direction
+void move_entity(entity* e, enum Direction dir);
 
 #endif
