@@ -1,9 +1,7 @@
 #include "hash.h"
 
-#include <assert.h>
-#include <stdbool.h>
+#include <omp.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 /// @brief Bucket list
 typedef struct list {
@@ -87,21 +85,27 @@ bool check_resize(hm* t, list* l) {
 /// @param t Hash map
 void resize_hm(hm* t) {
     list** old = t->hash_map;
+
     int old_length = t->length;
     t->length = old_length * 2;
+
     t->hash_map = (list**)calloc(t->length, sizeof(list*));
 
     for (int i = 0; i < old_length; i++) {
         list* l = old[i];
+
         while (l != NULL) {
             int index = hash(t->length, l->x, l->y);
             list* l2 = (list*)malloc(sizeof(list));
+
             setCell(l2, l->x, l->y, l->ck);
+
             l2->next = t->hash_map[index];
             t->hash_map[index] = l2;
 
             list* temp = l;
             l = l->next;
+
             free(temp);
         }
     }
@@ -110,19 +114,24 @@ void resize_hm(hm* t) {
 
 void set_hm(hm* t, int x, int y, element_h e) {
     int index = hash(t->length, x, y);
+
     list* l = (list*)malloc(sizeof(list));
+
     setCell(l, x, y, e);
+
     l->next = t->hash_map[index];
     t->hash_map[index] = l;
 
     if (check_resize(t, l)) {
         resize_hm(t);
     }
+
     t->nb_e++;
 }
 
 void purge_hm(hm* t, int x, int y) {
     int index = hash(t->length, x, y);
+
     list* prev = NULL;
     list* curr = t->hash_map[index];
 
@@ -133,31 +142,44 @@ void purge_hm(hm* t, int x, int y) {
             } else {
                 prev->next = curr->next;
             }
+
             free(curr);
+
             t->nb_e--;
+
             return;
         }
+
         prev = curr;
         curr = curr->next;
     }
 }
 
 void free_hm(hm* t) {
-    for (int i = 0; i < t->length; i++) {
+    if (t == NULL) return;
+
+    int len = t->length;
+
+#pragma omp parallel for
+    for (int i = 0; i < len; i++) {
         list* l = t->hash_map[i];
+
         while (l != NULL) {
-            list* temp = l;
-            l = l->next;
-            free(temp);
+            list* next = l->next;
+            free(l);
+            l = next;
         }
     }
+
     free(t->hash_map);
     free(t);
 }
 
 void print_hm(hm* t) {
-    for (int i = 0; i < t->length; i++) {
+    int len = t->length;
+    for (int i = 0; i < len; i++) {
         list* l = t->hash_map[i];
+
         if (l != NULL) {
             printf("hash: %d, (len: %d) [", i, t->nb_e);
             while (l != NULL) {

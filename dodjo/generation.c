@@ -33,7 +33,8 @@ void set_chunk_type(chunk* ck, int type) {
 void fill_chunk_hm_from_dyn(chunk* c) {
     dynarray* dyn = c->elements;
     hm* hashmap = c->hashmap;
-    for (int i = 0; i < len_dyn(dyn); i++) {
+    int len = len_dyn(dyn);
+    for (int i = 0; i < len; i++) {
         item* e = get_dyn(dyn, i);
         if (e != NULL) {
             set_hm(hashmap, get_item_x(e), get_item_y(e), e);

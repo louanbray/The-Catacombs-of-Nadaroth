@@ -11,15 +11,15 @@
 #include "map.h"
 #include "player.h"
 
+/// @brief Render Constants
+#define RENDER_WIDTH 129
+#define RENDER_HEIGHT 40
+
 typedef struct renderbuffer {
     board bd;
     board pv;
     int* rc;
 } renderbuffer;
-
-/// @brief Render Constants
-const int RENDER_WIDTH = 129;
-const int RENDER_HEIGHT = 40;
 
 int abs(int x) { return x > 0 ? x : -x; }
 
@@ -28,9 +28,11 @@ int abs(int x) { return x > 0 ? x : -x; }
 board create_board() {
     wchar_t* data = malloc(sizeof(wchar_t) * RENDER_WIDTH * RENDER_HEIGHT);
     board b = malloc(sizeof(wchar_t*) * RENDER_HEIGHT);
+
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         b[i] = &data[i * RENDER_WIDTH];
     }
+
     return b;
 }
 
@@ -119,9 +121,14 @@ void render_char(board b, int x, int y, int c) {
 void render_chunk(renderbuffer* r, chunk* c) {
     dynarray* d = get_chunk_furniture_list(c);
     board b = r->bd;
-    for (int i = 0; i < len_dyn(d); i++) {
+
+    int len = len_dyn(d);
+
+    for (int i = 0; i < len; i++) {
         item* it = get_dyn(d, i);
+
         if (it == NULL) continue;
+
         render_char(b, get_item_x(it), get_item_y(it), get_item_display(it));
     }
 
@@ -138,12 +145,14 @@ void render_health(renderbuffer* r, player* p) {
     int display = 10;
     int health = get_player_health(p);
     int max_health = get_player_max_health(p);
+
     for (int i = 0; i < max_health; i++) {
         if (i < health) {
             r->bd[2][display] = 9829;
         } else {
             r->bd[2][display] = 9825;
         }
+
         display += 2;
     }
 }
@@ -151,17 +160,20 @@ void render_health(renderbuffer* r, player* p) {
 void render_hotbar(renderbuffer* r, hotbar* h) {
     int display = 57;
     int ms = get_hotbar_max_size(h);
+
     for (int i = 0; i < ms; i++) {
         if (get_hotbar(h, i) == NULL) {
             r->bd[2][display] = ' ';
         } else {
             r->bd[2][display] = get_item_display(get_hotbar(h, i));
         }
+
         if (get_selected_slot(h) == i) {
             r->bd[1][display] = 9651;
         } else {
             r->bd[1][display] = ' ';
         }
+
         display += 2;
     }
 }
@@ -169,8 +181,10 @@ void render_hotbar(renderbuffer* r, hotbar* h) {
 void render_projectile(int x0, int y0, int x1, int y1, int* xt, int* yt, renderbuffer* r) {
     int dx = abs(x1 - x0) / 2, sx = x0 < x1 ? 1 : -1;
     int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+
     int err = dx + dy, e2;
     int xi = x0 / 2, yi = y0;
+
     x0 = x0 / 2;
 
     while (1) {
@@ -178,28 +192,34 @@ void render_projectile(int x0, int y0, int x1, int y1, int* xt, int* yt, renderb
 
         if (x0 != xi || y0 != yi)
             wprintf(L"\033[%d;%dH*", y0, x0 * 2);  // Draw the projectile
+
         fflush(stdout);
+
         struct timespec ts;
         ts.tv_sec = 0;
         ts.tv_nsec = 16666667;  // 60 FPS = 1/60 seconds = ~16.67ms
+
         clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
 
         if (x0 != xi || y0 != yi)
             wprintf(L"\033[%d;%dH ", y0, x0 * 2);  // Draw the projectile
+
         if (x0 * 2 == x1 && y0 == y1) break;
 
         e2 = 2 * err;
+
         if (e2 >= dy) {
             err += dy;
             x0 += sx;
         }
+
         if (e2 <= dx) {
             err += dx;
             y0 += sy;
         }
     }
 
-    *xt = x0 * 2 - 65;
+    *xt = x0 * 2 - 65;  // Recenter the position
     *yt = 19 - y0;
 }
 
@@ -210,7 +230,9 @@ void render(renderbuffer* r, map* m) {
 
 void render_from_player(renderbuffer* r, player* p) {
     chunk* curr = get_player_chunk(p);
+
     default_screen(r->bd);
+
     render_chunk(r, curr);
     render_player(r, p);
     render_hotbar(r, get_player_hotbar(p));
@@ -224,19 +246,25 @@ void update_screen_(renderbuffer* r) {
         if (!r->rc[i]) continue;
 
         int screen_row = RENDER_HEIGHT - i;
+
         r->rc[i] = 0;
+
         wchar_t buffer[RENDER_WIDTH + 1];
         buffer[RENDER_WIDTH] = L'\0';
 
         int start = -1;
+
         for (int j = 0; j < RENDER_WIDTH; j++) {
             if (r->bd[i][j] != r->pv[i][j]) {
                 if (start == -1) start = j;
+
                 buffer[j] = r->bd[i][j];
                 r->pv[i][j] = r->bd[i][j];
             } else if (start != -1) {
                 buffer[j] = L'\0';
+
                 wprintf(L"\033[%d;%dH%ls", screen_row, start + 1, &buffer[start]);
+
                 start = -1;
             }
         }
@@ -254,12 +282,14 @@ void mark_changed_rows(renderbuffer* r) {
 #pragma omp parallel for
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         int changed = 0;
+
         for (int j = 0; j < RENDER_WIDTH; j++) {
             if (r->bd[i][j] != r->pv[i][j]) {
                 changed = 1;
                 break;
             }
         }
+
         r->rc[i] = changed;
     }
 }
@@ -275,7 +305,8 @@ void display_interface(renderbuffer* r, char* filename) {
     int i = 0;
 
     while (fgetws(buffer, RENDER_WIDTH - 1, file) != NULL && i < RENDER_HEIGHT - 2) {
-        int a = 0;
+        int a = 0;  //? TO REMOVE THE EOL AFTER ~
+
         for (int j = 0; j < RENDER_WIDTH - 2; j++) {
             if (buffer[j] == '~') a = 1;
             if (a == 1) buffer[j] = L' ';
@@ -313,19 +344,23 @@ void play_cinematic(renderbuffer* r, char* filename, int delay) {
     while (fgetws(buffer, RENDER_WIDTH + 4, file) != NULL && row < RENDER_HEIGHT - 2) {
         if (buffer[0] == '#') {
             int timeout = 0;
+
             for (; row < RENDER_HEIGHT - 2; row++) {
                 for (int j = 0; j < RENDER_WIDTH - 1; j++) {
                     if (buffer[j] == '#') timeout++;
                     buffer[j] = ' ';
                 }
+
                 if (row != 35) wcsncpy(&r->bd[RENDER_HEIGHT - row - 2][1], buffer, RENDER_WIDTH - 2);
             }
 
             row = 0;
             update_screen(r);
+
             usleep(delay * timeout);
         } else {
             int eol = 0;
+
             for (int j = 0; j < RENDER_WIDTH - 2; j++) {
                 if (buffer[j] == '~') eol = 1;
                 if (eol == 1) buffer[j] = L' ';

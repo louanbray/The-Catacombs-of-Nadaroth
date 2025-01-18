@@ -17,6 +17,7 @@
 #define CHAR_TO_INT 49
 
 static struct termios original_termios;  // Global to store original terminal settings
+pthread_mutex_t entity_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Struct to hold arguments for the thread
 typedef struct {
@@ -131,25 +132,48 @@ void arrow_move(renderbuffer* screen, player* p, int c) {
 
 /// @brief Handle the user keyboard entries
 /// @param n entry
-/// @param b board
+/// @param screen renderbuffer
 /// @param p player
 void compute_entry(int n, renderbuffer* screen, player* p) {
-    if (n == KEY_Z_LOW || n == KEY_Z_HIGH) {
-        move(screen, p, NORTH);
-    } else if (n == KEY_S_LOW || n == KEY_S_HIGH) {
-        move(screen, p, SOUTH);
-    } else if (n == KEY_Q_LOW || n == KEY_Q_HIGH) {
-        move(screen, p, WEST);
-    } else if (n == KEY_D_LOW || n == KEY_D_HIGH) {
-        move(screen, p, EAST);
-    } else if (n <= KEY_9 && n >= KEY_1) {
-        select_slot(get_player_hotbar(p), n - CHAR_TO_INT);
-        render_hotbar(screen, get_player_hotbar(p));
-    } else if (n == KEY_W_HIGH || n == KEY_W_LOW) {
-        drop(get_player_hotbar(p), get_selected_slot(get_player_hotbar(p)));
-        render_hotbar(screen, get_player_hotbar(p));
-    } else {
-        return;
+    switch (n) {
+        case KEY_Z_LOW:
+        case KEY_Z_HIGH:
+            move(screen, p, NORTH);
+            break;
+        case KEY_S_LOW:
+        case KEY_S_HIGH:
+            move(screen, p, SOUTH);
+            break;
+        case KEY_Q_LOW:
+        case KEY_Q_HIGH:
+            move(screen, p, WEST);
+            break;
+        case KEY_D_LOW:
+        case KEY_D_HIGH:
+            move(screen, p, EAST);
+            break;
+
+        case KEY_1:
+        case KEY_2:
+        case KEY_3:
+        case KEY_4:
+        case KEY_5:
+        case KEY_6:
+        case KEY_7:
+        case KEY_8:
+        case KEY_9:
+            select_slot(get_player_hotbar(p), n - CHAR_TO_INT);
+            render_hotbar(screen, get_player_hotbar(p));
+            break;
+
+        case KEY_W_LOW:
+        case KEY_W_HIGH:
+            drop(get_player_hotbar(p), get_selected_slot(get_player_hotbar(p)));
+            render_hotbar(screen, get_player_hotbar(p));
+            break;
+
+        default:
+            return;
     }
 
     update_screen(screen);
@@ -176,56 +200,78 @@ void animate_projectile(int x0, int y0, int x1, int y1, player* p, renderbuffer*
     int x = 0, y = -101;
     render_projectile(x0, y0, x1, y1, &x, &y, screen);
 
-    if (y != -101) {
-        item* it = get_hm(get_chunk_furniture_coords(get_player_chunk(p)), x, y);
-        if (it == NULL) return;
-        bool is_entity = is_an_entity(it);
-        entity* ent = NULL;
-        if (is_entity) {
-            ent = get_entity_link(it);
-            it = get_entity_brain(ent);
-        }
-        switch (get_item_type(it)) {
-            case ENEMY: {
-                enemy* e = get_item_spec(it);
-                e->hp -= 1;
-                if (e->hp <= 0) {
-                    if (is_entity) {
-                        // destroy_entity_from_chunk(ent);
-                        move_entity(ent, EAST);
-                        render_from_player(screen, p);
-                    } else {
-                        remove_item(get_player_chunk(p), it);
-                        render_char(get_board(screen), x, y, ' ');
-                    }
+    if (y == -101) return;
+
+    item* it = get_hm(get_chunk_furniture_coords(get_player_chunk(p)), x, y);
+
+    if (it == NULL) return;
+
+    bool is_entity = is_an_entity(it);
+    entity* ent = NULL;
+
+    if (is_entity) {
+        ent = get_entity_link(it);
+        it = get_entity_brain(ent);
+    }
+
+    switch (get_item_type(it)) {
+        case ENEMY: {
+            enemy* e = get_item_spec(it);
+
+            pthread_mutex_lock(&entity_mutex);
+
+            e->hp -= 1;
+
+            if (e->hp <= 0) {
+                if (is_entity) {
+                    // destroy_entity_from_chunk(ent);
+                    move_entity(ent, EAST);
+                    render_from_player(screen, p);
+                } else {
+                    remove_item(get_player_chunk(p), it);
+                    render_char(get_board(screen), x, y, ' ');
                 }
-                break;
             }
 
-            default:
-                break;
+            pthread_mutex_unlock(&entity_mutex);
+
+            break;
         }
-        update_screen(screen);
-        fflush(stdout);
+
+        default:
+            break;
     }
-    //! OK
+
+    update_screen(screen);
+    fflush(stdout);
 }
 
 void* animate_projectile_thread(void* args) {
     RenderArgs* renderArgs = (RenderArgs*)args;
     animate_projectile(renderArgs->x0, renderArgs->y0, renderArgs->x1, renderArgs->y1,
                        renderArgs->p, renderArgs->r);
+    free(renderArgs);
     return NULL;
 }
 
-void parse_sgr_mouse_event(char* buffer, int* target_x, int* target_y, int* left_click) {
+void parse_sgr_mouse_event(char* buffer, int* target_x, int* target_y, int* left_click, bool* just_pressed) {
     int button, x, y;
     char event_type;
 
+    *left_click = 0;
     if (sscanf(buffer, "\033[<%d;%d;%d%c", &button, &x, &y, &event_type) == 4) {
-        *left_click = (button & 0x03) == 0 && (event_type == 'M');
-        *target_x = x = (x / 2) * 2;
-        *target_y = y;
+        if (button >= 64) return;
+
+        if ((button & 0x03) == 0) {
+            if (event_type == 'M' && !(*just_pressed)) {
+                *left_click = 1;
+                *just_pressed = true;
+                *target_x = (x / 2) * 2;
+                *target_y = y;
+            } else if (event_type == 'm') {
+                *just_pressed = false;
+            }
+        }
     }
 }
 
@@ -247,37 +293,53 @@ int main() {
     update_screen(screen);
 
     char buffer[32];
+
     int target_x = 0, target_y = 1;  // Mouse target position
     int last_x = 0, last_y = 1;
     int left_click = 0;  // Flag for left click
-    while (1) {
-        memset(buffer, 0, sizeof(buffer));           // Clear the buffer
-        read(STDIN_FILENO, buffer, sizeof(buffer));  // Read input
+    bool just_pressed = false;
 
-        if (buffer[0] == '\033') {  // Escape sequence detected
-            if (buffer[1] == '[' && buffer[2] == '<') {
+    while (1) {
+        ssize_t bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer));
+        if (bytes_read <= 0) continue;
+
+        if (buffer[0] == '\033' && buffer[1] == '[') {
+            if (buffer[2] == '<') {
                 wprintf(L"\033[?1003l\033[?1006l");
-                parse_sgr_mouse_event(buffer, &target_x, &target_y, &left_click);
-                if (left_click && (target_x != last_x || target_y != last_y)) {
+                parse_sgr_mouse_event(buffer, &target_x, &target_y, &left_click, &just_pressed);
+
+                if (left_click) {
                     last_x = target_x;
                     last_y = target_y;
-                    RenderArgs args = {get_player_x(p) + 65, -get_player_y(p) + 19, target_x, target_y, p, screen};
+
+                    RenderArgs* args = malloc(sizeof(RenderArgs));
+                    if (!args) {
+                        perror("Failed to allocate memory for RenderArgs");
+                        return EXIT_FAILURE;
+                    }
+                    *args = (RenderArgs){get_player_x(p) + 65, -get_player_y(p) + 19, target_x, target_y, p, screen};
+
                     pthread_t thread_id;
-                    if (pthread_create(&thread_id, NULL, animate_projectile_thread, &args) != 0) {
+
+                    if (pthread_create(&thread_id, NULL, animate_projectile_thread, args) != 0) {
                         perror("Failed to create thread");
-                        return 1;
+                        free(args);
+                        return EXIT_FAILURE;
                     }
 
+                    pthread_detach(thread_id);
                     left_click = 0;
                 }
+
                 wprintf(L"\033[?1003h\033[?1006h");
                 fflush(stdout);
-            } else if (buffer[1] == '[') {
+            } else {
                 arrow_move(screen, p, buffer[2]);
             }
         } else {
             compute_entry(buffer[0], screen, p);
         }
     }
+
     return EXIT_SUCCESS;
 }

@@ -70,11 +70,14 @@ void set_map_player(map* m, player* p) {
 
 chunk* get_chunk(map* m, int x, int y) {
     chunk* ck = get_hm(m->hashmap, x, y);
+
     if (ck != NULL) {
         return ck;
     }
+
     ck = generate_chunk(x, y);
     set_hm(m->hashmap, x, y, ck);
+
     return ck;
 }
 
@@ -82,11 +85,17 @@ chunk* get_chunk_from(map* m, chunk* c1, int dir) {
     if (c1->link[dir] != NULL) {
         return c1->link[dir];
     }
+
     if (dir != 0) {
-        int s = dir < 3 ? 1 : -1;
-        chunk* ck = get_chunk(m, c1->x + dir % 2 * s, c1->y + s * (dir - 1) % 2);
-        ck->link[(dir + 2 * s)] = c1;
+        const int dx[] = {0, 1, 0, -1, 0};
+        const int dy[] = {0, 0, 1, 0, -1};
+        int s = dir < 3 ? 2 : -2;
+
+        chunk* ck = get_chunk(m, c1->x + dx[dir], c1->y + dy[dir]);
+
+        ck->link[dir + s] = c1;
         c1->link[dir] = ck;
+
         return ck;
     } else {
         int x = rand() % 20 - 10;
@@ -95,9 +104,12 @@ chunk* get_chunk_from(map* m, chunk* c1, int dir) {
             x += 1;
             y += 1;
         }
+
         chunk* ck = get_chunk(m, c1->x + x, c1->y + y);
+
         ck->link[dir] = c1;
         c1->link[dir] = ck;
+
         return ck;
     }
 }
@@ -111,13 +123,14 @@ void purge_chunk(hm* m, chunk* ck) {
 
     purge_hm(m, ck->x, ck->y);
     for (int i = 0; i < 5; i++) {
-        int s = i == 0 ? 0 : (i < 3 ? 1 : -1);
+        int s = i == 0 ? 0 : (i < 3 ? 2 : -2);
+
         if (ck->link[i] != NULL) {
-            ck->link[i]->link[(i + 2 * s)] = NULL;
+            ck->link[i]->link[(i + s)] = NULL;
         }
     }
+
     free(ck->link);
-    //? : FREE ITEMS SPECS
     free_dyn(ck->elements);
     free_hm(ck->hashmap);
     free(ck);

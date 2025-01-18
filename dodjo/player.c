@@ -88,18 +88,25 @@ void link_hotbar(player* p, hotbar* h) {
 }
 
 int move_player(player* p, int dir) {
-    int s = dir < 3 ? 1 : -1;
+    const int dx[] = {0, 2, 0, -2, 0};
+    const int dy[] = {0, 0, 1, 0, -1};
+
     p->px = p->x;
     p->py = p->y;
-    int new_x = p->x + (dir % 2 * s) * 2;
-    int new_y = p->y + s * (dir - 1) % 2;
+
+    int new_x = p->x + dx[dir];
+    int new_y = p->y + dy[dir];
+
     if (!is_in_box(new_x, new_y))
         return 2;
+
     int n = handle(p, new_x, new_y);
+
     if (n == 0 || n == 3) {
         p->x = new_x;
         p->y = new_y;
     }
+
     return n;
 }
 

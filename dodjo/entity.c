@@ -1,5 +1,6 @@
 #include "entity.h"
 
+#include <omp.h>
 typedef struct entity {
     dynarray* parts;
     item* brain;
@@ -65,25 +66,15 @@ void move_part(chunk* c, item* i, enum Direction dir) {
     int x = get_item_x(i);
     int y = get_item_y(i);
 
-    switch (dir) {
-        case EAST:
-            x += 2;
-            break;
-        case WEST:
-            x -= 2;
-            break;
-        case NORTH:
-            y++;
-            break;
-        case SOUTH:
-            y--;
-            break;
-        default:
-            break;
-    }
+    const int dx[] = {0, 2, 0, -2, 0};
+    const int dy[] = {0, 0, 1, 0, -1};
 
     hm* h = c->hashmap;
-    purge_hm(h, get_item_x(i), get_item_y(i));
+    purge_hm(h, x, y);
+
+    x += dx[dir];
+    y += dy[dir];
+
     set_item_x(i, x);
     set_item_y(i, y);
     set_hm(h, x, y, i);
@@ -96,46 +87,46 @@ void move_part(chunk* c, item* i, enum Direction dir) {
 bool can_entity_move(entity* e, enum Direction dir) {
     dynarray* d = e->parts;
     int len = len_dyn(d);
+
+    const int dx[] = {0, 2, 0, -2, 0};
+    const int dy[] = {0, 0, 1, 0, -1};
+
+    hm* h = get_chunk_furniture_coords(e->c);
+    bool can_move = true;
+
+#pragma omp parallel for shared(can_move)
     for (int i = 0; i < len; i++) {
+        if (!can_move) continue;
+
         item* it = get_dyn(d, i);
         if (it != NULL) {
-            int x = get_item_x(it);
-            int y = get_item_y(it);
-            switch (dir) {
-                case EAST:
-                    x += 2;
-                    break;
-                case WEST:
-                    x -= 2;
-                    break;
-                case NORTH:
-                    y++;
-                    break;
-                case SOUTH:
-                    y--;
-                    break;
-                default:
-                    break;
-            }
+            int x = get_item_x(it) + dx[dir];
+            int y = get_item_y(it) + dy[dir];
+
             if (!is_in_box(x, y)) {
-                return false;
+#pragma omp atomic write
+                can_move = false;
             }
-            hm* h = get_chunk_furniture_coords(e->c);
+
             item* it2 = get_hm(h, x, y);
-            if (it2 != NULL && get_entity_link(it2) != get_entity_link(it2)) {
-                return false;
+            if (it2 != NULL && get_entity_link(it2) != e) {
+#pragma omp atomic write
+                can_move = false;
             }
         }
     }
-    return true;
+
+    return can_move;
 }
 
 void move_entity(entity* e, enum Direction dir) {
-    dynarray* d = e->parts;
-    int len = len_dyn(d);
     if (!can_entity_move(e, dir)) {
         return;
     }
+
+    dynarray* d = e->parts;
+    int len = len_dyn(d);
+
     for (int i = 0; i < len; i++) {
         item* it = get_dyn(d, i);
         if (it != NULL) {

@@ -43,7 +43,8 @@ dynarray* create_dyn() {
 void resize_dyn(dynarray* t, int newlen) {
     assert(newlen > 0);
     element* elt = (element*)malloc(sizeof(element) * newlen);
-    for (int i = 0; i < t->len; i++) {
+    int len = t->len;
+    for (int i = 0; i < len; i++) {
         elt[i] = t->elt[i];
     }
     free(t->elt);
@@ -93,7 +94,8 @@ element pop(dynarray* t) {
 
 void free_dyn(dynarray* t) {
     if (t) {
-        for (int i = 0; i < t->len; i++) {
+        int len = t->len;
+        for (int i = 0; i < len; i++) {
             if (t->elt[i]) {
                 item* it = (item*)t->elt[i];
                 free_item(it);
