@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <locale.h>
@@ -15,6 +16,7 @@
 #include "render.h"
 
 #define CHAR_TO_INT 49
+#define MAX_BUFFER_SIZE 1024
 
 static struct termios original_termios;  // Global to store original terminal settings
 pthread_mutex_t entity_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -126,6 +128,8 @@ void arrow_move(renderbuffer* screen, player* p, int c) {
         case KEY_ARROW_LEFT:
             move(screen, p, WEST);
             break;
+        default:
+            return;
     }
     update_screen(screen);
 }
@@ -198,7 +202,9 @@ void init() {
 // Function to animate a projectile moving from (x0, y0) to (x1, y1)
 void animate_projectile(int x0, int y0, int x1, int y1, player* p, renderbuffer* screen) {
     int x = 0, y = -101;
+
     render_projectile(x0, y0, x1, y1, &x, &y, screen);
+    fflush(stdout);
 
     if (y == -101) return;
 
@@ -224,8 +230,7 @@ void animate_projectile(int x0, int y0, int x1, int y1, player* p, renderbuffer*
 
             if (e->hp <= 0) {
                 if (is_entity) {
-                    // destroy_entity_from_chunk(ent);
-                    move_entity(ent, EAST);
+                    destroy_entity_from_chunk(ent);
                     render_from_player(screen, p);
                 } else {
                     remove_item(get_player_chunk(p), it);
@@ -243,7 +248,6 @@ void animate_projectile(int x0, int y0, int x1, int y1, player* p, renderbuffer*
     }
 
     update_screen(screen);
-    fflush(stdout);
 }
 
 void* animate_projectile_thread(void* args) {
@@ -275,6 +279,28 @@ void parse_sgr_mouse_event(char* buffer, int* target_x, int* target_y, int* left
     }
 }
 
+bool is_mouse_event(const char* buffer, size_t length) {
+    return length >= 3 && buffer[0] == '\033' && buffer[1] == '[' && buffer[2] == '<';
+}
+
+bool is_arrow_key(const char* buffer, size_t length) {
+    return length >= 3 && buffer[0] == '\033' && buffer[1] == '[' && (buffer[2] == 'A' || buffer[2] == 'B' || buffer[2] == 'C' || buffer[2] == 'D');
+}
+
+size_t get_mouse_event_length(const char* buffer, size_t length) {
+    size_t i = 3;  // Start after "\033[<"
+
+    while (i < length && (isdigit(buffer[i]) || buffer[i] == ';')) {
+        i++;
+    }
+
+    if (i < length && (buffer[i] == 'M' || buffer[i] == 'm')) {
+        return i + 1;  // Include the final 'M' or 'm'
+    }
+
+    return 0;  // Incomplete mouse event
+}
+
 /// @brief Where it all begins
 /// @return I dream of a 0
 int main() {
@@ -292,53 +318,76 @@ int main() {
     render(screen, m);
     update_screen(screen);
 
-    char buffer[32];
+    char buffer[128];
 
     int target_x = 0, target_y = 1;  // Mouse target position
-    int last_x = 0, last_y = 1;
-    int left_click = 0;  // Flag for left click
+    int left_click = 0;              // Flag for left click
     bool just_pressed = false;
+
+    char input_buffer[MAX_BUFFER_SIZE];
+    size_t input_buffer_length = 0;
 
     while (1) {
         ssize_t bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer));
-        if (bytes_read <= 0) continue;
-
-        if (buffer[0] == '\033' && buffer[1] == '[') {
-            if (buffer[2] == '<') {
-                wprintf(L"\033[?1003l\033[?1006l");
-                parse_sgr_mouse_event(buffer, &target_x, &target_y, &left_click, &just_pressed);
-
-                if (left_click) {
-                    last_x = target_x;
-                    last_y = target_y;
-
-                    RenderArgs* args = malloc(sizeof(RenderArgs));
-                    if (!args) {
-                        perror("Failed to allocate memory for RenderArgs");
-                        return EXIT_FAILURE;
-                    }
-                    *args = (RenderArgs){get_player_x(p) + 65, -get_player_y(p) + 19, target_x, target_y, p, screen};
-
-                    pthread_t thread_id;
-
-                    if (pthread_create(&thread_id, NULL, animate_projectile_thread, args) != 0) {
-                        perror("Failed to create thread");
-                        free(args);
-                        return EXIT_FAILURE;
-                    }
-
-                    pthread_detach(thread_id);
-                    left_click = 0;
-                }
-
-                wprintf(L"\033[?1003h\033[?1006h");
-                fflush(stdout);
-            } else {
-                arrow_move(screen, p, buffer[2]);
-            }
-        } else {
-            compute_entry(buffer[0], screen, p);
+        if (bytes_read <= 0) {
+            usleep(1000);
+            continue;
         }
+
+        // Append new data to the input buffer
+        if (input_buffer_length + bytes_read < MAX_BUFFER_SIZE) {
+            memcpy(input_buffer + input_buffer_length, buffer, bytes_read);
+            input_buffer_length += bytes_read;
+        } else {
+            fprintf(stderr, "Input buffer overflow\n");
+            input_buffer_length = 0;  // Clear the buffer in case of overflow
+            continue;
+        }
+
+        // Process the buffer for complete sequences
+        size_t processed = 0;
+        while (processed < input_buffer_length) {
+            if (is_mouse_event(input_buffer + processed, input_buffer_length - processed)) {
+                size_t mouse_event_length = get_mouse_event_length(input_buffer + processed, input_buffer_length - processed);
+                if (mouse_event_length > 0) {
+                    parse_sgr_mouse_event(input_buffer + processed, &target_x, &target_y, &left_click, &just_pressed);
+
+                    if (left_click) {
+                        RenderArgs* args = malloc(sizeof(RenderArgs));
+                        if (!args) exit(EXIT_FAILURE);  // Failed to allocate memory
+
+                        *args = (RenderArgs){get_player_x(p) + 65, -get_player_y(p) + 19, target_x, target_y, p, screen};
+
+                        pthread_t thread_id;
+                        if (pthread_create(&thread_id, NULL, animate_projectile_thread, args) != 0) {  // Failed to create thread
+                            free(args);
+                            exit(EXIT_FAILURE);
+                        }
+
+                        pthread_detach(thread_id);
+                    }
+                    processed += mouse_event_length;  // Skip the mouse event
+                } else {
+                    break;  // Wait for more data
+                }
+            } else if (is_arrow_key(input_buffer + processed, input_buffer_length - processed)) {
+                arrow_move(screen, p, (input_buffer + processed)[2]);
+                processed += 3;  // Arrow keys are 3 bytes
+            } else if ((input_buffer[processed] >= 32 && input_buffer[processed] <= 126) ||
+                       input_buffer[processed] == '\n' || input_buffer[processed] == '\r') {
+                compute_entry(input_buffer[processed], screen, p);
+                processed++;
+            } else {
+                // Skip unrecognized or invalid input
+                processed++;
+            }
+        }
+
+        // Shift unprocessed data to the beginning of the buffer
+        if (processed < input_buffer_length) {
+            memmove(input_buffer, input_buffer + processed, input_buffer_length - processed);
+        }
+        input_buffer_length -= processed;
     }
 
     return EXIT_SUCCESS;
