@@ -1,0 +1,6 @@
+dodjo/compile.bat.lnk
+dodjo/run.bat.lnk
+dodjo/build/Debug/outDebug.exe
+.vscode/settings.json
+.vscode/launch.json
+.vscode/c_cpp_properties.json
