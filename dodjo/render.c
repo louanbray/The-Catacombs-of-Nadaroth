@@ -11,10 +11,6 @@
 #include "map.h"
 #include "player.h"
 
-/// @brief Render Constants
-#define RENDER_WIDTH 129
-#define RENDER_HEIGHT 40
-
 typedef struct Render_Buffer {
     board bd;
     board pv;

@@ -27,4 +27,8 @@ enum ChunkType {  //? MODIFY TO ADD LEVELS
     LABY,
 };
 
+/// @brief Render Constants
+#define RENDER_WIDTH 129
+#define RENDER_HEIGHT 40
+
 #endif
