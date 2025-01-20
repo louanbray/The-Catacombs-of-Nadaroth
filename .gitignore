@@ -4,3 +4,8 @@ dodjo/build/Debug/outDebug.exe
 .vscode/settings.json
 .vscode/launch.json
 .vscode/c_cpp_properties.json
+dinorun/build/Debug/outDebug.exe
+dinorun/build/Debug/dinorun.o
+dinorun/dinorun.exe
+dinorun/score.txt
+mistigri.exe
