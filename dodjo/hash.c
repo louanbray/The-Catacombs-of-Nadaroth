@@ -47,10 +47,12 @@ int len_hm(hm* t) {
 element_h get_hm(hm* t, int x, int y) {
     int index = hash(t->length, x, y);
     list* hd = t->hash_map[index];
+
     while (hd != NULL) {
         if (hd->x == x && hd->y == y) {
             return hd->ck;
         }
+
         hd = hd->next;
     }
     return NULL;
@@ -74,10 +76,12 @@ void setCell(list* cell, int x, int y, element_h val) {
 /// @return True if resizing is needed
 bool check_resize(hm* t, list* l) {
     int i = 0;
+
     while (l != NULL) {
         l = l->next;
         i++;
     }
+
     return i > t->max_collide;
 }
 
@@ -177,6 +181,7 @@ void free_hm(hm* t) {
 
 void print_hm(hm* t) {
     int len = t->length;
+
     for (int i = 0; i < len; i++) {
         list* l = t->hash_map[i];
 

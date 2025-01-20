@@ -25,7 +25,7 @@ pthread_mutex_t entity_mutex = PTHREAD_MUTEX_INITIALIZER;
 typedef struct {
     int x0, y0, x1, y1;
     player* p;
-    renderbuffer* r;
+    Render_Buffer* r;
 } RenderArgs;
 
 /// @brief Save the current terminal settings
@@ -97,7 +97,7 @@ void set_nonblocking_mode(int fd) {
 /// @param b board
 /// @param p player
 /// @param dir direction
-void move(renderbuffer* screen, player* p, int dir) {
+void move(Render_Buffer* screen, player* p, int dir) {
     switch (move_player(p, dir)) {
         case 1:
             render_from_player(screen, p);
@@ -114,7 +114,7 @@ void move(renderbuffer* screen, player* p, int dir) {
     }
 }
 
-void arrow_move(renderbuffer* screen, player* p, int c) {
+void arrow_move(Render_Buffer* screen, player* p, int c) {
     switch (c) {
         case KEY_ARROW_UP:
             move(screen, p, NORTH);
@@ -136,9 +136,9 @@ void arrow_move(renderbuffer* screen, player* p, int c) {
 
 /// @brief Handle the user keyboard entries
 /// @param n entry
-/// @param screen renderbuffer
+/// @param screen Render_Buffer
 /// @param p player
-void compute_entry(int n, renderbuffer* screen, player* p) {
+void compute_entry(int n, Render_Buffer* screen, player* p) {
     switch (n) {
         case KEY_Z_LOW:
         case KEY_Z_HIGH:
@@ -200,7 +200,7 @@ void init() {
 }
 
 // Function to animate a projectile moving from (x0, y0) to (x1, y1)
-void animate_projectile(int x0, int y0, int x1, int y1, player* p, renderbuffer* screen) {
+void animate_projectile(int x0, int y0, int x1, int y1, player* p, Render_Buffer* screen) {
     int x = 0, y = -101;
 
     render_projectile(x0, y0, x1, y1, &x, &y, screen);
@@ -306,7 +306,7 @@ size_t get_mouse_event_length(const char* buffer, size_t length) {
 int main() {
     init();
 
-    renderbuffer* screen = create_screen();
+    Render_Buffer* screen = create_screen();
 
     map* m = create_map();
 
@@ -330,7 +330,7 @@ int main() {
     while (1) {
         ssize_t bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer));
         if (bytes_read <= 0) {
-            usleep(1000);
+            usleep(1000);  // Prevent CPU saturation
             continue;
         }
 

@@ -62,7 +62,7 @@ void parse_chunk_file(chunk* c, dynarray* d, const char* filename) {
 }
 
 //? TO ADD A LEVEL: modify
-void parse_chunk(chunk* c, dynarray* d, int type) {
+void parse_chunk(chunk* c, dynarray* d, enum ChunkType type) {
     switch (type) {
         // case DUMMY:
         //     parse_chunk_file(d, "assets/chunks/DUMMY.dodjo");

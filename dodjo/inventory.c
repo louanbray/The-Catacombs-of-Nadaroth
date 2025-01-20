@@ -51,26 +51,35 @@ void pickup(hotbar* h, item* e) {
     if (is_hotbar_full(h)) {
         return;
     }
+
     int i = 0;
+
     for (i = 0; i < HOTBAR_SIZE; i++) {
         if (h->items[i] == NULL) {
             break;
         }
     }
+
     h->items[i] = e;
+
     if (i == h->selected) {
         h->selected_item = e;
     }
+
     h->entries += 1;
 }
 
 void drop(hotbar* h, int index) {
     if (h->items[index] == NULL) return;
+
     free_item(h->items[index]);
+
     h->items[index] = NULL;
+
     if (h->selected == index) {
         h->selected_item = NULL;
     }
+
     h->entries += -1;
 }
 

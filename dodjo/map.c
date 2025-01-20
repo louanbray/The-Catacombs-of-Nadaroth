@@ -81,7 +81,7 @@ chunk* get_chunk(map* m, int x, int y) {
     return ck;
 }
 
-chunk* get_chunk_from(map* m, chunk* c1, int dir) {
+chunk* get_chunk_from(map* m, chunk* c1, enum Direction dir) {
     if (c1->link[dir] != NULL) {
         return c1->link[dir];
     }

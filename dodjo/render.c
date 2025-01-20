@@ -15,11 +15,11 @@
 #define RENDER_WIDTH 129
 #define RENDER_HEIGHT 40
 
-typedef struct renderbuffer {
+typedef struct Render_Buffer {
     board bd;
     board pv;
     int* rc;
-} renderbuffer;
+} Render_Buffer;
 
 int abs(int x) { return x > 0 ? x : -x; }
 
@@ -90,8 +90,8 @@ int* create_rc() {
     return calloc(RENDER_HEIGHT, sizeof(int));
 }
 
-renderbuffer* create_screen() {
-    renderbuffer* r = malloc(sizeof(renderbuffer));
+Render_Buffer* create_screen() {
+    Render_Buffer* r = malloc(sizeof(Render_Buffer));
 
     board b = create_board();
     default_screen(b);
@@ -105,7 +105,7 @@ renderbuffer* create_screen() {
     return r;
 }
 
-board get_board(renderbuffer* r) {
+board get_board(Render_Buffer* r) {
     return r->bd;
 }
 
@@ -118,7 +118,7 @@ void render_char(board b, int x, int y, int c) {
     b[y + 1 + RENDER_HEIGHT / 2][x + RENDER_WIDTH / 2] = c;
 }
 
-void render_chunk(renderbuffer* r, chunk* c) {
+void render_chunk(Render_Buffer* r, chunk* c) {
     dynarray* d = get_chunk_furniture_list(c);
     board b = r->bd;
 
@@ -136,12 +136,12 @@ void render_chunk(renderbuffer* r, chunk* c) {
     swprintf(&b[37][2], 15, L"CHUNK Y: %d ", get_chunk_y(c));
 }
 
-void render_player(renderbuffer* r, player* p) {
+void render_player(Render_Buffer* r, player* p) {
     render_char(r->bd, get_player_px(p), get_player_py(p), ' ');
     render_char(r->bd, get_player_x(p), get_player_y(p), get_player_design(p));
 }
 
-void render_health(renderbuffer* r, player* p) {
+void render_health(Render_Buffer* r, player* p) {
     int display = 10;
     int health = get_player_health(p);
     int max_health = get_player_max_health(p);
@@ -157,7 +157,7 @@ void render_health(renderbuffer* r, player* p) {
     }
 }
 
-void render_hotbar(renderbuffer* r, hotbar* h) {
+void render_hotbar(Render_Buffer* r, hotbar* h) {
     int display = 57;
     int ms = get_hotbar_max_size(h);
 
@@ -178,7 +178,7 @@ void render_hotbar(renderbuffer* r, hotbar* h) {
     }
 }
 
-void render_projectile(int x0, int y0, int x1, int y1, int* xt, int* yt, renderbuffer* r) {
+void render_projectile(int x0, int y0, int x1, int y1, int* xt, int* yt, Render_Buffer* r) {
     int dx = abs(x1 - x0) / 2, sx = x0 < x1 ? 1 : -1;
     int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
 
@@ -223,12 +223,12 @@ void render_projectile(int x0, int y0, int x1, int y1, int* xt, int* yt, renderb
     *yt = 19 - y0;
 }
 
-void render(renderbuffer* r, map* m) {
+void render(Render_Buffer* r, map* m) {
     player* p = get_player(m);
     render_from_player(r, p);
 }
 
-void render_from_player(renderbuffer* r, player* p) {
+void render_from_player(Render_Buffer* r, player* p) {
     chunk* curr = get_player_chunk(p);
 
     default_screen(r->bd);
@@ -241,7 +241,7 @@ void render_from_player(renderbuffer* r, player* p) {
 
 /// @brief Print only modified parts of the screen based on the buffer
 /// @param r render buffer
-void update_screen_(renderbuffer* r) {
+void update_screen_(Render_Buffer* r) {
     for (int i = RENDER_HEIGHT - 1; i >= 0; i--) {
         if (!r->rc[i]) continue;
 
@@ -278,7 +278,7 @@ void update_screen_(renderbuffer* r) {
 
 /// @brief Update changed rows between buffer arrays
 /// @param r render buffer
-void mark_changed_rows(renderbuffer* r) {
+void mark_changed_rows(Render_Buffer* r) {
 #pragma omp parallel for
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         int changed = 0;
@@ -294,7 +294,7 @@ void mark_changed_rows(renderbuffer* r) {
     }
 }
 
-void display_interface(renderbuffer* r, char* filename) {
+void display_interface(Render_Buffer* r, const char* filename) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         perror("Error opening file");
@@ -329,7 +329,7 @@ void display_interface(renderbuffer* r, char* filename) {
     update_screen(r);
 }
 
-void play_cinematic(renderbuffer* r, char* filename, int delay) {
+void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         perror("Error opening file");
@@ -374,7 +374,7 @@ void play_cinematic(renderbuffer* r, char* filename, int delay) {
     fclose(file);
 }
 
-void update_screen(renderbuffer* r) {
+void update_screen(Render_Buffer* r) {
     mark_changed_rows(r);
     update_screen_(r);
 }

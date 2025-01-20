@@ -10,50 +10,49 @@ typedef struct map map;
 typedef struct player player;
 
 /// @brief Create a map, a hashmap of chunk* with spawn value
-/// @param free_fun Free elements function
 /// @return map
 map* create_map();
 
 /// @brief Get the chunk in x,y or create it
 /// @param m map
-/// @param x chunk x
-/// @param y chunk y
+/// @param pos_x chunk x
+/// @param pos_y chunk y
 /// @return accessed or created chunk
-chunk* get_chunk(map* m, int x, int y);
+chunk* get_chunk(map* map, int pos_x, int pos_y);
 
 /// @brief Get the loaded chunk when passing through a certain gate of current chunk
-/// @param m map
-/// @param c1 current chunk
+/// @param map map
+/// @param current_chunk current chunk
 /// @param dir gate orientation / type
 /// @return created chunk or accessed chunk
-chunk* get_chunk_from(map* m, chunk* c1, int dir);
+chunk* get_chunk_from(map* map, chunk* current_chunk, enum Direction dir);
 
 /// @brief Get linked spawn chunk of a map
-/// @param m map
+/// @param map map
 /// @return spawn chunk
-chunk* get_spawn(map* m);
+chunk* get_spawn(map* map);
 
 /// @brief Return linked player
-/// @param m map
+/// @param map map
 /// @return player
-player* get_player(map* m);
+player* get_player(map* map);
 
 /// @brief Link a player to a map
-/// @param m map
-/// @param p player
-void set_map_player(map* m, player* p);
+/// @param map map
+/// @param player player
+void set_map_player(map* map, player* player);
 
 /// @brief Free full chunk in the map and itself
-/// @param m map
-/// @param ck chunk to free
-void destroy_chunk(map* m, chunk* ck);
+/// @param map map
+/// @param chunk chunk to free
+void destroy_chunk(map* map, chunk* chunk);
 
 /// @brief Print the chunk with his coords, pointer, the link pointer and the linked chunks
-/// @param ck chunk to lookup
-void print_chunk(chunk* ck);
+/// @param chunk chunk to lookup
+void print_chunk(chunk* chunk);
 
 /// @brief Print the @map->hashtable and the @map->spawn chunk
-/// @param m map
-void print_map(map* m);
+/// @param map map
+void print_map(map* map);
 
 #endif

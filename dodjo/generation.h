@@ -22,7 +22,7 @@ typedef struct chunk {
     chunk_link link;
     int x, spawn_x;
     int y, spawn_y;
-    int type;
+    enum ChunkType type;
     dynarray* elements;
     hm* hashmap;
 } chunk;
@@ -31,43 +31,46 @@ typedef struct chunk {
 /// @param c raw chunk
 /// @param x pos x
 /// @param y pos y
-void decorate(chunk* c, int x, int y);
+void decorate(chunk* chunk, int x, int y);
 
 /// @brief Return a dynarray of chunk decoration
-/// @param ck chunk
+/// @param chunk chunk
 /// @return dynarray of decoration
-dynarray* get_chunk_furniture_list(chunk* ck);
+dynarray* get_chunk_furniture_list(chunk* chunk);
 
 /// @brief Return a hashmap containing the chunk decorations (key: x, y)
-/// @param ck chunk
+/// @param chunk chunk
 /// @return hashmap
-hm* get_chunk_furniture_coords(chunk* ck);
+hm* get_chunk_furniture_coords(chunk* chunk);
 
 /// @brief Get chunk x
-/// @param c chunk
+/// @param chunk chunk
 /// @return x
-int get_chunk_x(chunk* c);
+int get_chunk_x(chunk* chunk);
 
 /// @brief Get chunk y
-/// @param c chunk
+/// @param chunk chunk
 /// @return y
-int get_chunk_y(chunk* c);
+int get_chunk_y(chunk* chunk);
 
 /// @brief Get chunk spawn pos x
-/// @param c chunk
+/// @param chunk chunk
 /// @return spawn x
-int get_chunk_spawn_x(chunk* c);
+int get_chunk_spawn_x(chunk* chunk);
 
 /// @brief Get chunk spawn pos y
-/// @param c chunk
+/// @param chunk chunk
 /// @return spawn y
-int get_chunk_spawn_y(chunk* c);
+int get_chunk_spawn_y(chunk* chunk);
 
 /// @brief Change the chunk type
-/// @param c chunk
+/// @param chunk chunk
 /// @param type new type
-void set_chunk_type(chunk* c, int type);
+void set_chunk_type(chunk* chunk, enum ChunkType type);
 
-void remove_item(chunk* ck, item* i);
+/// @brief Remove all elements from the chunk but doesn't destroy the item
+/// @param chunk
+/// @param item
+void remove_item(chunk* chunk, item* item);
 
 #endif

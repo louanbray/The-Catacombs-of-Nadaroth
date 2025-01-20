@@ -15,9 +15,10 @@ enum ChunkType {  //? MODIFY TO ADD LEVELS
 };
 
 /// @brief Get and add the chunk decoration based on its type
-/// @param d Array of items/decorations
+/// @param chunk chunk
+/// @param array Array of items/decorations
 /// @param type chunk type
-void parse_chunk(chunk* c, dynarray* d, int type);
+void parse_chunk(chunk* chunk, dynarray* array, enum ChunkType type);
 
 // TODO: IMPLEMENT THE FOLLOWING METHODS
 

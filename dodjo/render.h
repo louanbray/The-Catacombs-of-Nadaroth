@@ -19,76 +19,85 @@ typedef struct map map;
 /// @brief Screen
 typedef wchar_t** board;
 /// @brief Render Buffer
-typedef struct renderbuffer renderbuffer;
+typedef struct Render_Buffer Render_Buffer;
 
 /// @brief Returns a white screen of const size
 /// @return board
-renderbuffer* create_screen();
+Render_Buffer* create_screen();
 
 /// @brief Clear the board to the default board
-/// @param b board
-void default_screen(board b);
+/// @param board board
+void default_screen(board board);
 
 /// @brief Clear the board
-/// @param b board
-void blank_screen(board b);
+/// @param board board
+void blank_screen(board board);
 
 /// @brief Get the board from the render buffer
-/// @param r render buffer
+/// @param screen Render_Buffer
 /// @return board
-board get_board(renderbuffer* r);
+board get_board(Render_Buffer* screen);
 
 /// @brief Render a char on the board
-/// @param b board
+/// @param board board
 /// @param x x
 /// @param y y
-/// @param c char
-void render_char(board b, int x, int y, int c);
+/// @param character char
+void render_char(board board, int x, int y, int character);
 
 /// @brief Modify the board to display the chunk (depending on the type)
-/// @param r renderbuffer
-/// @param c chunk to display
-void render_chunk(renderbuffer* r, chunk* c);
+/// @param screen Render_Buffer
+/// @param chunk chunk to display
+void render_chunk(Render_Buffer* screen, chunk* chunk);
 
 /// @brief Modify the board to display the player (if he moved, delete last pos)
-/// @param r renderbuffer
-/// @param p player
-void render_player(renderbuffer* r, player* p);
+/// @param screen Render_Buffer
+/// @param player player
+void render_player(Render_Buffer* screen, player* player);
 
 /// @brief Render hotbar
-/// @param r renderbuffer
-/// @param h hotbar
-void render_hotbar(renderbuffer* r, hotbar* h);
+/// @param screen Render_Buffer
+/// @param hotbar hotbar
+void render_hotbar(Render_Buffer* screen, hotbar* hotbar);
 
 /// @brief Render player health
-/// @param r renderbuffer
-/// @param p
-void render_health(renderbuffer* r, player* p);
+/// @param screen Render_Buffer
+/// @param player player
+void render_health(Render_Buffer* screen, player* player);
 
 /// @brief Render the given map (chunk -> elements -> player)
-/// @param r renderbuffer
+/// @param screen Render_Buffer
 /// @param map map
-void render(renderbuffer* r, map* map);
+void render(Render_Buffer* screen, map* map);
 
 /// @brief Render the current chunk (chunk -> elements -> player)
-/// @param r renderbuffer
+/// @param screen Render_Buffer
 /// @param player player
-void render_from_player(renderbuffer* r, player* p);
+void render_from_player(Render_Buffer* screen, player* player);
 
 /// @brief Clear the output and print the board
-/// @param r renderbuffer
-void update_screen(renderbuffer* r);
+/// @param screen Render_Buffer
+void update_screen(Render_Buffer* screen);
 
 /// @brief Display the board read on the given file //! MAYBE LATER DO A PRELOADING OF THE ASSETS TO PREVENT I/O SATURATION
-/// @param r renderbuffer
+/// @param screen Render_Buffer
 /// @param filename the file you want to display the content of
-void display_interface(renderbuffer* r, char* filename);
+void display_interface(Render_Buffer* screen, const char* filename);
 
 /// @brief Display the cinematic read on the given file
-/// @param r renderbuffer
+/// @param screen Render_Buffer
 /// @param filename the file you want to display the content of
 /// @param delay the delay between each frame
-void play_cinematic(renderbuffer* r, char* filename, int delay);
+void play_cinematic(Render_Buffer* screen, const char* filename, int delay);
 
-void render_projectile(int x0, int y0, int x1, int y1, int* xt, int* yt, renderbuffer* r);
+/// @brief Render a projectile on the board
+/// @param x0 start x
+/// @param y0 start y
+/// @param x1 target x
+/// @param y1 target y
+/// @param xt final x (return value)
+/// @param yt final y (return value)
+/// @param screen screen
+void render_projectile(int start_x, int start_y, int target_x, int target_y, int* callback_x, int* callback_y, Render_Buffer* screen);
+
 #endif

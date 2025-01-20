@@ -1,7 +1,8 @@
 #include "item.h"
 
 typedef struct item {
-    int x, y, type;
+    int x, y;
+    enum ItemType type;
     bool hidden, used;
     int display, index;
     void* spec;
@@ -13,7 +14,7 @@ typedef struct item {
 /// @param y pos y
 /// @param type Type
 /// @return item
-item* create_item(int x, int y, int type, int display, int index) {
+item* create_item(int x, int y, enum ItemType type, int display, int index) {
     item* i = malloc(sizeof(item));
     i->x = x;
     i->y = y;
@@ -33,7 +34,7 @@ void specialize(item* i, bool used, bool hidden, void* spec) {
     i->hidden = hidden;
 }
 
-item* generate_item(int x, int y, int type, int display, int index) {
+item* generate_item(int x, int y, enum ItemType type, int display, int index) {
     item* i = create_item(x, y, type, display, index);
     return i;
 }

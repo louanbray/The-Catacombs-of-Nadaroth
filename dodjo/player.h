@@ -44,84 +44,84 @@ typedef struct player player;
 player* create_player(map* map);
 
 /// @brief Return player coord x in chunk
-/// @param p player
+/// @param player player
 /// @return x
-int get_player_x(player* p);
+int get_player_x(player* player);
 
 /// @brief Return player coord y in chunk
-/// @param p player
+/// @param player player
 /// @return y
-int get_player_y(player* p);
+int get_player_y(player* player);
 
 /// @brief Return player previous coord x in chunk
-/// @param p player
+/// @param player player
 /// @return previous x
-int get_player_px(player* p);
+int get_player_px(player* player);
 
 /// @brief Return player previous coord y in chunk
-/// @param p player
+/// @param player player
 /// @return previous y
-int get_player_py(player* p);
+int get_player_py(player* player);
 
 /// @brief Return player current chunk
-/// @param p player
+/// @param player player
 /// @return chunk*
-chunk* get_player_chunk(player* p);
+chunk* get_player_chunk(player* player);
 
 /// @brief Return player hotbar
-/// @param p player
+/// @param player player
 /// @return hotbar
-hotbar* get_player_hotbar(player* p);
+hotbar* get_player_hotbar(player* player);
 
 /// @brief Return player design (char)
-/// @param p player
+/// @param player player
 /// @return char design
-int get_player_design(player* p);
+int get_player_design(player* player);
 
 /// @brief Return player name
-/// @param p player
+/// @param player player
 /// @return name
-char* get_player_name(player* p);
+char* get_player_name(player* player);
 
 /// @brief Return player health
-/// @param p player
+/// @param player player
 /// @return health
-int get_player_health(player* p);
+int get_player_health(player* player);
 
 /// @brief Return player max health
-/// @param p player
+/// @param player player
 /// @return health
-int get_player_max_health(player* p);
+int get_player_max_health(player* player);
 
 /// @brief Link a hotbar to the player
-/// @param p player
-/// @param h
-void link_hotbar(player* p, hotbar* h);
+/// @param player player
+/// @param hotbar
+void link_hotbar(player* player, hotbar* hotbar);
 
 /// @brief Move player of 1 unit in a chunk following the direction
-/// @param p player
+/// @param player player
 /// @param dir Direction
 /// @return refresh type
-int move_player(player* p, int dir);
+int move_player(player* player, enum Direction dir);
 
 /// @brief Move player to a new chunk following a direction/way
-/// @param p player
+/// @param player player
 /// @param dir Direction/Type
-void move_player_chunk(player* p, int dir);
+void move_player_chunk(player* player, enum Direction dir);
 
 /// @brief Damage the player health and set to 0 if dead
-/// @param p player
+/// @param player player
 /// @param damage damage (>=0) else use heal
-void damage_player(player* p, int damage);
+void damage_player(player* player, int damage);
 
 /// @brief Heal the player and set to max if too high
-/// @param p player
+/// @param player player
 /// @param damage heal (>=0) else use heal
-void heal_player(player* p, int heal);
+void heal_player(player* player, int heal);
 
 /// @brief Change the player max health
-/// @param p player
+/// @param player player
 /// @param health new health
-void set_player_max_health(player* p, unsigned int health);
+void set_player_max_health(player* player, unsigned int health);
 
 #endif
