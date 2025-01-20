@@ -4,15 +4,6 @@
 #include "hash.h"
 #include "parser.h"
 
-/// @brief Gate position/type
-enum Direction {  //! DO NOT MODIFY
-    STARGATE,
-    EAST,
-    NORTH,
-    WEST,
-    SOUTH
-};
-
 typedef struct chunk chunk;
 /// @brief define link to an array of chunk*
 typedef chunk** chunk_link;

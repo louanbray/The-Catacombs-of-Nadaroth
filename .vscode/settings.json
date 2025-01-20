@@ -145,6 +145,8 @@
     "render.h": "c",
     "signal.h": "c",
     "entity.h": "c",
-    "assert.h": "c"
+    "assert.h": "c",
+    "locale.h": "c",
+    "fcntl.h": "c"
   }
 }

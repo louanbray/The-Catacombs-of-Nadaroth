@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "constants.h"
+
 /**
  * @struct entity
  * @brief Represents an entity with parts and a brain.
@@ -26,15 +28,6 @@ typedef struct enemy {
     int hp;
     // int damage; //TODO: IMPLEMENT THIS
 } enemy;
-
-/// @brief item type
-enum ItemType {  //? MODIFY to add different types of items
-    WALL,
-    GATE,
-    SGATE,
-    PICKABLE,
-    ENEMY,
-};
 
 /// @brief Create item using given parameters with the specs based on his type
 /// @param pos_x pos x

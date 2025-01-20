@@ -3,6 +3,7 @@
 
 #include <assert.h>
 
+#include "constants.h"
 #include "inventory.h"
 
 #define KEY_Z_LOW 122
