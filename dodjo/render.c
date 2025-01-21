@@ -174,51 +174,6 @@ void render_hotbar(Render_Buffer* r, hotbar* h) {
     }
 }
 
-void render_projectile(int x0, int y0, int x1, int y1, int* xt, int* yt, Render_Buffer* r) {
-    int dx = abs(x1 - x0) / 2, sx = x0 < x1 ? 1 : -1;
-    int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-
-    int err = dx + dy, e2;
-    int xi = x0 / 2, yi = y0;
-
-    x0 = x0 / 2;
-
-    while (1) {
-        if (r->bd[RENDER_HEIGHT - y0][x0 * 2 - 1] != ' ' && r->bd[RENDER_HEIGHT - y0][x0 * 2 - 1] != 3486) break;
-
-        if (x0 != xi || y0 != yi)
-            wprintf(L"\033[%d;%dH*", y0, x0 * 2);  // Draw the projectile
-
-        fflush(stdout);
-
-        struct timespec ts;
-        ts.tv_sec = 0;
-        ts.tv_nsec = 16666667;  // 60 FPS = 1/60 seconds = ~16.67ms
-
-        clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
-
-        if (x0 != xi || y0 != yi)
-            wprintf(L"\033[%d;%dH ", y0, x0 * 2);  // Draw the projectile
-
-        if (x0 * 2 == x1 && y0 == y1) break;
-
-        e2 = 2 * err;
-
-        if (e2 >= dy) {
-            err += dy;
-            x0 += sx;
-        }
-
-        if (e2 <= dx) {
-            err += dx;
-            y0 += sy;
-        }
-    }
-
-    *xt = x0 * 2 - 65;  // Recenter the position
-    *yt = 19 - y0;
-}
-
 void render(Render_Buffer* r, map* m) {
     player* p = get_player(m);
     render_from_player(r, p);
