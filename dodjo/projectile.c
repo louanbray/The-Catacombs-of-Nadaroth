@@ -82,7 +82,7 @@ void update_projectiles(Render_Buffer* r) {
 void projectile_callback(int x, int y, projectile_data* data) {
     item* it = get_hm(get_chunk_furniture_coords(get_player_chunk(data->p)), x, y);
 
-    if (it == NULL) return;
+    if (it == NULL) free(data);
 
     bool is_entity = is_an_entity(it);
     entity* ent = NULL;
@@ -120,6 +120,7 @@ void projectile_callback(int x, int y, projectile_data* data) {
     }
 
     update_screen(data->screen);
+    free(data);
 }
 
 void* projectile_loop(void* args) {
