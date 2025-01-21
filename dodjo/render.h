@@ -90,14 +90,4 @@ void display_interface(Render_Buffer* screen, const char* filename);
 /// @param delay the delay between each frame
 void play_cinematic(Render_Buffer* screen, const char* filename, int delay);
 
-/// @brief Render a projectile on the board
-/// @param x0 start x
-/// @param y0 start y
-/// @param x1 target x
-/// @param y1 target y
-/// @param xt final x (return value)
-/// @param yt final y (return value)
-/// @param screen screen
-void render_projectile(int start_x, int start_y, int target_x, int target_y, int* callback_x, int* callback_y, Render_Buffer* screen);
-
 #endif
