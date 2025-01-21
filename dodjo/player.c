@@ -87,7 +87,7 @@ void link_hotbar(player* p, hotbar* h) {
     p->hotbar = h;
 }
 
-int move_player(player* p, enum Direction dir) {
+int move_player(player* p, Direction dir) {
     const int dx[] = {0, 2, 0, -2, 0};
     const int dy[] = {0, 0, 1, 0, -1};
 
@@ -110,7 +110,7 @@ int move_player(player* p, enum Direction dir) {
     return n;
 }
 
-void move_player_chunk(player* p, enum Direction dir) {
+void move_player_chunk(player* p, Direction dir) {
     p->current_chunk = get_chunk_from(p->map, p->current_chunk, dir);
     center_player(p);
 }

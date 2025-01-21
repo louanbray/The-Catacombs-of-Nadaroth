@@ -103,12 +103,12 @@ void link_hotbar(player* player, hotbar* hotbar);
 /// @param player player
 /// @param dir Direction
 /// @return refresh type
-int move_player(player* player, enum Direction dir);
+int move_player(player* player, Direction dir);
 
 /// @brief Move player to a new chunk following a direction/way
 /// @param player player
 /// @param dir Direction/Type
-void move_player_chunk(player* player, enum Direction dir);
+void move_player_chunk(player* player, Direction dir);
 
 /// @brief Damage the player health and set to 0 if dead
 /// @param player player

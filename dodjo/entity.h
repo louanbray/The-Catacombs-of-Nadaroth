@@ -70,6 +70,6 @@ void remove_entity_from_chunk(entity* entity);
 /// @brief Move the entity of 1 unit in a chunk following the direction (if possible)
 /// @param entity entity
 /// @param dir direction
-void move_entity(entity* entity, enum Direction dir);
+void move_entity(entity* entity, Direction dir);
 
 #endif

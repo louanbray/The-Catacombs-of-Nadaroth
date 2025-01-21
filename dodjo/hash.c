@@ -49,9 +49,7 @@ element_h get_hm(hm* t, int x, int y) {
     list* hd = t->hash_map[index];
 
     while (hd != NULL) {
-        if (hd->x == x && hd->y == y) {
-            return hd->ck;
-        }
+        if (hd->x == x && hd->y == y) return hd->ck;
 
         hd = hd->next;
     }

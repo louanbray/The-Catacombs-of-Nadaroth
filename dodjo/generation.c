@@ -24,7 +24,7 @@ int get_chunk_spawn_y(chunk* c) {
     return c->spawn_y;
 }
 
-void set_chunk_type(chunk* ck, enum ChunkType type) {
+void set_chunk_type(chunk* ck, ChunkType type) {
     ck->type = type;
 }
 
@@ -45,7 +45,7 @@ void fill_chunk_hm_from_dyn(chunk* c) {
 /// @brief Add all elements of the chunk depending of the type
 /// @param c chunk
 /// @param type type
-void fill_furniture(chunk* c, enum ChunkType type) {
+void fill_furniture(chunk* c, ChunkType type) {
     parse_chunk(c, c->elements, type);
     fill_chunk_hm_from_dyn(c);
 }

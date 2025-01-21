@@ -17,7 +17,7 @@ typedef struct projectile_data {
 
 typedef void (*ProjectileCallback)(int x, int y, projectile_data* data);
 
-typedef struct {
+typedef struct Projectile {
     int x, y;                        // Current position
     int x1, y1;                      // Target position
     int dx, dy;                      // Absolute differences
@@ -82,7 +82,10 @@ void update_projectiles(Render_Buffer* r) {
 void projectile_callback(int x, int y, projectile_data* data) {
     item* it = get_hm(get_chunk_furniture_coords(get_player_chunk(data->p)), x, y);
 
-    if (it == NULL) free(data);
+    if (it == NULL) {
+        free(data);
+        return;
+    }
 
     bool is_entity = is_an_entity(it);
     entity* ent = NULL;

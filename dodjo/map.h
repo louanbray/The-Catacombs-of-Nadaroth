@@ -25,7 +25,7 @@ chunk* get_chunk(map* map, int pos_x, int pos_y);
 /// @param current_chunk current chunk
 /// @param dir gate orientation / type
 /// @return created chunk or accessed chunk
-chunk* get_chunk_from(map* map, chunk* current_chunk, enum Direction dir);
+chunk* get_chunk_from(map* map, chunk* current_chunk, Direction dir);
 
 /// @brief Get linked spawn chunk of a map
 /// @param map map

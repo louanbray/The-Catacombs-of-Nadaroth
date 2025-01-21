@@ -10,7 +10,7 @@ typedef struct chunk chunk;
 /// @param chunk chunk
 /// @param array Array of items/decorations
 /// @param type chunk type
-void parse_chunk(chunk* chunk, dynarray* array, enum ChunkType type);
+void parse_chunk(chunk* chunk, dynarray* array, ChunkType type);
 
 // TODO: IMPLEMENT THE FOLLOWING METHODS
 

@@ -35,7 +35,7 @@ void parse_chunk_file(chunk* c, dynarray* d, const char* filename) {
                 case ENEMY: {
                     enemy* elt = malloc(sizeof(enemy));
 
-                    fscanf(entity_file, "*%d*", &elt->hp);
+                    fscanf(entity_file, "[%d]", &elt->hp);
                     specialize(brain, false, false, elt);
                     break;
                 }
@@ -62,7 +62,7 @@ void parse_chunk_file(chunk* c, dynarray* d, const char* filename) {
 }
 
 //? TO ADD A LEVEL: modify
-void parse_chunk(chunk* c, dynarray* d, enum ChunkType type) {
+void parse_chunk(chunk* c, dynarray* d, ChunkType type) {
     switch (type) {
         // case DUMMY:
         //     parse_chunk_file(d, "assets/chunks/DUMMY.dodjo");

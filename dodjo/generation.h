@@ -13,7 +13,7 @@ typedef struct chunk {
     chunk_link link;
     int x, spawn_x;
     int y, spawn_y;
-    enum ChunkType type;
+    ChunkType type;
     dynarray* elements;
     hm* hashmap;
 } chunk;
@@ -57,7 +57,7 @@ int get_chunk_spawn_y(chunk* chunk);
 /// @brief Change the chunk type
 /// @param chunk chunk
 /// @param type new type
-void set_chunk_type(chunk* chunk, enum ChunkType type);
+void set_chunk_type(chunk* chunk, ChunkType type);
 
 /// @brief Remove all elements from the chunk but doesn't destroy the item
 /// @param chunk

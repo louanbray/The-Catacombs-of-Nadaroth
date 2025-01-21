@@ -62,7 +62,7 @@ void destroy_entity_from_chunk(entity* e) {
 /// @param c entity chunk
 /// @param i entity part
 /// @param dir direction
-void move_part(chunk* c, item* i, enum Direction dir) {
+void move_part(chunk* c, item* i, Direction dir) {
     int x = get_item_x(i);
     int y = get_item_y(i);
 
@@ -84,7 +84,7 @@ void move_part(chunk* c, item* i, enum Direction dir) {
 /// @brief Check if the entity can move in the given direction
 /// @param e entity
 /// @param dir direction
-bool can_entity_move(entity* e, enum Direction dir) {
+bool can_entity_move(entity* e, Direction dir) {
     dynarray* d = e->parts;
     int len = len_dyn(d);
 
@@ -119,7 +119,7 @@ bool can_entity_move(entity* e, enum Direction dir) {
     return can_move;
 }
 
-void move_entity(entity* e, enum Direction dir) {
+void move_entity(entity* e, Direction dir) {
     if (!can_entity_move(e, dir)) {
         return;
     }

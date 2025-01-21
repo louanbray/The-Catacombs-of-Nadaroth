@@ -2,30 +2,37 @@
 #define CONSTANTS_H
 
 /// @brief Gate position/type
-enum Direction {  //! DO NOT MODIFY
+typedef enum Direction {  //! DO NOT MODIFY
     STARGATE,
     EAST,
     NORTH,
     WEST,
     SOUTH
-};
+} Direction;
 
 /// @brief item type
-enum ItemType {  //? MODIFY to add different types of items
+typedef enum ItemType {  //? MODIFY to add different types of items
     WALL,
     GATE,
     SGATE,
     PICKABLE,
     ENEMY,
-};
+} ItemType;
 
 /// @brief chunk type (0,0) -> SPAWN
-enum ChunkType {  //? MODIFY TO ADD LEVELS
+typedef enum ChunkType {  //? MODIFY TO ADD LEVELS
     SPAWN,
     DEFAULT,
     DEFAULT2,
     LABY,
-};
+} ChunkType;
+
+typedef enum {
+    ENEMY1,
+    ENEMY2,
+    // Other entity types...
+    ENTITY_TYPE_COUNT  // This will automatically be the count of enum entries
+} EntityType;
 
 /// @brief Render Constants
 #define RENDER_WIDTH 129
