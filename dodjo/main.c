@@ -106,9 +106,9 @@ void compute_entry(Render_Buffer* screen, player* p, int entry) {
 /// @return I dream of a 0
 int main() {
     init_terminal();
+    init_assets_system();
 
     Render_Buffer* screen = create_screen();
-    AssetManager* am = create_asset_manager();
 
     map* m = create_map();
 
@@ -119,11 +119,6 @@ int main() {
 
     render(screen, m);
     update_screen(screen);
-
-    //! TO AUTOMATIZE
-    // add_entity_file(am, "assets/entities/data/1.dodjo", ENEMY1);
-
-    // EntityAssetFile* enemy1_entity = get_entity_file(am, ENEMY1);
 
     init_projectile_system(screen);
     process_input(p, screen, fire_projectile, arrow_move, compute_entry);

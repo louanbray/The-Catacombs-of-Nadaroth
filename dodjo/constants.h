@@ -11,7 +11,7 @@ typedef enum Direction {  //! DO NOT MODIFY
 } Direction;
 
 /// @brief item type
-typedef enum ItemType {  //? MODIFY to add different types of items
+typedef enum ItemType {  //? MODIFY TO ADD ITEM TYPES
     WALL,
     GATE,
     SGATE,
@@ -25,9 +25,11 @@ typedef enum ChunkType {  //? MODIFY TO ADD LEVELS
     DEFAULT,
     DEFAULT2,
     LABY,
+    CHUNK_TYPE_COUNT  // This will automatically be the count of enum entries
 } ChunkType;
 
-typedef enum {
+typedef enum EntityType {  //? MODIFY TO ADD ENTITY TYPES
+    NULL_ENTITY,
     ENEMY1,
     ENEMY2,
     // Other entity types...

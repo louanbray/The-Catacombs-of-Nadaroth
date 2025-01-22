@@ -3,9 +3,24 @@
 #include <stdio.h>
 #include <string.h>
 
-EntityAssetFile* parse_entity_file(const char* filename) {
+static AssetManager* asset_manager = NULL;
+
+/**
+ * @brief Loads an entity asset file and parses its contents.
+ *
+ * This function opens the specified file, reads its contents, and parses the
+ * specifications and entity parts. The specifications are expected to be in
+ * the first line of the file, enclosed in square brackets and separated by
+ * commas. The entity parts are expected to be in the subsequent lines, each
+ * line containing five integers separated by commas.
+ *
+ * @param filename The path to the entity asset file to be loaded.
+ * @return A pointer to the loaded EntityAssetFile structure, or NULL if an
+ * error occurred.
+ */
+static EntityAssetFile* load_entity_file(const char* filename) {
     FILE* file = fopen(filename, "r");
-    if (file == NULL) return NULL;
+    if (!file) return NULL;
 
     EntityAssetFile* entity_file = malloc(sizeof(EntityAssetFile));
     if (!entity_file) return NULL;
@@ -64,7 +79,56 @@ EntityAssetFile* parse_entity_file(const char* filename) {
     fclose(file);
     return entity_file;
 }
+/**
+ * @brief Loads a chunk file and parses its contents into a ChunkAssetFile structure.
+ *
+ * This function opens a file specified by the filename, reads its contents, and
+ * populates a ChunkAssetFile structure with the parsed data. Each line in the file
+ * is expected to contain eight comma-separated integers representing the properties
+ * of a ChunkItem.
+ *
+ * @param filename The path to the file to be loaded.
+ * @return A pointer to a ChunkAssetFile structure containing the parsed data, or NULL
+ *         if the file could not be opened or memory allocation failed.
+ */
+static ChunkAssetFile* load_chunk_file(const char* filename) {
+    FILE* file = fopen(filename, "r");
+    if (!file) return NULL;
 
+    ChunkAssetFile* chunk = malloc(sizeof(ChunkAssetFile));
+    if (!chunk) return NULL;
+
+    chunk->items = NULL;
+    chunk->item_count = 0;
+
+    int x, y, type, display, row_repeat, size, col_repeat, entity_type;
+    while (fscanf(file, "%d,%d,%d,%d,%d,%d,%d,%d", &x, &y, &type, &display, &row_repeat, &size, &col_repeat, &entity_type) == 8) {
+        chunk->items = realloc(chunk->items, sizeof(ChunkItem) * (chunk->item_count + 1));
+        ChunkItem* item = &chunk->items[chunk->item_count++];
+        item->x = x;
+        item->y = y;
+        item->type = type;
+        item->display = display;
+        item->row_repeat = row_repeat;
+        item->size = size;
+        item->col_repeat = col_repeat;
+        item->entity_type = entity_type;
+    }
+
+    fclose(file);
+    return chunk;
+}
+
+/**
+ * @brief Creates and initializes an AssetManager structure.
+ *
+ * This function allocates memory for an AssetManager structure and initializes its
+ * entity and chunk arrays to NULL. The number of entities and chunks is determined
+ * by the ENTITY_TYPE_COUNT and CHUNK_TYPE_COUNT constants, respectively.
+ *
+ * @return A pointer to an initialized AssetManager structure, or NULL if memory
+ *         allocation failed.
+ */
 AssetManager* create_asset_manager() {
     AssetManager* manager = malloc(sizeof(AssetManager));
     if (!manager) return NULL;
@@ -72,37 +136,82 @@ AssetManager* create_asset_manager() {
     for (int i = 0; i < ENTITY_TYPE_COUNT; i++) {
         manager->entities[i] = NULL;
     }
+    for (int i = 0; i < CHUNK_TYPE_COUNT; i++) {
+        manager->chunks[i] = NULL;
+    }
 
     return manager;
 }
 
-bool add_entity_file(AssetManager* manager, const char* filename, EntityType type) {
+bool add_entity_file(const char* filename, EntityType type) {
     if (type < 0 || type >= ENTITY_TYPE_COUNT) {
         return false;  // Invalid type
     }
 
-    EntityAssetFile* entity = parse_entity_file(filename);
+    EntityAssetFile* entity = load_entity_file(filename);
     if (!entity) return false;
 
-    manager->entities[type] = entity;
+    asset_manager->entities[type] = entity;
     return true;
 }
 
-EntityAssetFile* get_entity_file(AssetManager* manager, EntityType type) {
+bool add_chunk_file(const char* filename, ChunkType type) {
+    if (type < 0 || type >= CHUNK_TYPE_COUNT) {
+        return false;  // Invalid type
+    }
+
+    ChunkAssetFile* chunk = load_chunk_file(filename);
+    if (!chunk) return false;
+
+    asset_manager->chunks[type] = chunk;
+    return true;
+}
+
+EntityAssetFile* get_entity_file(EntityType type) {
     if (type < 0 || type >= ENTITY_TYPE_COUNT) {
         return NULL;  // Invalid type
     }
 
-    return manager->entities[type];
+    return asset_manager->entities[type];
 }
 
-// Free all resources used by the asset manager
-void destroy_asset_manager(AssetManager* manager) {
-    for (size_t i = 0; i < ENTITY_TYPE_COUNT; i++) {
-        free(manager->entities[i]->specs.specs);
-        free(manager->entities[i]->parts);
-        free(manager->entities[i]);
+ChunkAssetFile* get_chunk_file(ChunkType type) {
+    if (type < 0 || type >= CHUNK_TYPE_COUNT) {
+        return NULL;  // Invalid type
     }
-    free(manager->entities);
-    free(manager);
+
+    return asset_manager->chunks[type];
+}
+
+void destroy_asset_manager() {
+    for (int i = 0; i < ENTITY_TYPE_COUNT; i++) {
+        free(asset_manager->entities[i]->specs.specs);
+        free(asset_manager->entities[i]->parts);
+        free(asset_manager->entities[i]);
+    }
+
+    for (int i = 0; i < CHUNK_TYPE_COUNT; i++) {
+        free(asset_manager->chunks[i]->items);
+        free(asset_manager->chunks[i]);
+    }
+    free(asset_manager);
+}
+
+void init_assets_system() {
+    asset_manager = create_asset_manager();
+    if (!asset_manager) {
+        fprintf(stderr, "Failed to create asset manager\n");
+        exit(1);
+    }
+
+    // Load entity files
+    add_entity_file("assets/entities/data/1.dodjo", ENEMY1);
+    // Add more entity files here...
+
+    // Load chunk files
+    add_chunk_file("assets/chunks/spawn.dodjo", SPAWN);
+    add_chunk_file("assets/chunks/default.dodjo", DEFAULT);
+    add_chunk_file("assets/chunks/default2.dodjo", DEFAULT2);
+
+    // Add more chunk files here...
 }

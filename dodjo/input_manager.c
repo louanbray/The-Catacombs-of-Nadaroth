@@ -83,7 +83,15 @@ void init_terminal() {
     wprintf(L"\033[?1003h\033[?1006h");  // Enable mouse motion events
     fflush(stdout);
 }
-
+/**
+ * @brief Parses an SGR mouse event from the given buffer.
+ *
+ * @param buffer The buffer containing the SGR mouse event data.
+ * @param target_x Pointer to an integer where the x-coordinate of the mouse event will be stored.
+ * @param target_y Pointer to an integer where the y-coordinate of the mouse event will be stored.
+ * @param left_click Pointer to an integer that will be set to 1 if the left mouse button was clicked, otherwise 0.
+ * @param just_pressed Pointer to a boolean that indicates whether the left mouse button was just pressed.
+ */
 void parse_sgr_mouse_event(const char* buffer, int* target_x, int* target_y, int* left_click, bool* just_pressed) {
     int button, x, y;
     char event_type;
@@ -105,14 +113,35 @@ void parse_sgr_mouse_event(const char* buffer, int* target_x, int* target_y, int
     }
 }
 
+/**
+ * @brief Checks if the given buffer contains a mouse event.
+ *
+ * @param buffer The buffer to check.
+ * @param length The length of the buffer.
+ * @return true if the buffer contains a mouse event, false otherwise.
+ */
 bool is_mouse_event(const char* buffer, size_t length) {
     return length >= 3 && buffer[0] == '\033' && buffer[1] == '[' && buffer[2] == '<';
 }
 
+/**
+ * @brief Checks if the given buffer contains an arrow key event.
+ *
+ * @param buffer The buffer to check.
+ * @param length The length of the buffer.
+ * @return true if the buffer contains an arrow key event, false otherwise.
+ */
 bool is_arrow_key(const char* buffer, size_t length) {
     return length >= 3 && buffer[0] == '\033' && buffer[1] == '[' && (buffer[2] == 'A' || buffer[2] == 'B' || buffer[2] == 'C' || buffer[2] == 'D');
 }
 
+/**
+ * @brief Gets the length of a mouse event in the given buffer.
+ *
+ * @param buffer The buffer containing the mouse event data.
+ * @param length The length of the buffer.
+ * @return The length of the mouse event, or 0 if the event is incomplete.
+ */
 size_t get_mouse_event_length(const char* buffer, size_t length) {
     size_t i = 3;  // Start after "\033[<"
 
@@ -193,7 +222,7 @@ void process_input(player* p, Render_Buffer* screen,
             }
         }
 
-        // Shift unprocessed data to the beginning of the buffer
+        // Move unprocessed data to the beginning of the buffer
         if (processed < input_buffer_length) {
             memmove(input_buffer, input_buffer + processed, input_buffer_length - processed);
         }
