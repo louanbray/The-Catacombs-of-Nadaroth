@@ -144,9 +144,7 @@ AssetManager* create_asset_manager() {
 }
 
 bool add_entity_file(const char* filename, EntityType type) {
-    if (type < 0 || type >= ENTITY_TYPE_COUNT) {
-        return false;  // Invalid type
-    }
+    if (type < 0 || type >= ENTITY_TYPE_COUNT) return NULL;
 
     EntityAssetFile* entity = load_entity_file(filename);
     if (!entity) return false;
@@ -156,9 +154,7 @@ bool add_entity_file(const char* filename, EntityType type) {
 }
 
 bool add_chunk_file(const char* filename, ChunkType type) {
-    if (type < 0 || type >= CHUNK_TYPE_COUNT) {
-        return false;  // Invalid type
-    }
+    if (type < 0 || type >= CHUNK_TYPE_COUNT) return NULL;
 
     ChunkAssetFile* chunk = load_chunk_file(filename);
     if (!chunk) return false;
@@ -168,17 +164,13 @@ bool add_chunk_file(const char* filename, ChunkType type) {
 }
 
 EntityAssetFile* get_entity_file(EntityType type) {
-    if (type < 0 || type >= ENTITY_TYPE_COUNT) {
-        return NULL;  // Invalid type
-    }
+    if (type < 0 || type >= ENTITY_TYPE_COUNT) return NULL;
 
     return asset_manager->entities[type];
 }
 
 ChunkAssetFile* get_chunk_file(ChunkType type) {
-    if (type < 0 || type >= CHUNK_TYPE_COUNT) {
-        return NULL;  // Invalid type
-    }
+    if (type < 0 || type >= CHUNK_TYPE_COUNT) return NULL;
 
     return asset_manager->chunks[type];
 }
