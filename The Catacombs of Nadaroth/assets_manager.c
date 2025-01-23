@@ -79,6 +79,7 @@ static EntityAssetFile* load_entity_file(const char* filename) {
     fclose(file);
     return entity_file;
 }
+
 /**
  * @brief Loads a chunk file and parses its contents into a ChunkAssetFile structure.
  *
@@ -197,7 +198,7 @@ void init_assets_system() {
     }
 
     // Load entity files
-    add_entity_file("assets/entities/data/1.dodjo", ENEMY1);
+    add_entity_file("assets/entities/data/dummy.dodjo", ENEMY1);
     // Add more entity files here...
 
     // Load chunk files

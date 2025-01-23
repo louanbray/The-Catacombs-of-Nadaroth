@@ -1,6 +1,10 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+/// @brief Render Constants
+#define RENDER_WIDTH 129
+#define RENDER_HEIGHT 40
+
 /// @brief Gate position/type
 typedef enum Direction {  //! DO NOT MODIFY
     STARGATE,
@@ -35,9 +39,5 @@ typedef enum EntityType {  //? MODIFY TO ADD ENTITY TYPES
     // Other entity types...
     ENTITY_TYPE_COUNT  // This will automatically be the count of enum entries
 } EntityType;
-
-/// @brief Render Constants
-#define RENDER_WIDTH 129
-#define RENDER_HEIGHT 40
 
 #endif

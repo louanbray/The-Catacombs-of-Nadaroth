@@ -90,7 +90,7 @@ Render_Buffer* create_screen() {
     Render_Buffer* r = malloc(sizeof(Render_Buffer));
 
     board b = create_board();
-    default_screen(b);
+    blank_screen(b);
 
     board pv = create_board();
     blank_screen(pv);
@@ -128,8 +128,10 @@ void render_chunk(Render_Buffer* r, chunk* c) {
         render_char(b, get_item_x(it), get_item_y(it), get_item_display(it));
     }
 
-    swprintf(&b[38][2], 15, L"CHUNK X: %d ", get_chunk_x(c));
-    swprintf(&b[37][2], 15, L"CHUNK Y: %d ", get_chunk_y(c));
+    swprintf(&b[38][2], 16, L"CHUNK X: %d", get_chunk_x(c));
+    for (int i = wcslen(&b[38][2]); i < 16; i++) b[38][2 + i] = L' ';
+    swprintf(&b[37][2], 16, L"CHUNK Y: %d", get_chunk_y(c));
+    for (int i = wcslen(&b[37][2]); i < 16; i++) b[37][2 + i] = L' ';
 }
 
 void render_player(Render_Buffer* r, player* p) {
@@ -183,8 +185,8 @@ void render_from_player(Render_Buffer* r, player* p) {
     chunk* curr = get_player_chunk(p);
 
     default_screen(r->bd);
-
     render_chunk(r, curr);
+
     render_player(r, p);
     render_hotbar(r, get_player_hotbar(p));
     render_health(r, p);
@@ -309,6 +311,21 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
             update_screen(r);
 
             usleep(delay * timeout);
+        } else if (buffer[0] == '%') {
+            int eol = 0;
+
+            for (int j = 1; j < RENDER_WIDTH - 2; j++) {
+                if (buffer[j] == '~') eol = 1;
+                if (eol == 1) buffer[j] = L' ';
+                r->bd[RENDER_HEIGHT - row - 2][j] = buffer[j];
+                if (!eol) {
+                    update_screen(r);
+                    usleep(delay / 50);
+                }
+            }
+
+            update_screen(r);
+            row++;
         } else {
             int eol = 0;
 

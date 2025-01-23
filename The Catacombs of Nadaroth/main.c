@@ -117,6 +117,10 @@ int main() {
 
     link_hotbar(p, h);
 
+    play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 500000);
+
+    default_screen(get_board(screen));
+
     render(screen, m);
     update_screen(screen);
 
