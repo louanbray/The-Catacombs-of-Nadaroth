@@ -1,11 +1,6 @@
-dodjo/compile.bat.lnk
-dodjo/run.bat.lnk
-dodjo/build/Debug/outDebug.exe
+The Catacombs of Nadaroth/compile.bat.lnk
+The Catacombs of Nadaroth/run.bat.lnk
+The Catacombs of Nadaroth/build/Debug/outDebug.exe
 .vscode/settings.json
 .vscode/launch.json
 .vscode/c_cpp_properties.json
-dinorun/build/Debug/outDebug.exe
-dinorun/build/Debug/dinorun.o
-dinorun/dinorun.exe
-dinorun/score.txt
-mistigri.exe
