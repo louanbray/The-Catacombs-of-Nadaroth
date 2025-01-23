@@ -1,5 +1,5 @@
 # The Catacombs of Nadaroth
-
+_(School Project)_
 Welcome to **The Catacombs of Nadaroth**, a terminal-based adventure game where you play as a lost adventurer trying to find a way out of the mysterious catacombs. 
 
 ## Story
