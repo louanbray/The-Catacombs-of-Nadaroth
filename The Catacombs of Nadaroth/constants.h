@@ -6,19 +6,24 @@
 #define RENDER_HEIGHT 40
 
 //! COPYRIGHT 24/01/2025 20:33, EVERY IDEA HERE IS MINE IF YOU FOUND ANY LEAKED DATA PLEASE INFORM THE DEVELOPPER OF THE GAME
-// TODO: IMPLEMENT THE MISSING ITEMS
+
 /*
 TODO LIST:
-- Make any key event stored in an input manager object so that you can check at any moment if a key is pressed
-- Update the screen render to make a part of the screen reserved to items descriptions and naration
-- Implement the mecanics below
-- Implement status menu
-- Work on menus (Username, character selection, stat attribution aso...)
-- Add cinematics
-- Rework render concept to add mental health effect (limited vision)
-- Work on the designs of the items and chunks
-- Enemy PATHFINDING huh ?
+- Make any key event stored in an input manager object so that you can check at any moment if a key is pressed                    [DEV] (HIGH)
+- Update the screen render to make a part of the screen reserved to items descriptions and naration                               [RENDER] (HIGH)
+- Enemy->Player Interaction                                                                                                       [DEV] (HIGH)
+- Enemy PATHFINDING huh ?                                                                                                         [DEV] (HIGH)
+- Implement the mecanics below / missing items                                                                                    [DEV] (MEDIUM)
+- Work on the designs of the items and chunks                                                                                     [RENDER] (MEDIUM)
+- Implement status menu                                                                                                           [RENDER/DEV] (LOW)
+- Work on menus (Username, character selection, stat attribution aso...)                                                          [RENDER/DEV] (LOW)
+- Add cinematics                                                                                                                  [RENDER] (LOW)
+- Rework render concept to add mental health effect (limited vision)                                                              [RENDER/DEV] (LOW)
+- Add stats and achievements objects                                                                                              [RENDER/DEV] (LOW)
+- Saving Games, opening and sharing                                                                                               [DEV/RENDER] (LOW)
+- Update Entity / Chunk editor                                                                                                    [DEV] (LOW)
 */
+
 /// @brief Gate position/type
 typedef enum Direction {  //! DO NOT MODIFY
     STARGATE,

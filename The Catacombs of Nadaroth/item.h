@@ -26,7 +26,7 @@ typedef struct item item;
 /// @brief Type of item
 typedef struct enemy {
     int hp;
-    // int damage; //TODO: IMPLEMENT THIS
+    // int damage;
 } enemy;
 
 /// @brief Create item using given parameters with the specs based on his type

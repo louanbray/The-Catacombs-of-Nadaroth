@@ -12,10 +12,4 @@ typedef struct chunk chunk;
 /// @param type chunk type
 void parse_chunk(chunk* chunk, dynarray* array, ChunkType type);
 
-// TODO: IMPLEMENT THE FOLLOWING METHODS
-
-/*
-void parse_item(...)
-*/
-
 #endif

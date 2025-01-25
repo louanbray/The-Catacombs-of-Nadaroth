@@ -11,9 +11,6 @@ typedef struct player {
     int health, max_health;
     int design;
     char* name;
-    /*
-    TODO: add stats and achievements objects
-    */
 } player;
 
 /// @brief Set player pos to chunk center
