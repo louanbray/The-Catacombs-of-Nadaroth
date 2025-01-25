@@ -67,14 +67,90 @@ typedef struct EntityAssetFile {
     EntityPart* parts;  // Array of entity parts
 } EntityAssetFile;
 
+/**
+ * @struct ChunkItem
+ * @brief Represents an item within a chunk.
+ *
+ * @var ChunkItem::x
+ * The x-coordinate of the item.
+ *
+ * @var ChunkItem::y
+ * The y-coordinate of the item.
+ *
+ * @var ChunkItem::type
+ * The type of the item.
+ *
+ * @var ChunkItem::display
+ * The display status of the item.
+ *
+ * @var ChunkItem::row_repeat
+ * The number of times the item is repeated in a row.
+ *
+ * @var ChunkItem::size
+ * The size of the item.
+ *
+ * @var ChunkItem::col_repeat
+ * The number of times the item is repeated in a column.
+ *
+ * @var ChunkItem::entity_type
+ * The type of entity the item represents. (0 = NULL_ENTITY)
+ */
 typedef struct ChunkItem {
     int x, y, type, display, row_repeat, size, col_repeat, entity_type;
 } ChunkItem;
 
+/**
+ * @struct ChunkAssetFile
+ * @brief Represents a file containing chunk assets.
+ *
+ * @var ChunkAssetFile::items
+ * Pointer to an array of ChunkItem structures.
+ *
+ * @var ChunkAssetFile::item_count
+ * The number of items in the array.
+ */
 typedef struct ChunkAssetFile {
     ChunkItem* items;
     size_t item_count;
 } ChunkAssetFile;
+
+/**
+ * @struct UsableItemSpecs
+ * @brief Represents the specifications of a usable item.
+ *
+ * This structure holds a dynamic array of specifications and the count of these specifications.
+ *
+ * @var UsableItemSpecs::specs
+ * Dynamic array of specifications.
+ *
+ * @var UsableItemSpecs::spec_count
+ * Number of specifications in the dynamic array.
+ */
+typedef struct UsableItemSpecs {
+    int* specs;         // Dynamic array of specs
+    size_t spec_count;  // Number of specs
+} UsableItemSpecs;
+
+/**
+ * @struct UsableItemAssetFile
+ * @brief Represents a usable item asset file.
+ *
+ * This structure contains the specifications, title, and description of a usable item.
+ *
+ * @var UsableItemAssetFile::specs
+ * Specifications of the usable item.
+ *
+ * @var UsableItemAssetFile::title
+ * Title of the usable item.
+ *
+ * @var UsableItemAssetFile::description
+ * Description of the usable item.
+ */
+typedef struct UsableItemAssetFile {
+    UsableItemSpecs specs;
+    char* title;
+    char* description;
+} UsableItemAssetFile;
 
 /**
  * @struct AssetManager
@@ -86,6 +162,7 @@ typedef struct ChunkAssetFile {
 typedef struct AssetManager {
     EntityAssetFile* entities[ENTITY_TYPE_COUNT];  // Array of entity files indexed by EntityType
     ChunkAssetFile* chunks[CHUNK_TYPE_COUNT];
+    UsableItemAssetFile* usable_items[USABLE_ITEM_COUNT];
 } AssetManager;
 
 /**
@@ -116,6 +193,17 @@ bool add_entity_file(const char* filename, EntityType type);
 bool add_chunk_file(const char* filename, ChunkType type);
 
 /**
+ * @brief Adds a usable item file to the assets manager.
+ *
+ * This function takes the filename of a usable item and its type, and adds it to the assets manager.
+ *
+ * @param filename The name of the file to be added.
+ * @param type The type of the usable item.
+ * @return true if the file was successfully added, false otherwise.
+ */
+bool add_usable_item_file(const char* filename, UsableItem type);
+
+/**
  * Retrieves an entity file from the asset manager.
  *
  * @param type The type of the entity to retrieve.
@@ -133,6 +221,17 @@ EntityAssetFile* get_entity_file(EntityType type);
  * @return A pointer to the ChunkAssetFile if found, NULL otherwise.
  */
 ChunkAssetFile* get_chunk_file(ChunkType type);
+
+/**
+ * @brief Retrieves the file associated with a given usable item type.
+ *
+ * This function takes a UsableItem type as input and returns a pointer to the
+ * corresponding UsableItemAssetFile.
+ *
+ * @param type The type of the usable item for which the file is to be retrieved.
+ * @return A pointer to the UsableItemAssetFile corresponding to the given type.
+ */
+UsableItemAssetFile* get_usable_item_file(UsableItem type);
 
 /**
  * Frees all resources used by the asset manager.

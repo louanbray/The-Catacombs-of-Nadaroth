@@ -38,8 +38,16 @@ typedef enum ItemType {  //? MODIFY TO ADD ITEM TYPES
     ENEMY,               // A 'Thing' with HPs
 } ItemType;
 
+typedef enum Rarity {
+    BRONZE,
+    SILVER,
+    GOLD,
+    NADINO,
+} Rarity;
+
 typedef enum UsableItem {
     BASIC_BOW,
+    ADVANCED_BOW,
     SUPER_BOW,
     NADINO_BOW,
     BRONZE_KEY,
@@ -52,7 +60,9 @@ typedef enum UsableItem {
     GOLDEN_APPLE,   // Add one heart (permanent (as long as you don't die you can regen)) (GOLD)
     BOMB,           // Wanna explode a chunk ? Here's what you need (BEWARE: NO LOOT WILL BE GIVEN | A NEW CHUNK WILL BE GENERATED HERE NEXT TIME (or the same if unlucky hehe)) (SILVER)
     //? Add armors / potions (consumables = stats up) if enough time
-};
+
+    USABLE_ITEM_COUNT
+} UsableItem;
 
 /// @brief chunk type (0,0) -> SPAWN
 typedef enum ChunkType {  //? MODIFY TO ADD LEVELS

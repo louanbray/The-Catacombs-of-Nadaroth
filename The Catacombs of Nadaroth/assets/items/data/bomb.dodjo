@@ -1,0 +1,12 @@
+[1]
+{Bomb}
+"A compact but deadly device, crudely constructed yet undeniably effective.
+Its surface is etched with warnings in an ancient script, though the meaning is clear enough: destruction."
+
+ -> Detonates the current room, clearing all entities and resetting the area.
+ -> Warning: No loot will be gained from the explosion.
+    The room will regenerate upon return, either with a new layout or the same as before (if fate plays its tricks).
+ -> "The fuse burns with an eerie hiss, and as the explosion reverberates,
+     the catacombs seem to shift and groan in protest."
+
+Tier: Silver

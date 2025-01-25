@@ -120,6 +120,90 @@ static ChunkAssetFile* load_chunk_file(const char* filename) {
     return chunk;
 }
 
+static UsableItemAssetFile* load_usable_item_file(const char* filename) {
+    FILE* file = fopen(filename, "r");
+    if (!file) return NULL;
+
+    UsableItemAssetFile* usable_item = malloc(sizeof(UsableItemAssetFile));
+    if (!usable_item) return NULL;
+
+    // Parse the specs line
+    char specs_line[256];
+    if (fgets(specs_line, sizeof(specs_line), file) != NULL) {
+        if (specs_line[0] == '[' && specs_line[strlen(specs_line) - 3] == ']') {
+            specs_line[strlen(specs_line) - 3] = '\0';
+            char* start = specs_line + 1;
+
+            // Parse dynamic specs
+            size_t count = 0;
+            int* specs = NULL;
+
+            char* token = strtok(start, ",");
+            while (token != NULL) {
+                specs = realloc(specs, (count + 1) * sizeof(int));
+
+                if (!specs) {
+                    fclose(file);
+                    free(usable_item);
+                    return NULL;
+                }
+
+                specs[count++] = atoi(token);
+                token = strtok(NULL, ",");
+            }
+
+            usable_item->specs.specs = specs;
+            usable_item->specs.spec_count = count;
+        } else {
+            fclose(file);
+            free(usable_item);
+            return NULL;
+        }
+    } else {
+        fclose(file);
+        free(usable_item);
+        return NULL;
+    }
+
+    // Parse the title (second line)
+    char title_line[256];
+    if (fgets(title_line, sizeof(title_line), file) != NULL) {
+        title_line[strcspn(title_line, "\n")] = '\0';  // Remove newline character
+        usable_item->title = strdup(title_line);
+        if (!usable_item->title) {
+            fclose(file);
+            free(usable_item->specs.specs);
+            free(usable_item);
+            return NULL;
+        }
+    } else {
+        fclose(file);
+        free(usable_item->specs.specs);
+        free(usable_item);
+        return NULL;
+    }
+
+    // Parse the description (remaining lines)
+    char description_buffer[1024] = {0};
+    char line[256];
+    while (fgets(line, sizeof(line), file) != NULL) {
+        strcat(description_buffer, line);
+    }
+
+    // Allocate and copy the description
+    usable_item->description = strdup(description_buffer);
+    if (!usable_item->description) {
+        fclose(file);
+        free(usable_item->title);
+        free(usable_item->specs.specs);
+        free(usable_item);
+        return NULL;
+    }
+
+    fclose(file);
+    return usable_item;
+}
+
 /**
  * @brief Creates and initializes an AssetManager structure.
  *
@@ -139,6 +223,9 @@ AssetManager* create_asset_manager() {
     }
     for (int i = 0; i < CHUNK_TYPE_COUNT; i++) {
         manager->chunks[i] = NULL;
+    }
+    for (int i = 0; i < USABLE_ITEM_COUNT; i++) {
+        manager->usable_items[i] = NULL;
     }
 
     return manager;
@@ -164,6 +251,16 @@ bool add_chunk_file(const char* filename, ChunkType type) {
     return true;
 }
 
+bool add_usable_item_file(const char* filename, UsableItem type) {
+    if (type < 0 || type >= USABLE_ITEM_COUNT) return NULL;
+
+    UsableItemAssetFile* usable_item = load_usable_item_file(filename);
+    if (!usable_item) return false;
+
+    asset_manager->usable_items[type] = usable_item;
+    return true;
+}
+
 EntityAssetFile* get_entity_file(EntityType type) {
     if (type < 0 || type >= ENTITY_TYPE_COUNT) return NULL;
 
@@ -176,6 +273,12 @@ ChunkAssetFile* get_chunk_file(ChunkType type) {
     return asset_manager->chunks[type];
 }
 
+UsableItemAssetFile* get_usable_item_file(UsableItem type) {
+    if (type < 0 || type >= USABLE_ITEM_COUNT) return NULL;
+
+    return asset_manager->usable_items[type];
+}
+
 void destroy_asset_manager() {
     for (int i = 0; i < ENTITY_TYPE_COUNT; i++) {
         free(asset_manager->entities[i]->specs.specs);
@@ -186,6 +289,13 @@ void destroy_asset_manager() {
     for (int i = 0; i < CHUNK_TYPE_COUNT; i++) {
         free(asset_manager->chunks[i]->items);
         free(asset_manager->chunks[i]);
+    }
+
+    for (int i = 0; i < USABLE_ITEM_COUNT; i++) {
+        free(asset_manager->usable_items[i]->title);
+        free(asset_manager->usable_items[i]->description);
+        free(asset_manager->usable_items[i]->specs.specs);
+        free(asset_manager->usable_items[i]);
     }
     free(asset_manager);
 }
@@ -205,6 +315,19 @@ void init_assets_system() {
     add_chunk_file("assets/chunks/spawn.dodjo", SPAWN);
     add_chunk_file("assets/chunks/default.dodjo", DEFAULT);
     add_chunk_file("assets/chunks/default2.dodjo", DEFAULT2);
-
     // Add more chunk files here...
+
+    add_usable_item_file("assets/items/data/basic_bow.dodjo", BASIC_BOW);
+    add_usable_item_file("assets/items/data/advanced_bow.dodjo", ADVANCED_BOW);
+    add_usable_item_file("assets/items/data/super_bow.dodjo", SUPER_BOW);
+    add_usable_item_file("assets/items/data/nadino_bow.dodjo", NADINO_BOW);
+    add_usable_item_file("assets/items/data/bronze_key.dodjo", BRONZE_KEY);
+    add_usable_item_file("assets/items/data/silver_key.dodjo", SILVER_KEY);
+    add_usable_item_file("assets/items/data/gold_key.dodjo", GOLD_KEY);
+    add_usable_item_file("assets/items/data/nadino_key.dodjo", NADINO_KEY);
+    add_usable_item_file("assets/items/data/onion_ring.dodjo", ONION_RING);
+    add_usable_item_file("assets/items/data/stockfish.dodjo", STOCKFISH);
+    add_usable_item_file("assets/items/data/school_dishes.dodjo", SCHOOL_DISHES);
+    add_usable_item_file("assets/items/data/golden_apple.dodjo", GOLDEN_APPLE);
+    add_usable_item_file("assets/items/data/bomb.dodjo", BOMB);
 }
