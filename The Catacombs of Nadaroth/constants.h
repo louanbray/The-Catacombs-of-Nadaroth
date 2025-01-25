@@ -10,7 +10,6 @@
 /*
 TODO LIST:
 - Make any key event stored in an input manager object so that you can check at any moment if a key is pressed
-- Add item parsing (stats, descriptions etc...)
 - Update the screen render to make a part of the screen reserved to items descriptions and naration
 - Implement the mecanics below
 - Implement status menu
