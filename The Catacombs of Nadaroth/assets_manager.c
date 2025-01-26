@@ -102,8 +102,8 @@ static ChunkAssetFile* load_chunk_file(const char* filename) {
     chunk->items = NULL;
     chunk->item_count = 0;
 
-    int x, y, type, display, row_repeat, size, col_repeat, entity_type;
-    while (fscanf(file, "%d,%d,%d,%d,%d,%d,%d,%d", &x, &y, &type, &display, &row_repeat, &size, &col_repeat, &entity_type) == 8) {
+    int x, y, type, display, row_repeat, size, col_repeat, entity_type, usable_item;
+    while (fscanf(file, "%d,%d,%d,%d,%d,%d,%d,%d,%d", &x, &y, &type, &display, &row_repeat, &size, &col_repeat, &entity_type, &usable_item) == 9) {
         chunk->items = realloc(chunk->items, sizeof(ChunkItem) * (chunk->item_count + 1));
         ChunkItem* item = &chunk->items[chunk->item_count++];
         item->x = x;
@@ -114,6 +114,7 @@ static ChunkAssetFile* load_chunk_file(const char* filename) {
         item->size = size;
         item->col_repeat = col_repeat;
         item->entity_type = entity_type;
+        item->usable_item = usable_item;
     }
 
     fclose(file);

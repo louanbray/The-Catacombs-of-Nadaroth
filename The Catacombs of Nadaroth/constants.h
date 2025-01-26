@@ -50,6 +50,7 @@ typedef enum Rarity {
 } Rarity;
 
 typedef enum UsableItem {
+    NOT_USABLE_ITEM,
     BASIC_BOW,
     ADVANCED_BOW,
     SUPER_BOW,

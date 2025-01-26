@@ -7,6 +7,7 @@ typedef struct item {
     int display, index;
     void* spec;
     entity* entity_link;
+    UsableItem usable_item;
 } item;
 
 /// @brief Create item using given parameters
@@ -14,7 +15,7 @@ typedef struct item {
 /// @param y pos y
 /// @param type Type
 /// @return item
-item* create_item(int x, int y, ItemType type, int display, int index) {
+item* create_item(int x, int y, ItemType type, int display, UsableItem usable_item, int index) {
     item* i = malloc(sizeof(item));
     i->x = x;
     i->y = y;
@@ -25,6 +26,7 @@ item* create_item(int x, int y, ItemType type, int display, int index) {
     i->used = false;
     i->spec = NULL;
     i->entity_link = NULL;
+    i->usable_item = usable_item;
     return i;
 }
 
@@ -34,8 +36,8 @@ void specialize(item* i, bool used, bool hidden, void* spec) {
     i->hidden = hidden;
 }
 
-item* generate_item(int x, int y, ItemType type, int display, int index) {
-    item* i = create_item(x, y, type, display, index);
+item* generate_item(int x, int y, ItemType type, int display, UsableItem usable_item, int index) {
+    item* i = create_item(x, y, type, display, usable_item, index);
     return i;
 }
 
@@ -65,6 +67,10 @@ int get_item_index(item* i) {
 
 void* get_item_spec(item* i) {
     return i->spec;
+}
+
+UsableItem get_item_usable_type(item* i) {
+    return i->usable_item;
 }
 
 bool is_item_hidden(item* i) {
@@ -97,6 +103,10 @@ void set_item_display(item* i, int display) {
 
 void set_item_spec(item* i, void* spec) {
     i->spec = spec;
+}
+
+void set_item_usable_type(item* i, UsableItem usable_item) {
+    i->usable_item = usable_item;
 }
 
 void free_item(item* i) {

@@ -26,6 +26,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                                   entry->y - col,
                                   entry->type,
                                   entry->display,
+                                  entry->usable_item,
                                   len_dyn(d)));
                 }
             }
@@ -38,7 +39,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
             }
 
             // Create the brain item and entity
-            item* brain = generate_item(entry->x, entry->y, entry->type, entry->display, -1);
+            item* brain = generate_item(entry->x, entry->y, entry->type, entry->display, entry->usable_item, -1);
             entity* e = create_entity(brain, c);
 
             entityFile = get_entity_file(entry->entity_type);
@@ -66,6 +67,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                             entry->y + part->y - col,
                             entry->type,
                             part->display,
+                            NOT_USABLE_ITEM,
                             len_dyn(d));
                         add_entity_part(e, it);
                         link_entity(it, e);

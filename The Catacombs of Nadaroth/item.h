@@ -34,7 +34,7 @@ typedef struct enemy {
 /// @param pos_y pos y
 /// @param type Type
 /// @return item
-item* generate_item(int pos_x, int pos_y, ItemType type, int display, int index);
+item* generate_item(int pos_x, int pos_y, ItemType type, int display, UsableItem usable_item, int index);
 
 /// @brief Get item x
 /// @param item item
@@ -68,6 +68,8 @@ void* get_item_spec(item* item);
  * @return int The index of the item.
  */
 int get_item_index(item* item);
+
+UsableItem get_item_usable_type(item* i);
 
 /// @brief Is item hidden (true if yes)
 /// @param item item
@@ -108,6 +110,8 @@ void set_item_x(item* item, int pos_x);
 /// @param item item
 /// @param pos_y pos y
 void set_item_y(item* item, int pos_y);
+
+void set_item_usable_type(item* i, UsableItem usable_item);
 
 /// @brief Free item
 /// @param item item

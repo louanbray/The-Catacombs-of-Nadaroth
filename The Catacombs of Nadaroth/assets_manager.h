@@ -94,9 +94,12 @@ typedef struct EntityAssetFile {
  *
  * @var ChunkItem::entity_type
  * The type of entity the item represents. (0 = NULL_ENTITY)
+ *
+ * @var ChunkItem::usable_item
+ * The type of pickable item it is. (0 = NOT_USABLE_ITEM)
  */
 typedef struct ChunkItem {
-    int x, y, type, display, row_repeat, size, col_repeat, entity_type;
+    int x, y, type, display, row_repeat, size, col_repeat, entity_type, usable_item;
 } ChunkItem;
 
 /**

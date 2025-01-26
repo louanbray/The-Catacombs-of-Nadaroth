@@ -123,20 +123,36 @@ void render_string(Render_Buffer* screen, int x, int y, char* s, int len) {
     for (int i = wcslen(&screen->bd[y][x]); i < len; i++) screen->bd[y][x + i] = L' ';
 }
 
-void render_formatted_string(board b, int x, int y, char* s) {
-}
+void render_item_title(void* it) {
+    wprintf(L"\033[%d;%dH                    ", 40, 55);
+    if (it == NULL) return;
 
-void render_item_title(char* title, Rarity class, void* it) {
-    if (it == NULL) {
-        wprintf(L"\033[%d;%dH                    ", 40, 55);
+    UsableItemAssetFile* uif = get_usable_item_file(get_item_usable_type((item*)it));
+    char* title = uif->title;
+    Rarity class = uif->specs.specs[0];
 
-        return;
+    char buffer[10];
+
+    switch (class) {
+        case BRONZE:
+            sprintf(buffer, "\033[31m");
+            break;
+        case SILVER:
+            sprintf(buffer, "\033[36;1m");
+            break;
+        case GOLD:
+            sprintf(buffer, "\033[33m");
+            break;
+        case NADINO:
+            sprintf(buffer, "\033[35;1m");
+            break;
     }
+
     int len = strlen(title);
 
     int x = (-len + RENDER_WIDTH) / 2 + 3;
 
-    wprintf(L"\033[%d;%dH\033[33m%s\033[0m", 40, x, title);
+    wprintf(L"\033[%d;%dH%s%s\033[0m", 40, x, buffer, title);
 }
 
 void render_chunk(Render_Buffer* r, chunk* c) {
@@ -184,8 +200,7 @@ void render_hotbar(Render_Buffer* r, hotbar* h) {
     int display = 57;
     int ms = get_hotbar_max_size(h);
 
-    UsableItemAssetFile* uif = get_usable_item_file(GOLDEN_APPLE);
-    render_item_title(uif->title, uif->specs.specs[0], get_selected_item(h));
+    render_item_title(get_selected_item(h));
 
     for (int i = 0; i < ms; i++) {
         if (get_hotbar(h, i) == NULL) {

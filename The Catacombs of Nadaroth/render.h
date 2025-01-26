@@ -49,7 +49,7 @@ void render_char(board board, int x, int y, int character);
 
 void render_string(Render_Buffer* screen, int x, int y, char* s, int len);
 
-void render_item_title(char* title, Rarity class, void* it);
+void render_item_title(void* it);
 
 /// @brief Modify the board to display the chunk (depending on the type)
 /// @param screen Render_Buffer

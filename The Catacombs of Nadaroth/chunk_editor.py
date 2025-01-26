@@ -18,6 +18,23 @@ class Sprite(IntEnum):
     UGATE = 9600
     DGATE = 9604
     ENTITY = 0
+    KEY = 9919
+
+class UsableItem(IntEnum):
+    NOT_USABLE_ITEM = 0
+    BASIC_BOW = 1
+    ADVANCED_BOW = 2
+    SUPER_BOW = 3
+    NADINO_BOW = 4
+    BRONZE_KEY = 5
+    SILVER_KEY = 6
+    GOLD_KEY = 7 
+    NADINO_KEY = 8
+    ONION_RING = 9 
+    STOCKFISH = 10
+    SCHOOL_DISHES = 11
+    GOLDEN_APPLE = 12
+    BOMB = 13
 
 class Entity(IntEnum):
     NOENTITY = 0
@@ -26,12 +43,14 @@ class Entity(IntEnum):
 CHUNK_WIDTH = 127 # RENDER_WIDTH - 2 for the walls
 CHUNK_HEIGHT = 35 # without the hotbar space
 
-items = {"V":[Type.GATE,Sprite.VGATE,Size.COLLAPSE,Entity.NOENTITY],
-         "U":[Type.GATE,Sprite.UGATE,Size.COLLAPSE,Entity.NOENTITY],
-         "D":[Type.GATE,Sprite.DGATE,Size.COLLAPSE, Entity.NOENTITY],
-         "S":[Type.PICKABLE,Sprite.STARGATE,Size.SPACED,Entity.NOENTITY],
-         "T":[Type.WALL,Sprite.WALL,Size.COLLAPSE,Entity.NOENTITY],
-         "E":[Type.ENEMY,Sprite.ENTITY,Size.COLLAPSE,Entity.ENEMY1]}
+items = {"V":[Type.GATE,Sprite.VGATE,Size.COLLAPSE,Entity.NOENTITY, UsableItem.NOT_USABLE_ITEM],
+         "U":[Type.GATE,Sprite.UGATE,Size.COLLAPSE,Entity.NOENTITY, UsableItem.NOT_USABLE_ITEM],
+         "D":[Type.GATE,Sprite.DGATE,Size.COLLAPSE, Entity.NOENTITY, UsableItem.NOT_USABLE_ITEM],
+         "T":[Type.WALL,Sprite.WALL,Size.COLLAPSE,Entity.NOENTITY, UsableItem.NOT_USABLE_ITEM],
+         "B":[Type.PICKABLE,Sprite.KEY,Size.COLLAPSE,Entity.ENEMY1, UsableItem.BRONZE_KEY],
+         "S":[Type.PICKABLE,Sprite.KEY,Size.COLLAPSE,Entity.ENEMY1, UsableItem.SILVER_KEY],
+         "G":[Type.PICKABLE,Sprite.KEY,Size.COLLAPSE,Entity.ENEMY1, UsableItem.GOLD_KEY],
+         "N":[Type.PICKABLE,Sprite.KEY,Size.COLLAPSE,Entity.ENEMY1, UsableItem.NADINO_KEY]}
 
         #                                                               C
         #                                                               E
@@ -62,7 +81,7 @@ chunk =[" * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *UUUUUU * 
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
-        " * * * * * * * * * * * * * * * * * * * * * * *E* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
+        " * * * * * * * * * * * * * * * * *B* * *S* * *G* * *N* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
@@ -105,5 +124,5 @@ if __name__ == "__main__":
                             chunk[i+1+k] = "".join(col)
                         else:
                             break
-                print(f"{j-63},{-i+17},{items[row[j]][0]},{items[row[j]][1]},{row_repeat},{items[row[j]][2]},{col_repeat},{items[row[j]][3]}") # X, Y, TYPE, DISPLAY CHAR, ROW REPEAT, SPACE, COL REPEAT
+                print(f"{j-63},{-i+17},{items[row[j]][0]},{items[row[j]][1]},{row_repeat},{items[row[j]][2]},{col_repeat},{items[row[j]][3]},{items[row[j]][4]}") # X, Y, TYPE, DISPLAY CHAR, ROW REPEAT, SPACE, COL REPEAT, ENTITY_TYPE, USABLE_ITEM (NEEDS TO BE PICKABLE)
                 row_repeat = col_repeat = 1
