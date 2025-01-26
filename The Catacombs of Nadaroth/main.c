@@ -23,6 +23,10 @@ void move(Render_Buffer* screen, player* p, int dir) {
             render_hotbar(screen, get_player_hotbar(p));
             render_player(screen, p);
             break;
+        case 4:
+            render_from_player(screen, p);
+            render_hotbar(screen, get_player_hotbar(p));
+            break;
         default:
             render_player(screen, p);
             break;
@@ -58,6 +62,7 @@ void arrow_move(Render_Buffer* screen, player* p, int key_code) {
 /// @param screen Render_Buffer
 /// @param p player
 void compute_entry(Render_Buffer* screen, player* p, int entry) {
+    hotbar* hb = get_player_hotbar(p);
     switch (entry) {
         case KEY_Z_LOW:
         case KEY_Z_HIGH:
@@ -85,14 +90,14 @@ void compute_entry(Render_Buffer* screen, player* p, int entry) {
         case KEY_7:
         case KEY_8:
         case KEY_9:
-            select_slot(get_player_hotbar(p), entry - CHAR_TO_INT);
-            render_hotbar(screen, get_player_hotbar(p));
+            select_slot(hb, entry - CHAR_TO_INT);
+            render_hotbar(screen, hb);
             break;
 
         case KEY_W_LOW:
         case KEY_W_HIGH:
-            drop(get_player_hotbar(p), get_selected_slot(get_player_hotbar(p)));
-            render_hotbar(screen, get_player_hotbar(p));
+            drop(hb, get_selected_slot(hb));
+            render_hotbar(screen, hb);
             break;
 
         default:
@@ -117,7 +122,7 @@ int main() {
 
     link_hotbar(p, h);
 
-    play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 500000);
+    // play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 500000);
 
     default_screen(get_board(screen));
 

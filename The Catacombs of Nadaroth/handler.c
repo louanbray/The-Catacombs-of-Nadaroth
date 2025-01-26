@@ -25,7 +25,7 @@ int get_direction(int x, int y) {
 int pickup_from_chunk(player* p, item* i) {
     if (is_hotbar_full(get_player_hotbar(p))) return 2;
 
-    int isAnEntity = is_an_entity(i);
+    bool isAnEntity = is_an_entity(i);
 
     if (isAnEntity) {
         entity* e = get_entity_link(i);
@@ -39,7 +39,7 @@ int pickup_from_chunk(player* p, item* i) {
 
     pickup(get_player_hotbar(p), i);
 
-    return 3 - isAnEntity * 2;
+    return 3 + isAnEntity;
 }
 
 int handle(player* p, int x, int y) {

@@ -99,7 +99,7 @@ int move_player(player* p, Direction dir) {
 
     int n = handle(p, new_x, new_y);
 
-    if (n == 0 || n == 3) {
+    if (n == 0 || n == 3 || n == 4) {
         p->x = new_x;
         p->y = new_y;
     }

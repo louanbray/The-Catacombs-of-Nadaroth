@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <wchar.h>
 
+#include "constants.h"
+
 /// @brief Inventory
 typedef struct hotbar hotbar;
 /// @brief Dynarray
@@ -44,6 +46,10 @@ board get_board(Render_Buffer* screen);
 /// @param y y
 /// @param character char
 void render_char(board board, int x, int y, int character);
+
+void render_string(Render_Buffer* screen, int x, int y, char* s, int len);
+
+void render_item_title(char* title, Rarity class, void* it);
 
 /// @brief Modify the board to display the chunk (depending on the type)
 /// @param screen Render_Buffer

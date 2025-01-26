@@ -6,6 +6,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "assets_manager.h"
 #include "dynarray.h"
 #include "item.h"
 #include "map.h"
@@ -44,7 +45,7 @@ void default_screen(board b) {
         for (int j = 0; j < RENDER_WIDTH; j++) {
             if (i > 0 && (j == 0 || j == RENDER_WIDTH - 1)) {
                 if (j == 0) {
-                    if (i == 3) {
+                    if (i == 4) {
                         b[i][j] = 9568;
                     } else if (i == RENDER_HEIGHT - 1) {
                         b[i][j] = 9556;
@@ -52,7 +53,7 @@ void default_screen(board b) {
                         b[i][j] = 9553;
                     }
                 } else if (j == RENDER_WIDTH - 1) {
-                    if (i == 3) {
+                    if (i == 4) {
                         b[i][j] = 9571;
                     } else if (i == RENDER_HEIGHT - 1) {
                         b[i][j] = 9559;
@@ -60,7 +61,7 @@ void default_screen(board b) {
                         b[i][j] = 9553;
                     }
                 }
-            } else if ((i == 0 || i == RENDER_HEIGHT - 1) || i == 3) {
+            } else if ((i == 0 || i == RENDER_HEIGHT - 1) || i == 4) {
                 if (j != 0 && j != RENDER_WIDTH - 1) {
                     b[i][j] = 9552;
                 } else if (i == 0) {
@@ -70,14 +71,14 @@ void default_screen(board b) {
                         b[i][j] = 9565;
                     }
                 }
-            } else if (i == 2 && (abs((RENDER_WIDTH + 1) / 2 - j) < 10 && j % 2 == 0)) {
+            } else if (i == 3 && (abs((RENDER_WIDTH + 1) / 2 - j) < 10 && j % 2 == 0)) {
                 b[i][j] = 9145;
             } else {
                 b[i][j] = ' ';
             }
         }
     }
-    swprintf(&b[2][2], 9, L"HEALTH: ");
+    swprintf(&b[3][2], 9, L"HEALTH: ");
 }
 
 /// @brief Create the row changed flag array
@@ -111,7 +112,31 @@ board get_board(Render_Buffer* r) {
 /// @param y centered y pos
 /// @param c char to display
 void render_char(board b, int x, int y, int c) {
-    b[y + 1 + RENDER_HEIGHT / 2][x + RENDER_WIDTH / 2] = c;
+    b[y + 2 + RENDER_HEIGHT / 2][x + RENDER_WIDTH / 2] = c;
+}
+
+void render_string(Render_Buffer* screen, int x, int y, char* s, int len) {
+    x += RENDER_WIDTH / 2;
+    y += 2 + RENDER_HEIGHT / 2;
+
+    swprintf(&screen->bd[y][x], len, L"%s", s);
+    for (int i = wcslen(&screen->bd[y][x]); i < len; i++) screen->bd[y][x + i] = L' ';
+}
+
+void render_formatted_string(board b, int x, int y, char* s) {
+}
+
+void render_item_title(char* title, Rarity class, void* it) {
+    if (it == NULL) {
+        wprintf(L"\033[%d;%dH                    ", 40, 55);
+
+        return;
+    }
+    int len = strlen(title);
+
+    int x = (-len + RENDER_WIDTH) / 2 + 3;
+
+    wprintf(L"\033[%d;%dH\033[33m%s\033[0m", 40, x, title);
 }
 
 void render_chunk(Render_Buffer* r, chunk* c) {
@@ -128,10 +153,10 @@ void render_chunk(Render_Buffer* r, chunk* c) {
         render_char(b, get_item_x(it), get_item_y(it), get_item_display(it));
     }
 
-    swprintf(&b[38][2], 16, L"CHUNK X: %d", get_chunk_x(c));
+    swprintf(&b[39][2], 16, L"CHUNK X: %d", get_chunk_x(c));
+    for (int i = wcslen(&b[39][2]); i < 16; i++) b[39][2 + i] = L' ';
+    swprintf(&b[38][2], 16, L"CHUNK Y: %d", get_chunk_y(c));
     for (int i = wcslen(&b[38][2]); i < 16; i++) b[38][2 + i] = L' ';
-    swprintf(&b[37][2], 16, L"CHUNK Y: %d", get_chunk_y(c));
-    for (int i = wcslen(&b[37][2]); i < 16; i++) b[37][2 + i] = L' ';
 }
 
 void render_player(Render_Buffer* r, player* p) {
@@ -146,9 +171,9 @@ void render_health(Render_Buffer* r, player* p) {
 
     for (int i = 0; i < max_health; i++) {
         if (i < health) {
-            r->bd[2][display] = 9829;
+            r->bd[3][display] = 9829;
         } else {
-            r->bd[2][display] = 9825;
+            r->bd[3][display] = 9825;
         }
 
         display += 2;
@@ -159,17 +184,20 @@ void render_hotbar(Render_Buffer* r, hotbar* h) {
     int display = 57;
     int ms = get_hotbar_max_size(h);
 
+    UsableItemAssetFile* uif = get_usable_item_file(GOLDEN_APPLE);
+    render_item_title(uif->title, uif->specs.specs[0], get_selected_item(h));
+
     for (int i = 0; i < ms; i++) {
         if (get_hotbar(h, i) == NULL) {
-            r->bd[2][display] = ' ';
+            r->bd[3][display] = ' ';
         } else {
-            r->bd[2][display] = get_item_display(get_hotbar(h, i));
+            r->bd[3][display] = get_item_display(get_hotbar(h, i));
         }
 
         if (get_selected_slot(h) == i) {
-            r->bd[1][display] = 9651;
+            r->bd[2][display] = 9651;
         } else {
-            r->bd[1][display] = ' ';
+            r->bd[2][display] = ' ';
         }
 
         display += 2;
