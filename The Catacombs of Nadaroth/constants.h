@@ -22,6 +22,7 @@ TODO LIST:
 - Add stats and achievements objects                                                                                              [RENDER/DEV] (LOW)
 - Saving Games, opening and sharing                                                                                               [DEV/RENDER] (LOW)
 - Update Entity / Chunk editor                                                                                                    [DEV] (LOW)
+- Easter Eggs (Konami Code in the character choosing menu | )									  [DEV] (LOW)
 */
 
 /// @brief Gate position/type
@@ -49,6 +50,7 @@ typedef enum Rarity {
     NADINO,
 } Rarity;
 
+/// @brief Items meant to be used
 typedef enum UsableItem {
     NOT_USABLE_ITEM,
     BASIC_BOW,
@@ -74,7 +76,7 @@ typedef enum ChunkType {  //? MODIFY TO ADD LEVELS
     SPAWN,
     DEFAULT,
     DEFAULT2,
-    TREASURE_ROOM,           // Some chests but you need to hunt for keys
+    TREASURE_ROOM,           // Some chests but you need to hunt for keys (Chest value random | chest number and concept need to be worked on)
     BOSS_ROOM,               // Depending on the boss, you need to find the right weapon | DIFFICULTY + = BETTER KEY REWARD (GOLD to NADINO)
     WAITING_ROOM,            // Peaceful room
     RANDOM_CHUNK_EASY,       // Randomly generated chunk (w enemies and bronze chests (1 max) | EASY)
@@ -88,6 +90,7 @@ typedef enum ChunkType {  //? MODIFY TO ADD LEVELS
     CHUNK_TYPE_COUNT  // This will automatically be the count of enum entries
 } ChunkType;
 
+/// @brief Every entity (>1 item linked)
 typedef enum EntityType {  //? MODIFY TO ADD ENTITY TYPES
     NULL_ENTITY,
     ENEMY1,
