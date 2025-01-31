@@ -1,3 +1,5 @@
+#include <pthread.h>
+
 #include "assets_manager.h"
 #include "entity.h"
 #include "input_manager.h"
@@ -107,6 +109,20 @@ void compute_entry(Render_Buffer* screen, player* p, int entry) {
     update_screen(screen);
 }
 
+typedef struct {
+    player* p;
+    Render_Buffer* screen;
+    void (*mouse_event_callback)(Render_Buffer* screen, player* p, int x, int y);
+    void (*arrow_key_callback)(Render_Buffer* screen, player* p, int arrow_key);
+    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c);
+} InputThreadArgs;
+
+void* process_input_thread(void* arg) {
+    InputThreadArgs* args = (InputThreadArgs*)arg;
+    process_input(args->p, args->screen, args->mouse_event_callback, args->arrow_key_callback, args->printable_char_callback);
+    return NULL;
+}
+
 /// @brief Where it all begins
 /// @return I dream of a 0
 int main() {
@@ -122,15 +138,24 @@ int main() {
 
     link_hotbar(p, h);
 
-    // play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 500000);
-
     default_screen(get_board(screen));
 
     render(screen, m);
     update_screen(screen);
 
     init_projectile_system(screen);
-    process_input(p, screen, fire_projectile, arrow_move, compute_entry);
+
+    pthread_t input_thread;
+    InputThreadArgs input_args = {p, screen, fire_projectile, arrow_move, compute_entry};
+
+    if (pthread_create(&input_thread, NULL, process_input_thread, &input_args) != 0)
+        return EXIT_FAILURE;
+
+    pthread_detach(input_thread);
+
+    play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 500000);
+
+    for (;;);
 
     return EXIT_SUCCESS;
 }

@@ -1,6 +1,11 @@
 #include "input_manager.h"
 
+#define MAX_KEYS 256
 #define MAX_BUFFER_SIZE 1024
+
+static bool key_states[MAX_KEYS] = {false};
+static bool key_pressed_last_frame[MAX_KEYS] = {false};
+static bool unlock = true;
 
 static struct termios original_termios;  // Global to store original terminal settings
 
@@ -156,6 +161,18 @@ size_t get_mouse_event_length(const char* buffer, size_t length) {
     return 0;  // Incomplete mouse event
 }
 
+bool get_key_state(unsigned char key) {
+    return key_pressed_last_frame[key];
+}
+
+void lock_inputs() {
+    unlock = false;
+}
+
+void unlock_inputs() {
+    unlock = true;
+}
+
 void process_input(player* p, Render_Buffer* screen,
                    void (*mouse_event_callback)(Render_Buffer* screen, player* p, int x, int y),
                    void (*arrow_key_callback)(Render_Buffer* screen, player* p, int arrow_key),
@@ -199,7 +216,7 @@ void process_input(player* p, Render_Buffer* screen,
                 if (mouse_event_length > 0) {
                     parse_sgr_mouse_event(input_buffer + processed, &target_x, &target_y, &left_click, &just_pressed);
 
-                    if (left_click) {
+                    if (unlock && left_click) {
                         mouse_event_callback(screen, p, target_x, target_y);
                     }
 
@@ -208,12 +225,16 @@ void process_input(player* p, Render_Buffer* screen,
                     break;  // Wait for more data
                 }
             } else if (is_arrow_key(input_buffer + processed, input_buffer_length - processed)) {
-                arrow_key_callback(screen, p, (input_buffer + processed)[2]);
+                if (unlock)
+                    arrow_key_callback(screen, p, (input_buffer + processed)[2]);
 
                 processed += 3;  // Arrow keys are 3 bytes
             } else if ((input_buffer[processed] >= 32 && input_buffer[processed] <= 126) ||
                        input_buffer[processed] == '\n' || input_buffer[processed] == '\r') {
-                printable_char_callback(screen, p, input_buffer[processed]);
+                unsigned char key = (unsigned char)input_buffer[processed];
+                if (unlock)
+                    printable_char_callback(screen, p, key);
+                key_states[key] = true;
 
                 processed++;
             } else {
@@ -221,6 +242,12 @@ void process_input(player* p, Render_Buffer* screen,
                 processed++;
             }
         }
+
+        // Store the current state before resetting key_states
+        memcpy(key_pressed_last_frame, key_states, sizeof(key_states));
+
+        // Reset key states for next loop iteration
+        memset(key_states, 0, sizeof(key_states));
 
         // Move unprocessed data to the beginning of the buffer
         if (processed < input_buffer_length) {

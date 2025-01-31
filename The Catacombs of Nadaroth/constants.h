@@ -9,7 +9,7 @@
 
 /*
 TODO LIST:
-- Make any key event stored in an input manager object so that you can check at any moment if a key is pressed                    [DEV] (HIGH)
+- Make any key event stored in an input manager object so that you can check at any moment if a key is pressed                    [DEV] (HIGH)          {DONE}
 - Update the screen render to make a part of the screen reserved to items descriptions and naration                               [RENDER] (HIGH)
 - Enemy->Player Interaction                                                                                                       [DEV] (HIGH)
 - Enemy PATHFINDING huh ?                                                                                                         [DEV] (HIGH)
@@ -22,7 +22,7 @@ TODO LIST:
 - Add stats and achievements objects                                                                                              [RENDER/DEV] (LOW)
 - Saving Games, opening and sharing                                                                                               [DEV/RENDER] (LOW)
 - Update Entity / Chunk editor                                                                                                    [DEV] (LOW)
-- Easter Eggs (Konami Code in the character choosing menu | )									  [DEV] (LOW)
+- Easter Eggs (Konami Code in the character choosing menu | )									                                  [DEV] (LOW)
 */
 
 /// @brief Gate position/type

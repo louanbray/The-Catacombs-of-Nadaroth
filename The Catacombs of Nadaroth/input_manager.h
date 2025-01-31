@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <wchar.h>
 
+#define KEY_PRESSED(key) (get_key_state((unsigned char)(key)))
+
 typedef struct Render_Buffer Render_Buffer;
 typedef struct player player;
 
@@ -44,5 +46,23 @@ void process_input(player* p, Render_Buffer* screen,
                    void (*mouse_event_callback)(Render_Buffer* screen, player* p, int x, int y),
                    void (*arrow_key_callback)(Render_Buffer* screen, player* p, int arrow_key),
                    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c));
+
+/**
+ * @brief Checks if a specific key is currently pressed.
+ *
+ * @param key The key to check the state of.
+ * @return true if the key is currently pressed [/!\ RESETS ONLY AFTER OTHER KEY EVENT], false otherwise.
+ */
+bool get_key_state(unsigned char key);
+
+/**
+ * @brief Locks the inputs by setting the unlock flag to false.
+ */
+void lock_inputs();
+
+/**
+ * @brief Unlocks the inputs by setting the unlock flag to true.
+ */
+void unlock_inputs();
 
 #endif

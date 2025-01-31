@@ -8,6 +8,7 @@
 
 #include "assets_manager.h"
 #include "dynarray.h"
+#include "input_manager.h"
 #include "item.h"
 #include "map.h"
 #include "player.h"
@@ -15,6 +16,7 @@
 typedef struct Render_Buffer {
     board bd;
     board pv;
+    board dump;
     int* rc;
 } Render_Buffer;
 
@@ -96,8 +98,11 @@ Render_Buffer* create_screen() {
     board pv = create_board();
     blank_screen(pv);
 
+    board dump = create_board();
+
     r->bd = b;
     r->pv = pv;
+    r->dump = dump;
     r->rc = create_rc();
     return r;
 }
@@ -336,8 +341,17 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
 
     int row = 0;
 
+    r->dump = r->bd;
+    r->bd = r->pv;
+    r->pv = create_board();
+
+    lock_inputs();
+
+    render_string(r, -11, -18, " PRESS [SPACE] TO SKIP", 23);
+
     //* +4 pour gérer les \r \t \0 \n
     while (fgetws(buffer, RENDER_WIDTH + 4, file) != NULL && row < RENDER_HEIGHT - 2) {
+        if (KEY_PRESSED(' ')) break;
         if (buffer[0] == '#') {
             int timeout = 0;
 
@@ -381,6 +395,13 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
             row++;
         }
     }
+
+    free(r->bd);
+    r->bd = r->dump;
+
+    update_screen(r);
+
+    unlock_inputs();
 
     fclose(file);
 }
