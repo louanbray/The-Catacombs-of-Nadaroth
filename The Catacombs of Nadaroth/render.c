@@ -120,6 +120,20 @@ void render_char(board b, int x, int y, int c) {
     b[y + 2 + RENDER_HEIGHT / 2][x + RENDER_WIDTH / 2] = c;
 }
 
+/**
+ * @brief Renders a string onto the screen buffer at the specified coordinates.
+ *
+ * This function takes a screen buffer, coordinates (x, y), a string, and its length,
+ * and renders the string onto the screen buffer. The coordinates are adjusted to be
+ * relative to the center of the screen. The string is formatted and written to the
+ * buffer, and any remaining space up to the specified length is filled with spaces.
+ *
+ * @param screen Pointer to the Render_Buffer structure representing the screen buffer.
+ * @param x The x-coordinate where the string should be rendered.
+ * @param y The y-coordinate where the string should be rendered.
+ * @param s Pointer to the string to be rendered.
+ * @param len The length of the string to be rendered.
+ */
 void render_string(Render_Buffer* screen, int x, int y, char* s, int len) {
     x += RENDER_WIDTH / 2;
     y += 2 + RENDER_HEIGHT / 2;
@@ -128,6 +142,16 @@ void render_string(Render_Buffer* screen, int x, int y, char* s, int len) {
     for (int i = wcslen(&screen->bd[y][x]); i < len; i++) screen->bd[y][x + i] = L' ';
 }
 
+/**
+ * @brief Renders the title of an item on the screen.
+ *
+ * This function clears the area where the item title is to be displayed, and if the
+ * item is not NULL, it retrieves the item's title and rarity class. Based on the
+ * rarity class, it sets the appropriate color code and renders the title at a
+ * specified position on the screen.
+ *
+ * @param it Pointer to the item whose title is to be rendered.
+ */
 void render_item_title(void* it) {
     wprintf(L"\033[%d;%dH                    ", 40, 55);
     if (it == NULL) return;
