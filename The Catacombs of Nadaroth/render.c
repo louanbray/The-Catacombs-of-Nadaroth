@@ -143,6 +143,28 @@ void render_string(Render_Buffer* screen, int x, int y, char* s, int len) {
 }
 
 /**
+ * @brief Renders a string onto the screen buffer at the specified coordinates.
+ *
+ * This function takes a screen buffer, coordinates (x, y), a string, and its length,
+ * and renders the string onto the screen buffer. The coordinates are adjusted to be
+ * relative to the center of the screen. The string is formatted and written to the
+ * buffer, and any remaining space up to the specified length is filled with spaces.
+ *
+ * @param screen Pointer to the Render_Buffer structure representing the screen buffer.
+ * @param x The x-coordinate where the string should be rendered.
+ * @param y The y-coordinate where the string should be rendered.
+ * @param s Pointer to the string to be rendered.
+ * @param len The length of the string to be rendered.
+ */
+void render_unicode_string(Render_Buffer* screen, int x, int y, wchar_t* s, int len) {
+    x += RENDER_WIDTH / 2;
+    y += 2 + RENDER_HEIGHT / 2;
+
+    swprintf(&screen->bd[y][x], len, s);
+    for (int i = wcslen(&screen->bd[y][x]); i < len; i++) screen->bd[y][x + i] = L' ';
+}
+
+/**
  * @brief Renders the title of an item on the screen.
  *
  * This function clears the area where the item title is to be displayed, and if the
@@ -414,11 +436,15 @@ void display_item_description(Render_Buffer* r, void* it) {
     setup_render_buffer(r);
 
     wchar_t buffer[RENDER_WIDTH - 1];
+
     int i = 0;
+
+    for (; i < 6; i++)
+        wmemset(&r->bd[RENDER_HEIGHT - i - 2][1], L' ', RENDER_WIDTH - 2);
 
     while (fgetws_from_string(buffer, RENDER_WIDTH - 1, &desc) != NULL && i < RENDER_HEIGHT - 2) {
         process_text_line(buffer, RENDER_WIDTH);
-        swprintf(&r->bd[RENDER_HEIGHT - i - 2][1], RENDER_WIDTH - 1, L"%ls", buffer);
+        swprintf(&r->bd[RENDER_HEIGHT - i - 2][2], RENDER_WIDTH - 2, L"%ls", buffer);
         i++;
     }
 
@@ -426,6 +452,13 @@ void display_item_description(Render_Buffer* r, void* it) {
         if (i != 35)
             wmemset(&r->bd[RENDER_HEIGHT - i - 2][1], L' ', RENDER_WIDTH - 2);
     }
+
+    render_string(r, -13, 16, " [The Eyes of The Wanderer]", 28);
+
+    wchar_t buff[60];
+
+    swprintf(buff, 50, L"  Analysing [%lc ] - %.*s : ", get_item_display(item_), strlen(item_file->title) - 1, item_file->title);
+    render_unicode_string(r, -63, 13, buff, 50);
 
     update_screen(r);
     while (!USE_KEY('e') && !USE_KEY('E'));

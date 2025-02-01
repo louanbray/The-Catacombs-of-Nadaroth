@@ -10,7 +10,7 @@
 /*
 TODO LIST:
 - Make any key event stored in an input manager object so that you can check at any moment if a key is pressed                    [DEV] (HIGH)          {DONE}
-- Update the screen render to make a part of the screen reserved to items descriptions and naration                               [RENDER] (HIGH)
+- Update the screen render to make a part of the screen reserved to items descriptions and naration                               [RENDER] (HIGH)       {DONE}
 - Enemy->Player Interaction                                                                                                       [DEV] (HIGH)
 - Enemy PATHFINDING huh ?                                                                                                         [DEV] (HIGH)
 - Implement the mecanics below / missing items                                                                                    [DEV] (MEDIUM)
