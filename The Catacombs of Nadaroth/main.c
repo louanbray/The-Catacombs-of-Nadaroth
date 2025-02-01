@@ -9,6 +9,9 @@
 #include "render.h"
 
 #define CHAR_TO_INT 49
+#define RUNNING 1
+
+static int GAME_STATE = RUNNING;
 
 /// @brief Handle the player movement and use the appropriate render
 /// @param b board
@@ -155,7 +158,11 @@ int main() {
 
     play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 500000);
 
-    for (;;);
+    for (;;) {
+        if (USE_KEY('H') || USE_KEY('h')) {
+            display_interface(screen, "assets/interfaces/structures/help.dodjo");
+        }
+    }
 
     return EXIT_SUCCESS;
 }

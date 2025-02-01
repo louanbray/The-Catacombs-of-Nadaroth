@@ -165,6 +165,10 @@ bool get_key_state(unsigned char key) {
     return key_pressed_last_frame[key];
 }
 
+void release_key(unsigned char key) {
+    key_pressed_last_frame[key] = false;
+}
+
 void lock_inputs() {
     unlock = false;
 }

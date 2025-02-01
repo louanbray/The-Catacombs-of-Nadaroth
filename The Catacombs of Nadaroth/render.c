@@ -305,6 +305,14 @@ void display_interface(Render_Buffer* r, const char* filename) {
     wchar_t buffer[RENDER_WIDTH - 1];
     int i = 0;
 
+    r->dump = r->bd;
+    r->bd = r->pv;
+    r->pv = create_board();
+
+    lock_inputs();
+
+    render_string(r, -8, -18, " PRESS [H] TO EXIT", 19);
+
     while (fgetws(buffer, RENDER_WIDTH - 1, file) != NULL && i < RENDER_HEIGHT - 2) {
         int a = 0;  //? TO REMOVE THE EOL AFTER ~
 
@@ -326,8 +334,19 @@ void display_interface(Render_Buffer* r, const char* filename) {
         }
     }
 
-    fclose(file);
     update_screen(r);
+
+    for (;;)
+        if (USE_KEY('H') || USE_KEY('h')) break;
+
+    free(r->bd);
+    r->bd = r->dump;
+
+    update_screen(r);
+
+    unlock_inputs();
+
+    fclose(file);
 }
 
 void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
@@ -347,7 +366,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
 
     lock_inputs();
 
-    render_string(r, -11, -18, " PRESS [SPACE] TO SKIP", 23);
+    render_string(r, -10, -18, " PRESS [SPACE] TO SKIP", 23);
 
     //* +4 pour gérer les \r \t \0 \n
     while (fgetws(buffer, RENDER_WIDTH + 4, file) != NULL && row < RENDER_HEIGHT - 2) {
