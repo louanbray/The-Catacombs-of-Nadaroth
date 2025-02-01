@@ -1,9 +1,9 @@
 [2]
 {Gold Key}
-"A radiant key forged from pure gold, heavy in your hand.
-Its ornate engravings depict symbols of wealth and prosperity."
-
- -> Opens a gold treasure chest.
- -> "The golden sheen evokes visions of untold riches awaiting discovery."
-
-Tier: Gold
+"A radiant key forged from pure gold, heavy in your hand.~
+Its ornate engravings depict symbols of wealth and prosperity."~
+~
+ -> Opens a gold treasure chest.~
+ -> "The golden sheen evokes visions of untold riches awaiting discovery."~
+~
+Tier: Gold~

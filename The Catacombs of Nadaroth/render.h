@@ -85,6 +85,11 @@ void render_from_player(Render_Buffer* screen, player* player);
 /// @param screen Render_Buffer
 void update_screen(Render_Buffer* screen);
 
+/// @brief Display the desciption of the given item
+/// @param r Render_Buffer
+/// @param it item
+void display_item_description(Render_Buffer* r, void* it);
+
 /// @brief Display the board read on the given file //! MAYBE LATER DO A PRELOADING OF THE ASSETS TO PREVENT I/O SATURATION
 /// @param screen Render_Buffer
 /// @param filename the file you want to display the content of

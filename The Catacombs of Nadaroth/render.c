@@ -295,57 +295,136 @@ void mark_changed_rows(Render_Buffer* r) {
     }
 }
 
-void display_interface(Render_Buffer* r, const char* filename) {
-    FILE* file = fopen(filename, "r");
-    if (file == NULL) {
-        perror("Error opening file");
-        return;
+/**
+ * Reads a line from a string source into a buffer.
+ *
+ * @param buffer The buffer to store the read line.
+ * @param size The size of the buffer.
+ * @param source The source string to read from.
+ * @return The buffer containing the read line, or NULL if the source is empty.
+ */
+wchar_t* fgetws_from_string(wchar_t* buffer, int size, const char** source) {
+    if (!source || !(*source) || **source == '\0') return NULL;
+
+    int i = 0;
+    while (i < size - 1 && **source != '\0' && **source != '\n') {
+        buffer[i++] = *((*source)++);
     }
 
-    wchar_t buffer[RENDER_WIDTH - 1];
-    int i = 0;
+    if (**source == '\n') (*source)++;  // Skip newline character
+    buffer[i] = L'\0';                  // Null-terminate
 
+    return i > 0 ? buffer : NULL;
+}
+
+/**
+ * Sets up the render buffer by updating its internal state.
+ *
+ * @param r The render buffer to set up.
+ */
+void setup_render_buffer(Render_Buffer* r) {
     r->dump = r->bd;
     r->bd = r->pv;
     r->pv = create_board();
-
     lock_inputs();
+}
 
-    render_string(r, -8, -18, " PRESS [H] TO EXIT", 19);
+/**
+ * Finalizes the render buffer by freeing resources and updating the screen.
+ *
+ * @param r The render buffer to finalize.
+ */
+void finalize_render_buffer(Render_Buffer* r) {
+    free(r->bd);
+    r->bd = r->dump;
+    update_screen(r);
+    unlock_inputs();
+}
+
+/**
+ * Processes a line of text by replacing characters after a tilde (~) with spaces.
+ *
+ * @param buffer The buffer containing the line of text to process.
+ * @param width The width of the buffer.
+ */
+void process_text_line(wchar_t* buffer, size_t width) {
+    int eol = 0;
+    for (size_t j = 0; j < width - 2; j++) {
+        if (buffer[j] == L'~') eol = 1;
+        if (eol == 1) buffer[j] = L' ';
+    }
+}
+
+/**
+ * Reads text from a file into the render buffer.
+ *
+ * @param r The render buffer to read text into.
+ * @param file The file to read text from.
+ */
+void read_text_into_render(Render_Buffer* r, FILE* file) {
+    wchar_t buffer[RENDER_WIDTH - 1];
+    int i = 0;
 
     while (fgetws(buffer, RENDER_WIDTH - 1, file) != NULL && i < RENDER_HEIGHT - 2) {
-        int a = 0;  //? TO REMOVE THE EOL AFTER ~
-
-        for (int j = 0; j < RENDER_WIDTH - 2; j++) {
-            if (buffer[j] == '~') a = 1;
-            if (a == 1) buffer[j] = L' ';
-        }
-
+        process_text_line(buffer, RENDER_WIDTH);
         swprintf(&r->bd[RENDER_HEIGHT - i - 2][1], RENDER_WIDTH - 1, L"%ls", buffer);
         i++;
     }
 
     for (; i < RENDER_HEIGHT - 2; i++) {
-        for (int j = 0; j < RENDER_WIDTH - 1; j++) {
-            if (i != 35) {
-                buffer[j] = ' ';
-                wcsncpy(&r->bd[RENDER_HEIGHT - i - 2][1], buffer, RENDER_WIDTH - 2);
-            }
-        }
+        if (i != 35)
+            wmemset(&r->bd[RENDER_HEIGHT - i - 2][1], L' ', RENDER_WIDTH - 2);
+    }
+}
+
+void display_item_description(Render_Buffer* r, void* it) {
+    item* item_ = (item*)it;
+    if (!item_) return;
+
+    UsableItem type = get_item_usable_type(item_);
+    if (type == NOT_USABLE_ITEM) return;
+
+    UsableItemAssetFile* item_file = get_usable_item_file(type);
+    const char* desc = item_file->description;
+
+    setup_render_buffer(r);
+
+    wchar_t buffer[RENDER_WIDTH - 1];
+    int i = 0;
+
+    while (fgetws_from_string(buffer, RENDER_WIDTH - 1, &desc) != NULL && i < RENDER_HEIGHT - 2) {
+        process_text_line(buffer, RENDER_WIDTH);
+        swprintf(&r->bd[RENDER_HEIGHT - i - 2][1], RENDER_WIDTH - 1, L"%ls", buffer);
+        i++;
+    }
+
+    for (; i < RENDER_HEIGHT - 2; i++) {
+        if (i != 35)
+            wmemset(&r->bd[RENDER_HEIGHT - i - 2][1], L' ', RENDER_WIDTH - 2);
     }
 
     update_screen(r);
+    while (!USE_KEY('e') && !USE_KEY('E'));
 
-    for (;;)
-        if (USE_KEY('H') || USE_KEY('h')) break;
+    finalize_render_buffer(r);
+    render_item_title(item_);
+}
 
-    free(r->bd);
-    r->bd = r->dump;
+void display_interface(Render_Buffer* r, const char* filename) {
+    FILE* file = fopen(filename, "r");
+    if (!file) {
+        perror("Error opening file");
+        return;
+    }
+
+    setup_render_buffer(r);
+    render_string(r, -8, -18, " PRESS [H] TO EXIT", 19);
+    read_text_into_render(r, file);
 
     update_screen(r);
+    while (!USE_KEY('H') && !USE_KEY('h'));
 
-    unlock_inputs();
-
+    finalize_render_buffer(r);
     fclose(file);
 }
 
@@ -356,36 +435,27 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
         return;
     }
 
-    wchar_t buffer[180];
-
-    int row = 0;
-
-    r->dump = r->bd;
-    r->bd = r->pv;
-    r->pv = create_board();
-
-    lock_inputs();
-
+    setup_render_buffer(r);
     render_string(r, -10, -18, " PRESS [SPACE] TO SKIP", 23);
+
+    wchar_t buffer[RENDER_WIDTH + 4];
+    int row = 0;
 
     //* +4 pour gérer les \r \t \0 \n
     while (fgetws(buffer, RENDER_WIDTH + 4, file) != NULL && row < RENDER_HEIGHT - 2) {
         if (KEY_PRESSED(' ')) break;
+
         if (buffer[0] == '#') {
             int timeout = 0;
+            for (int j = 0; j < RENDER_WIDTH - 1; j++)
+                if (buffer[j] == '#') timeout++;
 
             for (; row < RENDER_HEIGHT - 2; row++) {
-                for (int j = 0; j < RENDER_WIDTH - 1; j++) {
-                    if (buffer[j] == '#') timeout++;
-                    buffer[j] = ' ';
-                }
-
-                if (row != 35) wcsncpy(&r->bd[RENDER_HEIGHT - row - 2][1], buffer, RENDER_WIDTH - 2);
+                if (row != 35)
+                    wmemset(&r->bd[RENDER_HEIGHT - row - 2][1], L' ', RENDER_WIDTH - 2);
             }
-
             row = 0;
             update_screen(r);
-
             usleep(delay * timeout);
         } else if (buffer[0] == '%') {
             int eol = 0;
@@ -403,25 +473,13 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
             update_screen(r);
             row++;
         } else {
-            int eol = 0;
-
-            for (int j = 0; j < RENDER_WIDTH - 2; j++) {
-                if (buffer[j] == '~') eol = 1;
-                if (eol == 1) buffer[j] = L' ';
-            }
-
+            process_text_line(buffer, RENDER_WIDTH);
             swprintf(&r->bd[RENDER_HEIGHT - row - 2][1], RENDER_WIDTH - 1, L"%ls", buffer);
             row++;
         }
     }
 
-    free(r->bd);
-    r->bd = r->dump;
-
-    update_screen(r);
-
-    unlock_inputs();
-
+    finalize_render_buffer(r);
     fclose(file);
 }
 
