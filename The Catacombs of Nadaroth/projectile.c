@@ -42,13 +42,13 @@ void update_projectiles(Render_Buffer* r) {
 
         Projectile* p = &projectiles[i];
 
-        wchar_t c = get_board(r)[RENDER_HEIGHT - p->y][p->x * 2 - 1];
+        wchar_t c = render_get_cell_char(r, RENDER_HEIGHT - p->y, p->x * 2 - 1);
 
-        if (c == ' ') {
+        if (c == L' ') {
             wprintf(L"\033[%d;%dH ", p->y, p->x * 2);
         }
 
-        if (c != 3486 && ((p->x == p->x1 && p->y == p->y1) || c != ' ')) {
+        if (c != 3486 && ((p->x == p->x1 && p->y == p->y1) || c != L' ')) {
             if (p->callback) {
                 p->callback(p->x * 2 - 65, 19 - p->y, p->callback_data);
             }
@@ -67,9 +67,9 @@ void update_projectiles(Render_Buffer* r) {
             p->y += p->sy;
         }
 
-        c = get_board(r)[RENDER_HEIGHT - p->y][p->x * 2 - 1];
+        c = render_get_cell_char(r, RENDER_HEIGHT - p->y, p->x * 2 - 1);
 
-        if (c == ' ') {
+        if (c == L' ') {
             wprintf(L"\033[%d;%dH*", p->y, p->x * 2);
         }
     }

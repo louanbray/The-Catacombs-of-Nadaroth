@@ -1,104 +1,142 @@
-
 #ifndef RENDER_H
 #define RENDER_H
 
+#include <stdint.h>
 #include <stdio.h>
 #include <wchar.h>
 
-#include "constants.h"
+#include "constants.h"  // Adjust as needed for your project
 
-/// @brief Inventory
+// Forward declarations for types used elsewhere
 typedef struct hotbar hotbar;
-/// @brief Dynarray
 typedef struct dynarray dynarray;
-/// @brief Player
 typedef struct player player;
-/// @brief Chunk
 typedef struct chunk chunk;
-/// @brief Map
 typedef struct map map;
 
-/// @brief Screen
-typedef wchar_t** board;
-/// @brief Render Buffer
+// Color enumeration (using a small integer type)
+typedef enum Color {
+    COLOR_DEFAULT = 0,
+    COLOR_RED,
+    COLOR_CYAN_BOLD,
+    COLOR_YELLOW,
+    COLOR_MAGENTA_BOLD,
+    // Extend as needed
+} Color;
+
+// Each cell now stores a wide character and a color.
+typedef struct Cell Cell;
+
+// Our board is now a 2D array of Cells.
+typedef Cell** board;
+
+// Render Buffer
 typedef struct Render_Buffer Render_Buffer;
 
-/// @brief Returns a white screen of const size
-/// @return board
+//
+// Function Prototypes
+//
+
+/// @brief Creates and initializes a new Render_Buffer.
+/// @return Pointer to the new Render_Buffer.
 Render_Buffer* create_screen();
 
-/// @brief Clear the board to the default board
-/// @param board board
-void default_screen(board board);
+/// @brief Clears the board to the default board (draws borders and decorations).
+/// @param screen the screen.
+void default_screen(board screen);
 
-/// @brief Clear the board
-/// @param board board
-void blank_screen(board board);
+/// @brief Clears the board (fills with blank/default cells).
+/// @param b The board to clear.
+void blank_screen(board b);
 
-/// @brief Get the board from the render buffer
-/// @param screen Render_Buffer
-/// @return board
+/// @brief Returns the current board from the render buffer.
+/// @param screen Pointer to the Render_Buffer.
+/// @return The current board.
 board get_board(Render_Buffer* screen);
 
-/// @brief Render a char on the board
-/// @param board board
-/// @param x x
-/// @param y y
-/// @param character char
-void render_char(board board, int x, int y, int character);
+/// @brief Renders a character onto the board at center-based coordinates.
+/// @param screen The board to render on.
+/// @param x The x coordinate (center based).
+/// @param y The y coordinate (center based).
+/// @param character The character to render.
+/// @param rb Pointer to the Render_Buffer (for dirty marking).
+void render_char(board rb, int x, int y, int character);
 
+/// @brief Renders a narrow (ASCII) string onto the render buffer.
+/// @param screen Pointer to the Render_Buffer.
+/// @param x The x coordinate (center based).
+/// @param y The y coordinate (center based).
+/// @param s The string to render.
+/// @param len The number of characters to render.
 void render_string(Render_Buffer* screen, int x, int y, char* s, int len);
 
-void render_item_title(void* it);
+/// @brief Renders a wide string onto the render buffer.
+/// @param screen Pointer to the Render_Buffer.
+/// @param x The x coordinate (center based).
+/// @param y The y coordinate (center based).
+/// @param s The wide string to render.
+/// @param len The number of characters to render.
+void render_unicode_string(Render_Buffer* screen, int x, int y, wchar_t* s, int len);
 
-/// @brief Modify the board to display the chunk (depending on the type)
-/// @param screen Render_Buffer
-/// @param chunk chunk to display
+/// @brief Renders the title of an item on the screen.
+/// @param it Pointer to the item.
+void render_item_title(Render_Buffer* screen, void* it);
+
+/// @brief Updates the board to display the chunk (e.g., furniture, chunk info).
+/// @param screen Pointer to the Render_Buffer.
+/// @param chunk Pointer to the chunk to display.
 void render_chunk(Render_Buffer* screen, chunk* chunk);
 
-/// @brief Modify the board to display the player (if he moved, delete last pos)
-/// @param screen Render_Buffer
-/// @param player player
+/// @brief Renders the player on the board (clearing the previous position if needed).
+/// @param screen Pointer to the Render_Buffer.
+/// @param player Pointer to the player.
 void render_player(Render_Buffer* screen, player* player);
 
-/// @brief Render hotbar
-/// @param screen Render_Buffer
-/// @param hotbar hotbar
+/// @brief Renders the hotbar on the board.
+/// @param screen Pointer to the Render_Buffer.
+/// @param hotbar Pointer to the hotbar.
 void render_hotbar(Render_Buffer* screen, hotbar* hotbar);
 
-/// @brief Render player health
-/// @param screen Render_Buffer
-/// @param player player
+/// @brief Renders the player's health on the board.
+/// @param screen Pointer to the Render_Buffer.
+/// @param player Pointer to the player.
 void render_health(Render_Buffer* screen, player* player);
 
-/// @brief Render the given map (chunk -> elements -> player)
-/// @param screen Render_Buffer
-/// @param map map
+/// @brief Renders the entire map (chunk, elements, player) onto the board.
+/// @param screen Pointer to the Render_Buffer.
+/// @param map Pointer to the map.
 void render(Render_Buffer* screen, map* map);
 
-/// @brief Render the current chunk (chunk -> elements -> player)
-/// @param screen Render_Buffer
-/// @param player player
+/// @brief Renders the current chunk (elements and player) based on the player's perspective.
+/// @param screen Pointer to the Render_Buffer.
+/// @param player Pointer to the player.
 void render_from_player(Render_Buffer* screen, player* player);
 
-/// @brief Clear the output and print the board
-/// @param screen Render_Buffer
+/// @brief Clears the output and prints the board (using dirty region optimization).
+/// @param screen Pointer to the Render_Buffer.
 void update_screen(Render_Buffer* screen);
 
-/// @brief Display the desciption of the given item
-/// @param r Render_Buffer
-/// @param it item
+/// @brief Displays the description of the given item in a modal view.
+/// @param r Pointer to the Render_Buffer.
+/// @param it Pointer to the item.
 void display_item_description(Render_Buffer* r, void* it);
 
-/// @brief Display the board read on the given file //! MAYBE LATER DO A PRELOADING OF THE ASSETS TO PREVENT I/O SATURATION
-/// @param screen Render_Buffer
-/// @param filename the file you want to display the content of
+/// @brief Displays an interface read from a file (e.g., help screen).
+/// @param screen Pointer to the Render_Buffer.
+/// @param filename Name of the file to display.
 void display_interface(Render_Buffer* screen, const char* filename);
 
-/// @brief Display the cinematic read on the given file
-/// @param screen Render_Buffer
-/// @param filename the file you want to display the content of
-/// @param delay the delay between each frame
+/// @brief Plays a cinematic from a file.
+/// @param screen Pointer to the Render_Buffer.
+/// @param filename Name of the file containing the cinematic frames.
+/// @param delay Delay between frames.
 void play_cinematic(Render_Buffer* screen, const char* filename, int delay);
+
+/// @brief Returns the character stored in the cell at (row, col) in the current board.
+/// @param r Pointer to the Render_Buffer
+/// @param row char row
+/// @param col char col
+/// @return char at these coordinates
+wchar_t render_get_cell_char(Render_Buffer* r, int row, int col);
 
 #endif

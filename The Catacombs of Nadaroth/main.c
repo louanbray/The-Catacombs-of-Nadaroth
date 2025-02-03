@@ -141,8 +141,6 @@ int main() {
 
     link_hotbar(p, h);
 
-    default_screen(get_board(screen));
-
     render(screen, m);
     update_screen(screen);
 
@@ -161,7 +159,6 @@ int main() {
     for (;;) {
         if (USE_KEY('H') || USE_KEY('h')) {
             display_interface(screen, "assets/interfaces/structures/help.dodjo");
-            render_item_title(get_selected_item(h));
         } else if (USE_KEY('E') || USE_KEY('e')) {
             display_item_description(screen, get_selected_item(h));
         }
