@@ -1,13 +1,7 @@
 #include "render.h"
 
-#include <locale.h>
 #include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <time.h>
-#include <unistd.h>
-#include <wchar.h>
 
 #include "assets_manager.h"
 #include "dynarray.h"

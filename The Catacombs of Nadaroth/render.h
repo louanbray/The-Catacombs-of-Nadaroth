@@ -1,11 +1,10 @@
 #ifndef RENDER_H
 #define RENDER_H
 
-#include <stdint.h>
 #include <stdio.h>
 #include <wchar.h>
 
-#include "constants.h"  // Adjust as needed for your project
+#include "constants.h"
 
 // Forward declarations for types used elsewhere
 typedef struct hotbar hotbar;
