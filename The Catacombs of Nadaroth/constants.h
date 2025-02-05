@@ -1,9 +1,40 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+/// @brief KEY_CODE Constants
+#define KEY_Z_LOW 122
+#define KEY_Z_HIGH 90
+#define KEY_Q_LOW 113
+#define KEY_Q_HIGH 81
+#define KEY_S_LOW 115
+#define KEY_S_HIGH 83
+#define KEY_D_LOW 100
+#define KEY_D_HIGH 68
+#define KEY_W_LOW 119
+#define KEY_W_HIGH 87
+#define KEY_1 49
+#define KEY_2 50
+#define KEY_3 51
+#define KEY_4 52
+#define KEY_5 53
+#define KEY_6 54
+#define KEY_7 55
+#define KEY_8 56
+#define KEY_9 57
+#define KEY_ARROW_UP 65
+#define KEY_ARROW_DOWN 66
+#define KEY_ARROW_RIGHT 67
+#define KEY_ARROW_LEFT 68
+
 /// @brief Render Constants
 #define RENDER_WIDTH 129
 #define RENDER_HEIGHT 41
+
+/// @brief Utils
+#define CHAR_TO_INT 49
+
+/// @brief GameState
+#define RUNNING 1
 
 //! COPYRIGHT 24/01/2025 20:33, EVERY IDEA HERE IS MINE IF YOU FOUND ANY LEAKED DATA PLEASE INFORM THE DEVELOPPER OF THE GAME
 
@@ -13,7 +44,7 @@ TODO LIST:
 - Update the screen render to make a part of the screen reserved to items descriptions and naration                               [RENDER] (HIGH)       {DONE}
 - Enemy->Player Interaction                                                                                                       [DEV] (HIGH)
 - Enemy PATHFINDING huh ?                                                                                                         [DEV] (HIGH)
-- Implement the mecanics below / missing items                                                                                    [DEV] (MEDIUM)
+- Implement the mecanics below / missing items                                                                                    [DEV] (MEDIUM)        {WORKING}
 - Work on the designs of the items and chunks                                                                                     [RENDER] (MEDIUM)
 - Implement status menu                                                                                                           [RENDER/DEV] (LOW)
 - Work on menus (Username, character selection, stat attribution aso...)                                                          [RENDER/DEV] (LOW)
@@ -24,6 +55,8 @@ TODO LIST:
 - Update Entity / Chunk editor                                                                                                    [DEV] (LOW)
 - Easter Eggs (Konami Code in the character choosing menu | )									                                  [DEV] (LOW)
 */
+
+// static int GAME_STATE = RUNNING;
 
 /// @brief Gate position/type
 typedef enum Direction {  //! DO NOT MODIFY

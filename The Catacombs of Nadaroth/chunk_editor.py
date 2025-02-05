@@ -19,6 +19,7 @@ class Sprite(IntEnum):
     DGATE = 9604
     ENTITY = 0
     KEY = 9919
+    A = 65
 
 class UsableItem(IntEnum):
     NOT_USABLE_ITEM = 0
@@ -47,10 +48,10 @@ items = {"V":[Type.GATE,Sprite.VGATE,Size.COLLAPSE,Entity.NOENTITY, UsableItem.N
          "U":[Type.GATE,Sprite.UGATE,Size.COLLAPSE,Entity.NOENTITY, UsableItem.NOT_USABLE_ITEM],
          "D":[Type.GATE,Sprite.DGATE,Size.COLLAPSE, Entity.NOENTITY, UsableItem.NOT_USABLE_ITEM],
          "T":[Type.WALL,Sprite.WALL,Size.COLLAPSE,Entity.NOENTITY, UsableItem.NOT_USABLE_ITEM],
-         "B":[Type.PICKABLE,Sprite.KEY,Size.COLLAPSE,Entity.ENEMY1, UsableItem.BRONZE_KEY],
-         "S":[Type.PICKABLE,Sprite.KEY,Size.COLLAPSE,Entity.ENEMY1, UsableItem.SILVER_KEY],
-         "G":[Type.PICKABLE,Sprite.KEY,Size.COLLAPSE,Entity.ENEMY1, UsableItem.GOLD_KEY],
-         "N":[Type.PICKABLE,Sprite.KEY,Size.COLLAPSE,Entity.ENEMY1, UsableItem.NADINO_KEY]}
+         "B":[Type.PICKABLE,Sprite.A,Size.COLLAPSE,Entity.ENEMY1, UsableItem.GOLDEN_APPLE],
+         "S":[Type.PICKABLE,Sprite.A,Size.COLLAPSE,Entity.ENEMY1, UsableItem.GOLDEN_APPLE],
+         "G":[Type.PICKABLE,Sprite.A,Size.COLLAPSE,Entity.ENEMY1, UsableItem.ONION_RING],
+         "N":[Type.PICKABLE,Sprite.A,Size.COLLAPSE,Entity.ENEMY1, UsableItem.STOCKFISH]}
 
         #                                                               C
         #                                                               E
@@ -81,7 +82,7 @@ chunk =[" * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *UUUUUU * 
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
-        " * * * * * * * * * * * * * * * * *B* * *S* * *G* * *N* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
+        " * * * * * * * * * * * * * * * * *B* * * *S* * * *G* * * *N* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",
         " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ",

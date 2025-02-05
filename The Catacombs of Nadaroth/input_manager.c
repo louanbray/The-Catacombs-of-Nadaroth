@@ -23,9 +23,10 @@ void restore_terminal_mode() {
         perror("tcsetattr");
         exit(EXIT_FAILURE);
     }
-    wprintf(L"\33[?25h");  // Re-enable cursor visibility
-    wprintf(L"\033[?1003l\033[?1006l");
-    wprintf(L"\033[H\033[J");  // Clear the screen
+    wprintf(L"\33[?25h");                // Re-enable cursor visibility
+    wprintf(L"\033[?1003l\033[?1006l");  // Enable Mouse events
+    wprintf(L"\033[H\033[J");            // Clear the screen
+    wprintf(L"\033[0m");                 // Reset color
     fflush(stdout);
 }
 
@@ -88,31 +89,54 @@ void init_terminal() {
     wprintf(L"\033[?1003h\033[?1006h");  // Enable mouse motion events
     fflush(stdout);
 }
+
+typedef struct MouseEvent {
+    int target_x;
+    int target_y;
+    bool left_just_pressed;
+    bool right_just_pressed;
+    int left_click;
+    int right_click;
+} MouseEvent;
+
 /**
  * @brief Parses an SGR mouse event from the given buffer.
  *
  * @param buffer The buffer containing the SGR mouse event data.
  * @param target_x Pointer to an integer where the x-coordinate of the mouse event will be stored.
  * @param target_y Pointer to an integer where the y-coordinate of the mouse event will be stored.
- * @param left_click Pointer to an integer that will be set to 1 if the left mouse button was clicked, otherwise 0.
- * @param just_pressed Pointer to a boolean that indicates whether the left mouse button was just pressed.
+ * @param left_just_pressed Pointer to a boolean that indicates whether the left mouse button was just pressed.
+ * @param right_just_pressed Pointer to a boolean that indicates whether the right mouse button was just pressed.
+ * @param left_click Pointer to an integer that is set to one after the first left click and then reset to 0 after the release (prevent holding)
+ * @param right_click Pointer to an integer that is set to one after the first right click and then reset to 0 after the release (prevent holding)
  */
-void parse_sgr_mouse_event(const char* buffer, int* target_x, int* target_y, int* left_click, bool* just_pressed) {
+void parse_sgr_mouse_event(const char* buffer, MouseEvent* event) {
     int button, x, y;
     char event_type;
 
-    *left_click = 0;
+    event->left_click = 0;
+    event->right_click = 0;
+
     if (sscanf(buffer, "\033[<%d;%d;%d%c", &button, &x, &y, &event_type) == 4) {
         if (button >= 64) return;
 
+        int btn = button & 0x03;
+
         if ((button & 0x03) == 0) {
-            if (event_type == 'M' && !(*just_pressed)) {
-                *left_click = 1;
-                *just_pressed = true;
-                *target_x = (x / 2) * 2;
-                *target_y = y;
+            if (event_type == 'M' && !event->left_just_pressed) {
+                event->left_click = 1;
+                event->left_just_pressed = true;
+                event->target_x = (x / 2) * 2;
+                event->target_y = y;
             } else if (event_type == 'm') {
-                *just_pressed = false;
+                event->left_just_pressed = false;
+            }
+        } else if (btn == 2) {
+            if (event_type == 'M' && !event->right_just_pressed) {
+                event->right_click = 1;
+                event->right_just_pressed = true;
+            } else if (event_type == 'm') {
+                event->right_just_pressed = false;
             }
         }
     }
@@ -178,7 +202,8 @@ void unlock_inputs() {
 }
 
 void process_input(player* p, Render_Buffer* screen,
-                   void (*mouse_event_callback)(Render_Buffer* screen, player* p, int x, int y),
+                   void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y),
+                   void (*mouse_right_event_callback)(Render_Buffer* screen, player* p),
                    void (*arrow_key_callback)(Render_Buffer* screen, player* p, int arrow_key),
                    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c)) {
     char buffer[128];
@@ -186,9 +211,7 @@ void process_input(player* p, Render_Buffer* screen,
 
     size_t input_buffer_length = 0;
 
-    int target_x = 0, target_y = 1;  // Mouse target position
-    int left_click = 0;              // Flag for left click
-    bool just_pressed = false;
+    MouseEvent event = {0, 1, false, false, 0, 0};
 
     while (1) {
         ssize_t bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer));
@@ -218,10 +241,15 @@ void process_input(player* p, Render_Buffer* screen,
             if (is_mouse_event(input_buffer + processed, input_buffer_length - processed)) {
                 size_t mouse_event_length = get_mouse_event_length(input_buffer + processed, input_buffer_length - processed);
                 if (mouse_event_length > 0) {
-                    parse_sgr_mouse_event(input_buffer + processed, &target_x, &target_y, &left_click, &just_pressed);
+                    parse_sgr_mouse_event(input_buffer + processed, &event);
 
-                    if (unlock && left_click) {
-                        mouse_event_callback(screen, p, target_x, target_y);
+                    if (unlock) {
+                        if (event.left_click) {
+                            mouse_left_event_callback(screen, p, event.target_x, event.target_y);
+                        }
+                        if (event.right_click) {
+                            mouse_right_event_callback(screen, p);
+                        }
                     }
 
                     processed += mouse_event_length;  // Skip the mouse event
@@ -236,8 +264,10 @@ void process_input(player* p, Render_Buffer* screen,
             } else if ((input_buffer[processed] >= 32 && input_buffer[processed] <= 126) ||
                        input_buffer[processed] == '\n' || input_buffer[processed] == '\r') {
                 unsigned char key = (unsigned char)input_buffer[processed];
+
                 if (unlock)
                     printable_char_callback(screen, p, key);
+
                 key_states[key] = true;
 
                 processed++;

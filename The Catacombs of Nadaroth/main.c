@@ -8,11 +8,6 @@
 #include "projectile.h"
 #include "render.h"
 
-#define CHAR_TO_INT 49
-#define RUNNING 1
-
-static int GAME_STATE = RUNNING;
-
 /// @brief Handle the player movement and use the appropriate render
 /// @param b board
 /// @param p player
@@ -25,8 +20,8 @@ void move(Render_Buffer* screen, player* p, int dir) {
         case 2:
             break;
         case 3:
-            render_hotbar(screen, get_player_hotbar(p));
             render_player(screen, p);
+            render_hotbar(screen, get_player_hotbar(p));
             break;
         case 4:
             render_from_player(screen, p);
@@ -112,17 +107,64 @@ void compute_entry(Render_Buffer* screen, player* p, int entry) {
     update_screen(screen);
 }
 
+void interact(Render_Buffer* screen, player* p) {
+    hotbar* hb = get_player_hotbar(p);
+    item* it = get_selected_item(hb);
+    if (it == NULL) return;
+
+    UsableItem type = get_item_usable_type(it);
+    if (type == NOT_USABLE_ITEM) return;
+
+    bool destroy = false;
+
+    switch (type) {
+        case GOLDEN_APPLE:
+            destroy = true;
+            set_player_max_health(p, get_player_max_health(p) + 1);
+            break;
+        case ONION_RING:
+            if (get_player_max_health(p) != get_player_health(p)) {
+                destroy = true;
+                heal_player(p, 1);
+            }
+            break;
+        case STOCKFISH:
+            if (get_player_max_health(p) != get_player_health(p)) {
+                destroy = true;
+                heal_player(p, get_player_max_health(p) - get_player_health(p));
+            }
+            break;
+        case BOMB:
+            destroy = true;
+            break;
+        case SCHOOL_DISHES:
+            destroy = true;
+            break;
+        default:
+            break;
+    }
+
+    if (destroy) {
+        drop(hb, get_selected_slot(hb));
+        render_health(screen, p);
+        render_hotbar(screen, hb);
+    }
+
+    update_screen(screen);
+}
+
 typedef struct {
     player* p;
     Render_Buffer* screen;
-    void (*mouse_event_callback)(Render_Buffer* screen, player* p, int x, int y);
+    void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y);
+    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p);
     void (*arrow_key_callback)(Render_Buffer* screen, player* p, int arrow_key);
     void (*printable_char_callback)(Render_Buffer* screen, player* p, int c);
 } InputThreadArgs;
 
 void* process_input_thread(void* arg) {
     InputThreadArgs* args = (InputThreadArgs*)arg;
-    process_input(args->p, args->screen, args->mouse_event_callback, args->arrow_key_callback, args->printable_char_callback);
+    process_input(args->p, args->screen, args->mouse_left_event_callback, args->mouse_right_event_callback, args->arrow_key_callback, args->printable_char_callback);
     return NULL;
 }
 
@@ -141,13 +183,13 @@ int main() {
 
     link_hotbar(p, h);
 
-    render(screen, m);
     update_screen(screen);
+    render(screen, m);
 
     init_projectile_system(screen);
 
     pthread_t input_thread;
-    InputThreadArgs input_args = {p, screen, fire_projectile, arrow_move, compute_entry};
+    InputThreadArgs input_args = {p, screen, fire_projectile, interact, arrow_move, compute_entry};
 
     if (pthread_create(&input_thread, NULL, process_input_thread, &input_args) != 0)
         return EXIT_FAILURE;

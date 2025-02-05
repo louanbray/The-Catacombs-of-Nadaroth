@@ -6,30 +6,6 @@
 #include "constants.h"
 #include "inventory.h"
 
-#define KEY_Z_LOW 122
-#define KEY_Z_HIGH 90
-#define KEY_Q_LOW 113
-#define KEY_Q_HIGH 81
-#define KEY_S_LOW 115
-#define KEY_S_HIGH 83
-#define KEY_D_LOW 100
-#define KEY_D_HIGH 68
-#define KEY_W_LOW 119
-#define KEY_W_HIGH 87
-#define KEY_1 49
-#define KEY_2 50
-#define KEY_3 51
-#define KEY_4 52
-#define KEY_5 53
-#define KEY_6 54
-#define KEY_7 55
-#define KEY_8 56
-#define KEY_9 57
-#define KEY_ARROW_UP 65
-#define KEY_ARROW_DOWN 66
-#define KEY_ARROW_RIGHT 67
-#define KEY_ARROW_LEFT 68
-
 /// @brief Map
 typedef struct map map;
 /// @brief Chunk

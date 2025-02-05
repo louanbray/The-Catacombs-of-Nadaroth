@@ -148,7 +148,7 @@ Render_Buffer* create_screen() {
     Render_Buffer* r = malloc(sizeof(Render_Buffer));
 
     board b = create_board();
-    blank_screen(b);
+    default_screen(b);
 
     board pv = create_board();
     blank_screen(pv);
@@ -207,7 +207,7 @@ void render_item_title(Render_Buffer* screen, void* it) {
         screen->bd[1][54 + i].color = COLOR_DEFAULT;
     }
 
-    update_screen(screen);
+    update_line(screen, 1);
 
     if (it == NULL) return;
 
@@ -330,43 +330,47 @@ void render_from_player(Render_Buffer* r, player* p) {
 // UPDATE SCREEN FUNCTIONS
 //
 
+void update_line_(Render_Buffer* r, int row) {
+    if (!r->rc[row]) return;
+    int screen_row = RENDER_HEIGHT - row;
+    r->rc[row] = 0;
+
+    int start = -1;
+    int current_color = -1;
+
+    // Buffer to accumulate characters to output.
+    wchar_t buffer[RENDER_WIDTH + 1];
+    buffer[RENDER_WIDTH] = L'\0';
+
+    for (int j = 0; j < RENDER_WIDTH; j++) {
+        Cell curr = r->bd[row][j];
+        Cell prev = r->pv[row][j];
+
+        if (curr.ch != prev.ch || curr.color != prev.color) {
+            if (start == -1) {
+                start = j;
+                current_color = curr.color;
+            }
+            r->pv[row][j] = curr;
+            buffer[j] = curr.ch;
+        } else if (start != -1) {
+            buffer[j] = L'\0';
+            wprintf(L"\033[%d;%dH%s%ls", screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
+            start = -1;
+        }
+    }
+    if (start != -1) {
+        buffer[RENDER_WIDTH] = L'\0';
+        wprintf(L"\033[%d;%dH%s%ls", screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
+    }
+}
+
 // This function outputs only modified parts of the screen.
 // It now also takes into account cell color changes.
 void update_screen_(Render_Buffer* r) {
     for (int i = RENDER_HEIGHT - 1; i >= 0; i--) {
-        if (!r->rc[i]) continue;
-        int screen_row = RENDER_HEIGHT - i;
-        r->rc[i] = 0;
-
-        int start = -1;
-        int current_color = -1;
-
-        // Buffer to accumulate characters to output.
-        wchar_t buffer[RENDER_WIDTH + 1];
-        buffer[RENDER_WIDTH] = L'\0';
-
-        for (int j = 0; j < RENDER_WIDTH; j++) {
-            Cell curr = r->bd[i][j];
-            Cell prev = r->pv[i][j];
-
-            if (curr.ch != prev.ch || curr.color != prev.color) {
-                if (start == -1) {
-                    start = j;
-                    current_color = curr.color;
-                }
-
-                r->pv[i][j] = curr;
-                buffer[j] = curr.ch;
-            } else if (start != -1) {
-                buffer[j] = L'\0';
-                wprintf(L"\033[%d;%dH%s%ls", screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
-                start = -1;
-            }
-        }
-        if (start != -1) {
-            buffer[RENDER_WIDTH] = L'\0';
-            wprintf(L"\033[%d;%dH%s%ls", screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
-        }
+        if (r->rc[i])
+            update_line(r, i);
     }
     fflush(stdout);
 }
@@ -462,13 +466,16 @@ void display_item_description(Render_Buffer* r, void* it) {
             r->bd[RENDER_HEIGHT - i - 2][j].color = COLOR_DEFAULT;
         }
     }
+
     wchar_t buffer[RENDER_WIDTH - 1];
     int i = 6;
+
     while (fgetws_from_string(buffer, RENDER_WIDTH - 1, &desc) != NULL && i < RENDER_HEIGHT - 2) {
         process_text_line(buffer, RENDER_WIDTH);
         write_wstr(r->bd, RENDER_HEIGHT - i - 2, 1, buffer, RENDER_WIDTH - 2, COLOR_DEFAULT);
         i++;
     }
+
     for (; i < RENDER_HEIGHT - 2; i++) {
         if (i != 35)
             for (int j = 1; j < RENDER_WIDTH - 1; j++) {
@@ -495,11 +502,16 @@ void display_interface(Render_Buffer* r, const char* filename) {
         perror("Error opening file");
         return;
     }
+
     setup_render_buffer(r);
+
     render_string(r, -8, -18, " PRESS [H] TO EXIT", 19);
     read_text_into_render(r, file);
+
     update_screen(r);
+
     while (!USE_KEY('H') && !USE_KEY('h'));
+
     finalize_render_buffer(r);
     fclose(file);
 }
@@ -554,6 +566,13 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
     }
     finalize_render_buffer(r);
     fclose(file);
+}
+
+// Mark rows as changed and update the screen.
+void update_line(Render_Buffer* r, int row) {
+    mark_changed_rows(r);
+    update_line_(r, row);
+    fflush(stdout);
 }
 
 // Mark rows as changed and update the screen.

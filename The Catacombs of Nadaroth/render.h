@@ -58,8 +58,8 @@ board get_board(Render_Buffer* screen);
 /// @param x The x coordinate (center based).
 /// @param y The y coordinate (center based).
 /// @param character The character to render.
-/// @param rb Pointer to the Render_Buffer (for dirty marking).
-void render_char(board rb, int x, int y, int character);
+/// @param board Pointer to a board.
+void render_char(board board, int x, int y, int character);
 
 /// @brief Renders a narrow (ASCII) string onto the render buffer.
 /// @param screen Pointer to the Render_Buffer.
@@ -111,14 +111,19 @@ void render(Render_Buffer* screen, map* map);
 /// @param player Pointer to the player.
 void render_from_player(Render_Buffer* screen, player* player);
 
-/// @brief Clears the output and prints the board (using dirty region optimization).
+/// @brief Clears the output and prints the board.
 /// @param screen Pointer to the Render_Buffer.
 void update_screen(Render_Buffer* screen);
 
+/// @brief Clears the output and prints the board.
+/// @param screen Pointer to the Render_Buffer.
+/// @param row Raw to update
+void update_line(Render_Buffer* screen, int row);
+
 /// @brief Displays the description of the given item in a modal view.
-/// @param r Pointer to the Render_Buffer.
+/// @param screen Pointer to the Render_Buffer.
 /// @param it Pointer to the item.
-void display_item_description(Render_Buffer* r, void* it);
+void display_item_description(Render_Buffer* screen, void* it);
 
 /// @brief Displays an interface read from a file (e.g., help screen).
 /// @param screen Pointer to the Render_Buffer.
@@ -136,6 +141,6 @@ void play_cinematic(Render_Buffer* screen, const char* filename, int delay);
 /// @param row char row
 /// @param col char col
 /// @return char at these coordinates
-wchar_t render_get_cell_char(Render_Buffer* r, int row, int col);
+wchar_t render_get_cell_char(Render_Buffer* screen, int row, int col);
 
 #endif
