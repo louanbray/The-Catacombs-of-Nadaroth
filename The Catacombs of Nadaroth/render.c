@@ -193,6 +193,14 @@ void render_string(Render_Buffer* screen, int x, int y, char* s, int len) {
     write_str(screen->bd, draw_y, draw_x, s, len, COLOR_DEFAULT);
 }
 
+// Renders a string onto the render buffer at the specified coordinates.
+void render_colored_string(Render_Buffer* screen, int x, int y, char* s, int len, int color) {
+    // Adjust coordinates to be relative to the center.
+    int draw_x = x + RENDER_WIDTH / 2;
+    int draw_y = y + 2 + RENDER_HEIGHT / 2;
+    write_str(screen->bd, draw_y, draw_x, s, len, color);
+}
+
 // Renders a wide string onto the render buffer at the specified coordinates.
 void render_unicode_string(Render_Buffer* screen, int x, int y, wchar_t* s, int len) {
     int draw_x = x + RENDER_WIDTH / 2;
@@ -350,7 +358,14 @@ void update_line_(Render_Buffer* r, int row) {
             if (start == -1) {
                 start = j;
                 current_color = curr.color;
+            } else if (curr.color != current_color) {
+                buffer[j] = L'\0';
+                wprintf(L"\033[%d;%dH%s%ls", screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
+
+                start = j;
+                current_color = curr.color;
             }
+
             r->pv[row][j] = curr;
             buffer[j] = curr.ch;
         } else if (start != -1) {
@@ -370,7 +385,7 @@ void update_line_(Render_Buffer* r, int row) {
 void update_screen_(Render_Buffer* r) {
     for (int i = RENDER_HEIGHT - 1; i >= 0; i--) {
         if (r->rc[i])
-            update_line(r, i);
+            update_line_(r, i);
     }
     fflush(stdout);
 }
@@ -483,10 +498,10 @@ void display_item_description(Render_Buffer* r, void* it) {
                 r->bd[RENDER_HEIGHT - i - 2][j].color = COLOR_DEFAULT;
             }
     }
-    render_string(r, -13, 16, " [The Eyes of The Wanderer]", 28);
+    render_colored_string(r, -13, 16, " [The Eyes of The Wanderer]", 28, COLOR_YELLOW);
 
     wchar_t buff[60];
-    swprintf(buff, 50, L"  Analysing [%lc ] - %.*s : ", get_item_display(item_), (int)strlen(item_file->title) - 1, item_file->title);
+    swprintf(buff, 50, L"  Analysing >> %lc - %.*s : ", get_item_display(item_), (int)strlen(item_file->title) - 1, item_file->title);
     render_unicode_string(r, -63, 13, buff, 50);
 
     update_screen(r);
