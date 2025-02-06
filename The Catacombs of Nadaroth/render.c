@@ -5,6 +5,7 @@
 
 #include "assets_manager.h"
 #include "dynarray.h"
+#include "game_status.h"
 #include "input_manager.h"
 #include "item.h"
 #include "map.h"
@@ -427,6 +428,7 @@ void setup_render_buffer(Render_Buffer* r) {
     r->bd = r->pv;
     r->pv = create_board();
     lock_inputs();
+    pause_game();
 }
 
 // Finalizes the render buffer.
@@ -435,6 +437,7 @@ void finalize_render_buffer(Render_Buffer* r) {
     r->bd = r->dump;
     update_screen(r);
     unlock_inputs();
+    resume_game();
 }
 
 // Processes a text line (replacing characters after '~' with spaces).

@@ -1,9 +1,8 @@
 #include "projectile.h"
 
-#include <pthread.h>
-
 #include "constants.h"
 #include "entity.h"
+#include "game_status.h"
 #include "player.h"
 #include "render.h"
 
@@ -128,9 +127,15 @@ void projectile_callback(int x, int y, projectile_data* data) {
 
 void* projectile_loop(void* args) {
     Render_Buffer* r = (Render_Buffer*)args;
+    struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666667};  // 60 FPS
 
-    struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666667};  // ~60 FPS
     while (1) {
+        pthread_mutex_lock(&pause_mutex);
+        while (GAME_PAUSED) {
+            pthread_cond_wait(&pause_cond, &pause_mutex);
+        }
+        pthread_mutex_unlock(&pause_mutex);
+
         update_projectiles(r);
         nanosleep(&ts, NULL);
     }
