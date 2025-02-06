@@ -44,7 +44,7 @@ TODO LIST:
 - Update the screen render to make a part of the screen reserved to items descriptions and naration                               [RENDER] (HIGH)       {DONE}
 - Enemy->Player Interaction                                                                                                       [DEV] (HIGH)
 - Enemy PATHFINDING huh ?                                                                                                         [DEV] (HIGH)
-- Implement the mecanics below / missing items                                                                                    [DEV] (MEDIUM)        {WORKING}
+- Implement the mecanics below / missing items                                                                                    [DEV] (MEDIUM)        {WORKING - SCHOOL_DISHES}
 - Work on the designs of the items and chunks                                                                                     [RENDER] (MEDIUM)
 - Implement status menu                                                                                                           [RENDER/DEV] (LOW)
 - Work on menus (Username, character selection, stat attribution aso...)                                                          [RENDER/DEV] (LOW)

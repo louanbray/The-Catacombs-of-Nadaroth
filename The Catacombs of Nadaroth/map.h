@@ -32,7 +32,7 @@ chunk* get_chunk_from(map* map, chunk* current_chunk, Direction dir);
 /// @return spawn chunk
 chunk* get_spawn(map* map);
 
-/// @brief Return linked player
+/// @brief Returns linked player
 /// @param map map
 /// @return player
 player* get_player(map* map);

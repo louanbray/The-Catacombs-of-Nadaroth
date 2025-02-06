@@ -23,12 +23,12 @@ void set_hotbar(hotbar* hotbar, int index, item* item);
 /// @return item
 item* get_hotbar(hotbar* hotbar, int index);
 
-/// @brief Return index of selected slot
+/// @brief Returns index of selected slot
 /// @param hotbar hotbar
 /// @return index
 int get_selected_slot(hotbar* hotbar);
 
-/// @brief Return item in selected slot
+/// @brief Returns item in selected slot
 /// @param hotbar hotbar
 /// @return item
 item* get_selected_item(hotbar* hotbar);
@@ -38,7 +38,7 @@ item* get_selected_item(hotbar* hotbar);
 /// @return maxsize
 int get_hotbar_max_size(hotbar* hotbar);
 
-/// @brief Return if the hotbar is full
+/// @brief Returns if the hotbar is full
 /// @param hotbar hotbar
 /// @return true if full
 bool is_hotbar_full(hotbar* hotbar);

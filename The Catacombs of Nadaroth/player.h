@@ -15,57 +15,62 @@ typedef struct hotbar hotbar;
 /// @brief Player
 typedef struct player player;
 
-/// @brief Return a player linked to the map spawn chunk
+/// @brief Returns a player linked to the map spawn chunk
 /// @param map map
 /// @return player
 player* create_player(map* map);
 
-/// @brief Return player coord x in chunk
+/// @brief Returns player coord x in chunk
 /// @param player player
 /// @return x
 int get_player_x(player* player);
 
-/// @brief Return player coord y in chunk
+/// @brief Returns player coord y in chunk
 /// @param player player
 /// @return y
 int get_player_y(player* player);
 
-/// @brief Return player previous coord x in chunk
+/// @brief Returns player previous coord x in chunk
 /// @param player player
 /// @return previous x
 int get_player_px(player* player);
 
-/// @brief Return player previous coord y in chunk
+/// @brief Returns player previous coord y in chunk
 /// @param player player
 /// @return previous y
 int get_player_py(player* player);
 
-/// @brief Return player current chunk
+/// @brief Returns player current chunk
 /// @param player player
 /// @return chunk*
 chunk* get_player_chunk(player* player);
 
-/// @brief Return player hotbar
+/// @brief Returns player hotbar
 /// @param player player
 /// @return hotbar
 hotbar* get_player_hotbar(player* player);
 
-/// @brief Return player design (char)
+/// @brief Returns player design (char)
 /// @param player player
 /// @return char design
 int get_player_design(player* player);
 
-/// @brief Return player name
+/// @brief Returns player name
 /// @param player player
 /// @return name
 char* get_player_name(player* player);
 
-/// @brief Return player health
+/// @brief Returns player current map
+/// @param p player
+/// @return map
+map* get_player_map(player* p);
+
+/// @brief Returns player health
 /// @param player player
 /// @return health
 int get_player_health(player* player);
 
-/// @brief Return player max health
+/// @brief Returns player max health
 /// @param player player
 /// @return health
 int get_player_max_health(player* player);
@@ -100,5 +105,9 @@ void heal_player(player* player, int heal);
 /// @param player player
 /// @param health new health
 void set_player_max_health(player* player, unsigned int health);
+
+/// @brief Destroy the player closest chunk
+/// @param p player
+void destroy_player_cchunk(player* p);
 
 #endif

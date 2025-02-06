@@ -20,7 +20,7 @@ dynarray* create_dyn();
 /// @return dynarray
 dynarray* create_dyn_from(int len, element* elements);
 
-/// @brief Return the number of element in the array
+/// @brief Returns the number of element in the array
 /// @param array dynarray
 /// @return length
 int len_dyn(dynarray* array);

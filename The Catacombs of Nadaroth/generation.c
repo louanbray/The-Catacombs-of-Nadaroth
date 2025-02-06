@@ -63,7 +63,7 @@ void decorate(chunk* c, int x, int y) {
             //     type = DUMMY;
             //     break;
             case 1:
-                type = DEFAULT;
+                type = SPAWN;
                 break;
             default:
                 type = DEFAULT2;

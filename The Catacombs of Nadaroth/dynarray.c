@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#include "item.h"
+#include "entity.h"
 
 typedef struct dynarray {
     element* elt;
@@ -10,7 +10,7 @@ typedef struct dynarray {
     int memlen;
 } dynarray;
 
-/// @brief Return the max value between n1 and n2
+/// @brief Returns the max value between n1 and n2
 /// @param n1 number to compare
 /// @param n2 number to compare
 /// @return max value
@@ -92,13 +92,21 @@ element pop(dynarray* t) {
     return r;
 }
 
+//* I know it is a bit tweaked but it assumes this array only contains a list of item and if an entity, all the items forming this entity
 void free_dyn(dynarray* t) {
     if (t) {
         int len = t->len;
         for (int i = 0; i < len; i++) {
             if (t->elt[i]) {
                 item* it = (item*)t->elt[i];
-                free_item(it);
+                if (it == NULL) continue;
+
+                entity* e = get_entity_link(it);
+
+                if (e != NULL)
+                    free_entity_brain(e);
+                else
+                    free_item(it);
             }
         }
         free(t->elt);

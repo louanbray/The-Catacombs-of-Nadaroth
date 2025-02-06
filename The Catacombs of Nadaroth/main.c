@@ -136,6 +136,7 @@ void interact(Render_Buffer* screen, player* p) {
             break;
         case BOMB:
             destroy = true;
+            destroy_player_cchunk(p);
             break;
         case SCHOOL_DISHES:
             destroy = true;

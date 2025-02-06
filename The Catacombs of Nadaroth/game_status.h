@@ -3,7 +3,6 @@
 
 #include <pthread.h>
 
-// Global synchronization variables
 extern pthread_mutex_t pause_mutex;
 extern pthread_cond_t pause_cond;
 extern int GAME_PAUSED;

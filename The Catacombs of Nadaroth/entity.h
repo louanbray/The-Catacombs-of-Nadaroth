@@ -37,6 +37,15 @@ void for_each_entity_part(entity* entity, void (*f)(item*));
 void destroy_entity(entity* entity);
 
 /**
+ * @brief Frees the memory allocated for the brain of the given entity.
+ *
+ * This function releases any resources associated with the brain of the specified entity.
+ *
+ * @param e A pointer to the entity whose brain is to be freed.
+ */
+void free_entity_brain(entity* e);
+
+/**
  * @brief Retrieves the brain of the given entity.
  *
  * This function returns the brain component of the specified entity.

@@ -41,12 +41,24 @@ void destroy_entity(entity* e) {
     free(e);
 }
 
+void free_entity_brain(entity* e) {
+    free_item(e->brain);
+    dynarray* d = e->parts;
+    int len = len_dyn(d);
+    for (int i = 0; i < len; i++) {
+        item* it = get_dyn(d, i);
+        if (it == NULL) continue;
+        link_entity(it, NULL);
+    }
+}
+
 void remove_entity_from_chunk(entity* e) {
     chunk* c = e->c;
     dynarray* d = e->parts;
     int len = len_dyn(d);
     for (int i = 0; i < len; i++) {
         item* it = get_dyn(d, i);
+        if (it == NULL) continue;
         remove_item(c, it);
         set_dyn(d, i, NULL);
         free_item(it);

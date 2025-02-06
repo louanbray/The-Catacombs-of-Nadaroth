@@ -5,7 +5,7 @@
 #include "entity.h"
 #include "generation.h"
 
-/// @brief Return the part of the map the player is in as a direction (USED ONLY FOR GATES)
+/// @brief Returns the part of the map the player is in as a direction (USED ONLY FOR GATES)
 /// @param x player x
 /// @param y player y
 /// @return int direction

@@ -24,12 +24,12 @@ typedef struct chunk {
 /// @param y pos y
 void decorate(chunk* chunk, int x, int y);
 
-/// @brief Return a dynarray of chunk decoration
+/// @brief Returns a dynarray of chunk decoration
 /// @param chunk chunk
 /// @return dynarray of decoration
 dynarray* get_chunk_furniture_list(chunk* chunk);
 
-/// @brief Return a hashmap containing the chunk decorations (key: x, y)
+/// @brief Returns a hashmap containing the chunk decorations (key: x, y)
 /// @param chunk chunk
 /// @return hashmap
 hm* get_chunk_furniture_coords(chunk* chunk);

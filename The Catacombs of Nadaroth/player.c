@@ -68,6 +68,10 @@ char* get_player_name(player* p) {
     return p->name;
 }
 
+map* get_player_map(player* p) {
+    return p->map;
+}
+
 int get_player_health(player* p) {
     return p->health;
 }
@@ -126,4 +130,10 @@ void heal_player(player* p, int heal) {
         return;
     }
     p->health += heal;
+}
+
+void destroy_player_cchunk(player* p) {
+    map* m = p->map;
+    chunk* c = p->current_chunk;
+    destroy_chunk(m, get_chunk(m, get_chunk_x(c), get_chunk_y(c) + 1));
 }
