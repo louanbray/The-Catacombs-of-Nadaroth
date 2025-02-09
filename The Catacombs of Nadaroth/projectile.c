@@ -9,7 +9,7 @@
 #define MAX_PROJECTILES 128
 
 typedef struct projectile_data {
-    int x0, y0;
+    int x0, y0, damage;
     player* p;
     Render_Buffer* screen;
 } projectile_data;
@@ -100,7 +100,7 @@ void projectile_callback(int x, int y, projectile_data* data) {
 
             pthread_mutex_lock(&entity_mutex);
 
-            e->hp -= 1;
+            e->hp -= data->damage;
 
             if (e->hp <= 0) {
                 if (is_entity) {
@@ -175,6 +175,7 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
     projectile_data* p_data = malloc(sizeof(projectile_data));
     p_data->x0 = x;
     p_data->y0 = y;
+    p_data->damage = 1;
     p_data->p = p;
     p_data->screen = r;
 

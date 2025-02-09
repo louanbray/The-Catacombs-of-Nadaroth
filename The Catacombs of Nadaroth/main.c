@@ -1,6 +1,7 @@
 #include <pthread.h>
 
 #include "assets_manager.h"
+#include "audio_manager.h"
 #include "entity.h"
 #include "input_manager.h"
 #include "map.h"
@@ -175,6 +176,10 @@ int main() {
     init_terminal();
     init_assets_system();
 
+    if (init_audio() != 0) exit(EXIT_FAILURE);
+
+    play_bgm("assets/audio/background.mp3", 1);
+
     Render_Buffer* screen = create_screen();
 
     map* m = create_map();
@@ -206,6 +211,8 @@ int main() {
             display_item_description(screen, get_selected_item(h));
         }
     }
+
+    audio_close();
 
     return EXIT_SUCCESS;
 }
