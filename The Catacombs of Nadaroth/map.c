@@ -133,7 +133,7 @@ void purge_chunk(hm* m, chunk* ck) {
 
     free(ck->link);
     free_dyn(ck->elements);
-    free_dyn(ck->enemies);
+    free_dyn_no_item(ck->enemies);
     free_hm(ck->hashmap);
     free(ck);
 }

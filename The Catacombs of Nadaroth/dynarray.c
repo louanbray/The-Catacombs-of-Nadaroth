@@ -113,3 +113,10 @@ void free_dyn(dynarray* t) {
         free(t);
     }
 }
+
+void free_dyn_no_item(dynarray* t) {
+    if (t) {
+        free(t->elt);
+        free(t);
+    }
+}
