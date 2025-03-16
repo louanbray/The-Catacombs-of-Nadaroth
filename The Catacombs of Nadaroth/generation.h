@@ -15,6 +15,7 @@ typedef struct chunk {
     int y, spawn_y;
     ChunkType type;
     dynarray* elements;
+    dynarray* enemies;
     hm* hashmap;
 } chunk;
 
@@ -63,5 +64,10 @@ void set_chunk_type(chunk* chunk, ChunkType type);
 /// @param chunk
 /// @param item
 void remove_item(chunk* chunk, item* item);
+
+/// @brief Get the enemies of the chunk
+/// @param chunk
+/// @return dynarray of enemies
+dynarray* get_chunk_enemies(chunk* chunk);
 
 #endif

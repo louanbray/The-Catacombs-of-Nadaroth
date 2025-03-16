@@ -8,6 +8,11 @@
 
 #define MAX_PROJECTILES 128
 
+typedef struct {
+    Render_Buffer* r;
+    player* p;
+} InitThreadArgs;
+
 typedef struct projectile_data {
     int x0, y0, damage;
     player* p;
@@ -22,6 +27,10 @@ typedef struct Projectile {
     int dx, dy;                      // Absolute differences
     int sx, sy;                      // Step directions
     int err;                         // Error term
+    int from, from_id;               // Character to ignore
+    int frame, rate;                 // Animation frame and rate
+    bool infinity;                   // Is the projectile infinite?
+    bool home;                       // Is the projectile homing?
     bool active;                     // Is the projectile active?
     ProjectileCallback callback;     // Callback to execute on hit
     projectile_data* callback_data;  // Additional data for callback
@@ -41,22 +50,28 @@ void update_projectiles(Render_Buffer* r) {
 
         Projectile* p = &projectiles[i];
 
-        wchar_t c = render_get_cell_char(r, RENDER_HEIGHT - p->y, p->x * 2 - 1);
+        p->frame++;
+        if (p->frame != p->rate) continue;
+        p->frame = 0;
+
+        int speed = 2;
+
+        wchar_t c = render_get_cell_char(r, RENDER_HEIGHT - p->y, p->x * speed - 1);
 
         if (c == L' ') {
-            wprintf(L"\033[%d;%dH ", p->y, p->x * 2);
+            wprintf(L"\033[%d;%dH ", p->y, p->x * speed);
         }
 
-        if (c != 3486 && ((p->x == p->x1 && p->y == p->y1) || c != L' ')) {
+        if ((c != p->from || !p->home) && (((p->x == p->x1 && p->y == p->y1) && !p->infinity) || c != L' ')) {
             if (p->callback) {
-                p->callback(p->x * 2 - 65, 19 - p->y, p->callback_data);
+                p->callback(p->x * speed - 65, 19 - p->y, p->callback_data);
             }
 
             p->active = false;
             continue;
         }
 
-        int e2 = 2 * p->err;
+        int e2 = speed * p->err;
         if (e2 >= p->dy) {
             p->err += p->dy;
             p->x += p->sx;
@@ -66,10 +81,12 @@ void update_projectiles(Render_Buffer* r) {
             p->y += p->sy;
         }
 
-        c = render_get_cell_char(r, RENDER_HEIGHT - p->y, p->x * 2 - 1);
+        c = render_get_cell_char(r, RENDER_HEIGHT - p->y, p->x * speed - 1);
 
         if (c == L' ') {
-            wprintf(L"\033[%d;%dH*", p->y, p->x * 2);
+            if (p->home)
+                p->home = false;
+            wprintf(L"\033[%d;%dH*", p->y, p->x * speed);
         }
     }
 
@@ -103,13 +120,14 @@ void projectile_callback(int x, int y, projectile_data* data) {
             e->hp -= data->damage;
 
             if (e->hp <= 0) {
+                set_dyn(get_chunk_enemies(get_player_chunk(data->p)), e->from_id, NULL);
                 if (is_entity) {
                     destroy_entity_from_chunk(ent);
                     render_from_player(data->screen, data->p);
-                } else {
+                } /*else {
                     remove_item(get_player_chunk(data->p), it);
                     render_char(get_board(data->screen), x, y, ' ');
-                }
+                }*/
             }
 
             pthread_mutex_unlock(&entity_mutex);
@@ -125,45 +143,66 @@ void projectile_callback(int x, int y, projectile_data* data) {
     free(data);
 }
 
-void* projectile_loop(void* args) {
-    Render_Buffer* r = (Render_Buffer*)args;
-    struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666667};  // 60 FPS
-
-    while (1) {
-        pthread_mutex_lock(&pause_mutex);
-        while (GAME_PAUSED) {
-            pthread_cond_wait(&pause_cond, &pause_mutex);
-        }
-        pthread_mutex_unlock(&pause_mutex);
-
-        update_projectiles(r);
-        nanosleep(&ts, NULL);
+void enemy_attack_callback(int x, int y, projectile_data* data) {
+    if (x == get_player_x(data->p) && y == get_player_y(data->p)) {
+        damage_player(data->p, data->damage);
+        render_health(data->screen, data->p);
     }
 
-    return NULL;
+    update_screen(data->screen);
+    free(data);
 }
 
-void spawn_projectile(int x0, int y0, int x1, int y1, ProjectileCallback callback, projectile_data* callback_data) {
+void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, bool infinity, ProjectileCallback callback, projectile_data* callback_data) {
     pthread_mutex_lock(&projectile_mutex);
+    int speed = 2;
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (!projectiles[i].active) {
             projectiles[i] = (Projectile){
-                .x = x0 / 2,
+                .x = x0 / speed,
                 .y = y0,
-                .x1 = x1 / 2,
+                .x1 = x1 / speed,
                 .y1 = y1,
-                .dx = abs(x1 - x0) / 2,
+                .dx = abs(x1 - x0) / speed,
                 .dy = -abs(y1 - y0),
                 .sx = x0 < x1 ? 1 : -1,
                 .sy = y0 < y1 ? 1 : -1,
-                .err = (abs(x1 - x0) / 2) + (-abs(y1 - y0)),
+                .err = (abs(x1 - x0) / speed) + (-abs(y1 - y0)),
+                .from = from,
+                .frame = 0,
+                .rate = rate,
                 .active = true,
+                .home = true,
+                .infinity = infinity,
                 .callback = callback,
                 .callback_data = callback_data};
             break;
         }
     }
     pthread_mutex_unlock(&projectile_mutex);
+}
+
+void enemy_attack_projectile(Render_Buffer* r, player* p, item* brain) {
+    int x = get_item_x(brain) + 65;
+    int y = -get_item_y(brain) + 19;
+
+    projectile_data* p_data = malloc(sizeof(projectile_data));
+    p_data->x0 = x;
+    p_data->y0 = y;
+    p_data->damage = ((enemy*)get_item_spec(brain))->damage;
+    p_data->p = p;
+    p_data->screen = r;
+
+    spawn_projectile(
+        x,
+        y,
+        get_player_x(p) + 65,
+        -get_player_y(p) + 19,
+        get_item_display(brain),
+        ((enemy*)get_item_spec(brain))->speed,
+        ((enemy*)get_item_spec(brain))->infinity,
+        enemy_attack_callback,
+        p_data);
 }
 
 void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
@@ -184,13 +223,56 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
         y,
         target_x,
         target_y,
+        get_player_design(p),
+        1,
+        false,
         projectile_callback,
         p_data);
 }
 
-void init_projectile_system(Render_Buffer* r) {
+void* projectile_loop(void* args) {
+    InitThreadArgs* arg = (InitThreadArgs*)args;
+    Render_Buffer* r = arg->r;
+    player* p = arg->p;
+
+    struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666667};  // 60 FPS
+    int tick = 0;
+    while (1) {
+        pthread_mutex_lock(&pause_mutex);
+        while (GAME_PAUSED) {
+            pthread_cond_wait(&pause_cond, &pause_mutex);
+        }
+        pthread_mutex_unlock(&pause_mutex);
+
+        // TODO : Add enemies to a pool so that the update can be separated for each enemy (+ implement spec (2 more needed) for time between attacks (ex : 180 +- 60))
+        if (tick == 160) {
+            tick = 0;
+            chunk* c = get_player_chunk(p);
+            dynarray* d = get_chunk_enemies(c);
+            for (int i = 0; i < len_dyn(d); i++) {
+                item* brain = get_dyn(d, i);
+                if (brain != NULL)
+                    enemy_attack_projectile(r, p, brain);
+            }
+        }
+        update_projectiles(r);
+
+        nanosleep(&ts, NULL);
+        tick++;
+    }
+
+    if (arg)
+        free(arg);
+
+    return NULL;
+}
+
+void init_projectile_system(Render_Buffer* r, player* p) {
     pthread_t thread_id;
-    if (pthread_create(&thread_id, NULL, projectile_loop, r) != 0) {
+    InitThreadArgs* input_args = malloc(sizeof(InitThreadArgs));
+    input_args->r = r;
+    input_args->p = p;
+    if (pthread_create(&thread_id, NULL, projectile_loop, input_args) != 0) {
         fprintf(stderr, "Failed to create projectile thread\n");
         exit(EXIT_FAILURE);
     }

@@ -28,6 +28,10 @@ void set_chunk_type(chunk* ck, ChunkType type) {
     ck->type = type;
 }
 
+dynarray* get_chunk_enemies(chunk* ck) {
+    return ck->enemies;
+}
+
 /// @brief Copy the content of the items dynarrray to put it into the hashmap
 /// @param c chunk
 void fill_chunk_hm_from_dyn(chunk* c) {

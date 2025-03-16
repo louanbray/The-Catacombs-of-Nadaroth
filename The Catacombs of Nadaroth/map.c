@@ -28,6 +28,7 @@ chunk* create_chunk(int x, int y) {
     ck->y = y;
     ck->type = SPAWN;
     ck->elements = create_dyn();
+    ck->enemies = create_dyn();
     ck->hashmap = create_hashmap();
     return ck;
 }
@@ -132,6 +133,7 @@ void purge_chunk(hm* m, chunk* ck) {
 
     free(ck->link);
     free_dyn(ck->elements);
+    free_dyn(ck->enemies);
     free_hm(ck->hashmap);
     free(ck);
 }
