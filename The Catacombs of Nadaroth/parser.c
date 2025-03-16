@@ -7,7 +7,6 @@
 
 /// @brief Read and parse the given file using the dodjo format to update the chunk decorations
 /// @param c chunk
-/// @param d Array of chunk decorations/items
 /// @param chunk_type type of the chunk
 //? TO ADD A LEVEL: modify
 void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
@@ -32,7 +31,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
             }
         } else {
             // Entity with multiple parts
-            EntityAssetFile* entityFile;
+            EntityAssetFile* entityFile = get_entity_file(entry->entity_type);
             if (entityFile == NULL) {
                 fprintf(stderr, "Error: Unable to load entity file for type %d\n", entry->entity_type);
                 continue;
@@ -42,14 +41,17 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
             item* brain = generate_item(entry->x, entry->y, entry->type, entry->display, entry->usable_item, -1);
             entity* e = create_entity(brain, c);
 
-            entityFile = get_entity_file(entry->entity_type);
-
             // TODO: IMPLEMENT SPECIALIZE_ENTITY FUNCTION
             switch (entry->type) {
                 case ENEMY: {
                     enemy* elt = malloc(sizeof(enemy));
                     elt->hp = entityFile->specs.specs[0];
+                    elt->damage = entityFile->specs.specs[1];
+                    elt->from_id = len_dyn(get_chunk_enemies(c));
+                    elt->speed = entityFile->specs.specs[2];
+                    elt->infinity = entityFile->specs.specs[3];
                     specialize(brain, false, false, elt);
+                    append(get_chunk_enemies(c), brain);
                     break;
                 }
 

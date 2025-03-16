@@ -55,4 +55,8 @@ void print_dyn(dynarray* array);
 /// @param array dynarray
 void free_dyn(dynarray* array);
 
+/// @brief Free memory without freeing the elements
+/// @param array dynarray
+void free_dyn_no_item(dynarray* array);
+
 #endif

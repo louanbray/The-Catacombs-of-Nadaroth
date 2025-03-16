@@ -192,7 +192,7 @@ int main() {
     update_screen(screen);
     render(screen, m);
 
-    init_projectile_system(screen);
+    init_projectile_system(screen, p);
 
     pthread_t input_thread;
     InputThreadArgs input_args = {p, screen, fire_projectile, interact, arrow_move, compute_entry};
