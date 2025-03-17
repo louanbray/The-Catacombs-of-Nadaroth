@@ -126,8 +126,14 @@ typedef enum ChunkType {  //? MODIFY TO ADD LEVELS
 /// @brief Every entity (>1 item linked)
 typedef enum EntityType {  //? MODIFY TO ADD ENTITY TYPES
     NULL_ENTITY,
-    ENEMY1,
-    ENEMY2,
+    ENEMY_BRONZE_1,
+    ENEMY_BRONZE_2,
+    ENEMY_SILVER_1,
+    ENEMY_SILVER_2,
+    ENEMY_GOLD_1,
+    ENEMY_GOLD_2,
+    ENEMY_NADINO_1,
+    ENEMY_NADINO_2,
     BRONZE_CHEST,
     SILVER_CHEST,
     GOLD_CHEST,

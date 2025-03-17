@@ -16,6 +16,7 @@
 void move(Render_Buffer* screen, player* p, int dir) {
     switch (move_player(p, dir)) {
         case 1:
+            kill_all_projectiles(screen);
             render_from_player(screen, p);
             break;
         case 2:
@@ -209,6 +210,8 @@ int main() {
             display_interface(screen, "assets/interfaces/structures/help.dodjo");
         } else if (USE_KEY('E') || USE_KEY('e')) {
             display_item_description(screen, get_selected_item(h));
+        } else if (USE_KEY('R') || USE_KEY('r')) {
+            kill_all_projectiles(screen);
         }
     }
 

@@ -309,7 +309,14 @@ void init_assets_system() {
     }
 
     // Load entity files
-    add_entity_file("assets/entities/data/dummy.dodjo", ENEMY1);
+    add_entity_file("assets/entities/data/enemy_bronze_1.dodjo", ENEMY_BRONZE_1);
+    add_entity_file("assets/entities/data/enemy_bronze_2.dodjo", ENEMY_BRONZE_2);
+    add_entity_file("assets/entities/data/enemy_silver_1.dodjo", ENEMY_SILVER_1);
+    add_entity_file("assets/entities/data/enemy_silver_1.dodjo", ENEMY_SILVER_2);
+    add_entity_file("assets/entities/data/enemy_gold_1.dodjo", ENEMY_GOLD_1);
+    add_entity_file("assets/entities/data/enemy_gold_1.dodjo", ENEMY_GOLD_2);
+    add_entity_file("assets/entities/data/enemy_nadino_1.dodjo", ENEMY_NADINO_1);
+    add_entity_file("assets/entities/data/enemy_nadino_1.dodjo", ENEMY_NADINO_2);
     // Add more entity files here...
 
     // Load chunk files

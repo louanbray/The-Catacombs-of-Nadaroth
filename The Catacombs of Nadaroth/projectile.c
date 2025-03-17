@@ -41,6 +41,22 @@ pthread_mutex_t projectile_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 pthread_mutex_t entity_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+void kill_all_projectiles(Render_Buffer* r) {
+    pthread_mutex_lock(&projectile_mutex);
+    for (int i = 0; i < MAX_PROJECTILES; i++) {
+        Projectile* p = &projectiles[i];
+        if (p->active) {
+            wchar_t c = render_get_cell_char(r, RENDER_HEIGHT - p->y, p->x * 2 - 1);
+
+            if (c == L' ') {
+                wprintf(L"\033[%d;%dH ", p->y, p->x * 2);
+            }
+        }
+        p->active = false;
+    }
+    pthread_mutex_unlock(&projectile_mutex);
+}
+
 // Bresenham's Line Algorithm
 void update_projectiles(Render_Buffer* r) {
     pthread_mutex_lock(&projectile_mutex);
@@ -245,7 +261,7 @@ void* projectile_loop(void* args) {
         pthread_mutex_unlock(&pause_mutex);
 
         // TODO : Add enemies to a pool so that the update can be separated for each enemy (+ implement spec (2 more needed) for time between attacks (ex : 180 +- 60))
-        if (tick == 160) {
+        if (tick == 60) {
             tick = 0;
             chunk* c = get_player_chunk(p);
             dynarray* d = get_chunk_enemies(c);

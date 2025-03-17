@@ -43,7 +43,14 @@ class UsableItem(IntEnum):
 
 class Entity(IntEnum):
     NOENTITY = 0
-    ENEMY1 = 1
+    ENEMY_BRONZE_1 = 1
+    ENEMY_BRONZE_2 = 2
+    ENEMY_SILVER_1 = 3
+    ENEMY_SILVER_2 = 4
+    ENEMY_GOLD_1 = 5
+    ENEMY_GOLD_2 = 6
+    ENEMY_NADINO_1 = 7
+    ENEMY_NADINO_2 = 8
 
 CHUNK_WIDTH = 127 # RENDER_WIDTH - 2 for the walls
 CHUNK_HEIGHT = 35 # without the hotbar space
@@ -52,11 +59,11 @@ items = {"V":[Type.GATE,Sprite.VGATE,Size.COLLAPSE,Entity.NOENTITY, UsableItem.N
          "U":[Type.GATE,Sprite.UGATE,Size.COLLAPSE,Entity.NOENTITY, UsableItem.NOT_USABLE_ITEM],
          "D":[Type.GATE,Sprite.DGATE,Size.COLLAPSE, Entity.NOENTITY, UsableItem.NOT_USABLE_ITEM],
          "T":[Type.WALL,Sprite.WALL,Size.COLLAPSE,Entity.NOENTITY, UsableItem.NOT_USABLE_ITEM],
-         "B":[Type.PICKABLE,Sprite.B,Size.COLLAPSE,Entity.ENEMY1, UsableItem.BOMB],
-         "S":[Type.PICKABLE,Sprite.G,Size.COLLAPSE,Entity.ENEMY1, UsableItem.GOLDEN_APPLE],
-         "G":[Type.PICKABLE,Sprite.O,Size.COLLAPSE,Entity.ENEMY1, UsableItem.ONION_RING],
-         "N":[Type.PICKABLE,Sprite.S,Size.COLLAPSE,Entity.ENEMY1, UsableItem.STOCKFISH],
-         "E":[Type.ENEMY,Sprite.STARGATE,Size.COLLAPSE,Entity.ENEMY1, UsableItem.NOT_USABLE_ITEM]}
+         "B":[Type.PICKABLE,Sprite.B,Size.COLLAPSE,Entity.ENEMY_BRONZE_1, UsableItem.BOMB],
+         "S":[Type.PICKABLE,Sprite.G,Size.COLLAPSE,Entity.ENEMY_BRONZE_1, UsableItem.GOLDEN_APPLE],
+         "G":[Type.PICKABLE,Sprite.O,Size.COLLAPSE,Entity.ENEMY_BRONZE_1, UsableItem.ONION_RING],
+         "N":[Type.PICKABLE,Sprite.S,Size.COLLAPSE,Entity.ENEMY_BRONZE_1, UsableItem.STOCKFISH],
+         "E":[Type.ENEMY,Sprite.STARGATE,Size.COLLAPSE,Entity.ENEMY_BRONZE_1, UsableItem.NOT_USABLE_ITEM]}
 
         #                                                               C
         #                                                               E
