@@ -507,6 +507,8 @@ void display_item_description(Render_Buffer* r, void* it) {
     swprintf(buff, 50, L"  Analysing >> %lc - %.*s : ", get_item_display(item_), (int)strlen(item_file->title) - 1, item_file->title);
     render_unicode_string(r, -63, 13, buff, 50);
 
+    render_string(r, -8, -18, " PRESS [E] TO EXIT", 19);
+
     update_screen(r);
     while (!USE_KEY('e') && !USE_KEY('E'));
 
