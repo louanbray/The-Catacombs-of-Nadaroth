@@ -1,4 +1,5 @@
 #include "input_manager.h"
+#include <time.h>
 
 #define MAX_KEYS 256
 #define MAX_BUFFER_SIZE 1024
