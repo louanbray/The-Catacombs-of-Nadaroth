@@ -51,6 +51,7 @@ class Entity(IntEnum):
     ENEMY_GOLD_2 = 6
     ENEMY_NADINO_1 = 7
     ENEMY_NADINO_2 = 8
+    BRONZE_CHEST = 9
 
 CHUNK_WIDTH = 127 # RENDER_WIDTH - 2 for the walls
 CHUNK_HEIGHT = 35 # without the hotbar space

@@ -1,5 +1,6 @@
 # Le signe ~ sert à remplacer les fins de ligne écrites par des espaces et ainsi écraser ce qui était anciennement écrit    EOL~
 # Le DIÈSE permet de faire passer un temps de frame, on peu en mettre plusieurs d'affilée pour multiplier ce temps
+# Le signe § permet de faire passer la frame sans délai, utilie pour initialiser un cinématique sans délai 
 # Un ligne vide permet de conserver ce qui était anciennement écrit sur cette ligne
 Bonjour,~
 [INSERT NAME]~

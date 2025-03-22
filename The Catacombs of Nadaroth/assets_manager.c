@@ -31,8 +31,9 @@ static EntityAssetFile* load_entity_file(const char* filename) {
     // Parse the specs line
     char specs_line[256];
     if (fgets(specs_line, sizeof(specs_line), file) != NULL) {
-        if (specs_line[0] == '[' && specs_line[strlen(specs_line) - 3] == ']') {
-            specs_line[strlen(specs_line) - 3] = '\0';
+        char* ending = strchr(specs_line, ']');
+        if (specs_line[0] == '[' && ending != NULL) {
+            ending[0] = '\0';
             char* start = specs_line + 1;
 
             // Parse dynamic specs
@@ -131,8 +132,9 @@ static UsableItemAssetFile* load_usable_item_file(const char* filename) {
     // Parse the specs line
     char specs_line[256];
     if (fgets(specs_line, sizeof(specs_line), file) != NULL) {
-        if (specs_line[0] == '[' && specs_line[strlen(specs_line) - 3] == ']') {
-            specs_line[strlen(specs_line) - 3] = '\0';
+        char* ending = strchr(specs_line, ']');
+        if (specs_line[0] == '[' && ending != NULL) {
+            ending[0] = '\0';
             char* start = specs_line + 1;
 
             // Parse dynamic specs
@@ -317,6 +319,10 @@ void init_assets_system() {
     add_entity_file("assets/entities/data/enemy_gold_1.dodjo", ENEMY_GOLD_2);
     add_entity_file("assets/entities/data/enemy_nadino_1.dodjo", ENEMY_NADINO_1);
     add_entity_file("assets/entities/data/enemy_nadino_1.dodjo", ENEMY_NADINO_2);
+    add_entity_file("assets/entities/data/bronze_chest.dodjo", BRONZE_CHEST);
+    add_entity_file("assets/entities/data/silver_chest.dodjo", SILVER_CHEST);
+    add_entity_file("assets/entities/data/gold_chest.dodjo", GOLD_CHEST);
+    add_entity_file("assets/entities/data/nadino_chest.dodjo", NADINO_CHEST);
     // Add more entity files here...
 
     // Load chunk files
@@ -325,6 +331,7 @@ void init_assets_system() {
     add_chunk_file("assets/chunks/default2.dodjo", DEFAULT2);
     // Add more chunk files here...
 
+    // Load usable item files
     add_usable_item_file("assets/items/data/basic_bow.dodjo", BASIC_BOW);
     add_usable_item_file("assets/items/data/advanced_bow.dodjo", ADVANCED_BOW);
     add_usable_item_file("assets/items/data/super_bow.dodjo", SUPER_BOW);
@@ -338,4 +345,5 @@ void init_assets_system() {
     add_usable_item_file("assets/items/data/school_dishes.dodjo", SCHOOL_DISHES);
     add_usable_item_file("assets/items/data/golden_apple.dodjo", GOLDEN_APPLE);
     add_usable_item_file("assets/items/data/bomb.dodjo", BOMB);
+    // Add more usable item files here...
 }

@@ -433,6 +433,7 @@ void setup_render_buffer(Render_Buffer* r) {
 
 // Finalizes the render buffer.
 void finalize_render_buffer(Render_Buffer* r) {
+    fflush(stdin);
     free(r->bd);
     r->bd = r->dump;
     update_screen(r);
@@ -547,10 +548,10 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
     render_string(r, -10, -18, " PRESS [SPACE] TO SKIP", 23);
 
     wchar_t buffer[RENDER_WIDTH + 4];
+    for (int i = 0; i < RENDER_WIDTH + 4; i++) buffer[i] = L'\0';
     int row = 0;
     while (fgetws(buffer, RENDER_WIDTH + 4, file) != NULL && row < RENDER_HEIGHT - 2) {
-        if (KEY_PRESSED(' ')) break;
-        if (buffer[0] == L'#') {
+        if (buffer[0] == L'#' || buffer[0] == L'§') {
             int timeout = 0;
             for (int j = 0; j < RENDER_WIDTH - 1; j++)
                 if (buffer[j] == L'#') timeout++;
@@ -563,7 +564,10 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
             }
             row = 0;
             update_screen(r);
-            usleep(delay * timeout);
+            for (int i = 0; i < timeout; i++) {
+                usleep(delay);
+                if (KEY_PRESSED(' ')) break;
+            }
         } else if (buffer[0] == L'%') {
             int eol = 0;
             for (int j = 1; j < RENDER_WIDTH - 2; j++) {
@@ -581,8 +585,10 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
         } else {
             process_text_line(buffer, RENDER_WIDTH);
             write_wstr(r->bd, RENDER_HEIGHT - row - 2, 1, buffer, wcslen(buffer), COLOR_DEFAULT);
+            update_screen(r);
             row++;
         }
+        if (USE_KEY(' ')) break;
     }
     finalize_render_buffer(r);
     fclose(file);
