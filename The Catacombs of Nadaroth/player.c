@@ -9,6 +9,7 @@ typedef struct player {
     chunk* current_chunk;
     hotbar* hotbar;
     int health, max_health;
+    int damage;
     int design;
     char* name;
 } player;
@@ -27,6 +28,7 @@ player* create_player(map* m) {
     p->current_chunk = get_spawn(m);
     p->health = 3;
     p->max_health = 3;
+    p->damage = 1;
     p->hotbar = NULL;
     p->design = 3486;
     p->name = NULL;
@@ -80,8 +82,16 @@ int get_player_max_health(player* p) {
     return p->max_health;
 }
 
+int get_player_damage(player* p) {
+    return p->damage;
+}
+
 void set_player_max_health(player* p, unsigned int health) {
     p->max_health = health;
+}
+
+void set_player_damage(player* p, unsigned int damage) {
+    p->damage = damage;
 }
 
 void link_hotbar(player* p, hotbar* h) {

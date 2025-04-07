@@ -1,9 +1,9 @@
-[1,4]
+[1,5]
 {Advanced Bow}
 "Crafted with precision, this bow boasts superior range and durability.~
 Its polished frame and reinforced string signal the work of a skilled artisan."~
 ~
- -> Offers greater damage and accuracy than its simpler counterpart.~
+ -> Offers greater damage and accuracy than its simpler counterpart (5 hearts of damage).~
  -> "The tension in its string promises deadly precision, a hunter's ally against stronger foes."~
 ~
 Tier: Silver~

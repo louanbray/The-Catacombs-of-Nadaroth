@@ -1,6 +1,7 @@
 #include "inventory.h"
 
 #include "item.h"
+#include "projectile.h"
 
 /// @brief Hotbar
 typedef struct hotbar {
@@ -64,6 +65,7 @@ void pickup(hotbar* h, item* e) {
 
     if (i == h->selected) {
         h->selected_item = e;
+        bow_check_flag();
     }
 
     h->entries += 1;
@@ -78,6 +80,7 @@ void drop(hotbar* h, int index) {
 
     if (h->selected == index) {
         h->selected_item = NULL;
+        bow_check_flag();
     }
 
     h->entries += -1;

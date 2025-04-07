@@ -42,12 +42,12 @@
 TODO LIST:
 - Make any key event stored in an input manager object so that you can check at any moment if a key is pressed                    [DEV] (HIGH)          {DONE}
 - Update the screen render to make a part of the screen reserved to items descriptions and naration                               [RENDER] (HIGH)       {DONE}
-- Enemy->Player Interaction                                                                                                       [DEV] (HIGH)
+- Enemy->Player Interaction                                                                                                       [DEV] (HIGH)          {DONE}
 - Enemy PATHFINDING huh ? //! CHANGING GAME DESIGN, DO NOT IMPLEMENT                                                              [DEV] (HIGH->NONE)
 - Implement the mecanics below / missing items                                                                                    [DEV] (MEDIUM)        {WORKING - SCHOOL_DISHES}
 - Work on the designs of the items and chunks                                                                                     [RENDER] (MEDIUM)
 - Implement status menu                                                                                                           [RENDER/DEV] (LOW)
-- Work on menus (!!Username!!, character selection, stat attribution aso...)                                                          [RENDER/DEV] (LOW)
+- Work on menus (!!Username!!, character selection, stat attribution aso...)                                                      [RENDER/DEV] (LOW)
 - Add cinematics                                                                                                                  [RENDER] (LOW)
 - Rework render concept to add mental health effect (limited vision)                                                              [RENDER/DEV] (LOW)
 - Add stats and achievements objects                                                                                              [RENDER/DEV] (LOW)
@@ -55,8 +55,6 @@ TODO LIST:
 - Update Entity / Chunk editor                                                                                                    [DEV] (LOW)
 - Easter Eggs (Konami Code in the character choosing menu | )									                                  [DEV] (LOW)
 */
-
-// static int GAME_STATE = RUNNING;
 
 /// @brief Gate position/type
 typedef enum Direction {  //! DO NOT MODIFY

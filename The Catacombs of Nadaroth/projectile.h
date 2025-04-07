@@ -14,4 +14,6 @@ void init_projectile_system(Render_Buffer* screen, player* p);
 
 void kill_all_projectiles(Render_Buffer* screen);
 
+void bow_check_flag();
+
 #endif

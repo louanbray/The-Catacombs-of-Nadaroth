@@ -75,6 +75,16 @@ int get_player_health(player* player);
 /// @return health
 int get_player_max_health(player* player);
 
+/// @brief Returns player damage
+/// @param player player
+/// @return damage
+int get_player_damage(player* player);
+
+/// @brief Set player damage
+/// @param player player
+/// @param damage damage
+void set_player_damage(player* player, unsigned int damage);
+
 /// @brief Link a hotbar to the player
 /// @param player player
 /// @param hotbar

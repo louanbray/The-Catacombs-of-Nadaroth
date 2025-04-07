@@ -144,7 +144,7 @@ void interact(Render_Buffer* screen, player* p) {
             destroy = true;
             break;
         default:
-            break;
+            return;
     }
 
     if (destroy) {

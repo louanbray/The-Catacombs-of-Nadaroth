@@ -1,5 +1,6 @@
 #include "projectile.h"
 
+#include "assets_manager.h"
 #include "constants.h"
 #include "entity.h"
 #include "game_status.h"
@@ -7,6 +8,8 @@
 #include "render.h"
 
 #define MAX_PROJECTILES 128
+
+int last_hotbar_index = 0;
 
 typedef struct {
     Render_Buffer* r;
@@ -221,7 +224,23 @@ void enemy_attack_projectile(Render_Buffer* r, player* p, item* brain) {
         p_data);
 }
 
+void bow_check_flag() {
+    last_hotbar_index = -1;
+}
+
 void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
+    int index = get_selected_slot(get_player_hotbar(p));
+    if (index != last_hotbar_index) {
+        last_hotbar_index = index;
+        item* it = get_selected_item(get_player_hotbar(p));
+        set_player_damage(p, 1);
+        if (it != NULL) {
+            UsableItem type = get_item_usable_type(it);
+            if (type == BASIC_BOW || type == ADVANCED_BOW || type == SUPER_BOW || type == NADINO_BOW) {
+                set_player_damage(p, get_usable_item_file(type)->specs.specs[1]);
+            }
+        }
+    }
     int x = get_player_x(p) + 65;
     int y = -get_player_y(p) + 19;
 
@@ -230,7 +249,7 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
     projectile_data* p_data = malloc(sizeof(projectile_data));
     p_data->x0 = x;
     p_data->y0 = y;
-    p_data->damage = 1;
+    p_data->damage = get_player_damage(p);
     p_data->p = p;
     p_data->screen = r;
 
@@ -241,7 +260,7 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
         target_y,
         get_player_design(p),
         1,
-        false,
+        true,
         projectile_callback,
         p_data);
 }
