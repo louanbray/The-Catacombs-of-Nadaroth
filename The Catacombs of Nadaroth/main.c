@@ -4,6 +4,7 @@
 #include "audio_manager.h"
 #include "entity.h"
 #include "input_manager.h"
+#include "loot_manager.h"
 #include "map.h"
 #include "player.h"
 #include "projectile.h"
@@ -176,6 +177,7 @@ void* process_input_thread(void* arg) {
 int main() {
     init_terminal();
     init_assets_system();
+    init_loot_tables();
 
     if (init_audio() != 0) exit(EXIT_FAILURE);
 

@@ -4,6 +4,7 @@
 
 #include "entity.h"
 #include "generation.h"
+#include "loot_manager.h"
 
 /// @brief Returns the part of the map the player is in as a direction (USED ONLY FOR GATES)
 /// @param x player x
@@ -20,6 +21,22 @@ int get_direction(int x, int y) {
         return SOUTH;
     }
     return 0;
+}
+
+int pickup_lootable_from_chunk(player* p, item* i) {
+    if (is_hotbar_full(get_player_hotbar(p))) return 2;
+    if (!is_an_entity(i)) {
+        remove_item(get_player_chunk(p), i);
+        return 0;
+    }
+    entity* e = get_entity_link(i);
+    i = get_entity_brain(e);
+    remove_entity_from_chunk(e);
+
+    lootable* loot = get_item_spec(i);
+    pickup(get_player_hotbar(p), generate_loot(loot));
+
+    return 4;
 }
 
 int pickup_from_chunk(player* p, item* i) {
@@ -59,6 +76,9 @@ int handle(player* p, int x, int y) {
             case SGATE:
                 move_player_chunk(p, STARGATE);
                 return 1;
+                break;
+            case LOOTABLE:
+                return pickup_lootable_from_chunk(p, i);
                 break;
             case PICKABLE:
                 return pickup_from_chunk(p, i);

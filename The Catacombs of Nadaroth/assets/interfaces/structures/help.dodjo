@@ -5,11 +5,14 @@
   CONTROLS : ~
 ~
     [Z - UP ARROW] : UP~
-    [S - DOWN ARROW] : DOWN~
     [Q - LEFT ARROW] : LEFT~
+    [S - DOWN ARROW] : DOWN~
     [D - RIGHT ARROW] : RIGHT~
 ~
     [LEFT CLICK] : USE WEAPON~
     [RIGHT CLICK] : USE CONSUMABLE ITEM~
 ~
+    [W] : DROP ITEM (/!\ DESTRUCTION)~
+~
     [E] : EXAMINE ITEM~
+    [H] : SHOW THIS PAGE~

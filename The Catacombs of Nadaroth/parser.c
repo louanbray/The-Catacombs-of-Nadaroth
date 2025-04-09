@@ -54,7 +54,15 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                     append(get_chunk_enemies(c), brain);
                     break;
                 }
-
+                case LOOTABLE: {
+                    lootable* loot = malloc(sizeof(lootable));
+                    loot->bronze = entityFile->specs.specs[0];
+                    loot->silver = entityFile->specs.specs[1];
+                    loot->gold = entityFile->specs.specs[2];
+                    loot->nadino = entityFile->specs.specs[3];
+                    specialize(brain, false, false, loot);
+                    break;
+                }
                 default:
                     break;
             }

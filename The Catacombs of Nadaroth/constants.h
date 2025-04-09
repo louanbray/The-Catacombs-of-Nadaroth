@@ -72,6 +72,7 @@ typedef enum ItemType {  //? MODIFY TO ADD ITEM TYPES
     SGATE,               // Star gate (all the stargates in a chunk are linked)
     PICKABLE,            // Self explanatory
     ENEMY,               // A 'Thing' with HPs
+    LOOTABLE,            // Will fetch a loot table
 } ItemType;
 
 typedef enum Rarity {

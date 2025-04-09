@@ -32,6 +32,13 @@ typedef struct enemy {
     int infinity;
 } enemy;
 
+typedef struct lootable {
+    int bronze;
+    int silver;
+    int gold;
+    int nadino;
+} lootable;
+
 /// @brief Create item using given parameters with the specs based on his type
 /// @param pos_x pos x
 /// @param pos_y pos y
