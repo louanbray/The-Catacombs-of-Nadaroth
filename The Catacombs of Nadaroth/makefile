@@ -5,23 +5,24 @@ CFLAGS = -Wall -Wextra -Wpedantic -Wshadow -Wformat=0 -Wcast-align -Wnull-derefe
 # Platform-specific settings
 ifeq ($(OS),Windows_NT)
 	EXECUTABLE = outDebug.exe
-	LDFLAGS = -lSDL2 -lSDL2_mixer -lSDL2_ttf -lSDL2_image -lpthread
+	LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread
 	OPENMP = -fopenmp
-	RM = del /Q
-	MKDIR = if not exist "$(subst /,\,$(1))" mkdir "$(subst /,\,$(1))"
-	RUN_CMD = .\run.bat
+	RM = rm -f
+	MKDIR = mkdir -p $(1)
+# MKDIR = if not exist "$(subst /,\,$(1))" mkdir "$(subst /,\,$(1))"
+	RUN_CMD = .\$(TARGET)
 else
 	EXECUTABLE = outDebug
 	ifeq ($(shell uname -s),Darwin)
 		# macOS specific flags
-		LDFLAGS = -L/usr/local/lib -L/opt/homebrew/lib -lSDL2 -lSDL2_mixer -lSDL2_ttf -lSDL2_image -lpthread -lomp
+		LDFLAGS = -L/usr/local/lib -L/opt/homebrew/lib -lSDL2 -lSDL2_mixer -lpthread -lomp
 		# Add SDL2 include paths for macOS
 		CFLAGS += -I/opt/homebrew/include -I/usr/local/include
 		# Set OpenMP flags for macOS/clang
 		OPENMP = -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include -L/opt/homebrew/opt/libomp/lib
 	else
 		# Linux specific flags
-		LDFLAGS = -lSDL2 -lSDL2_mixer -lSDL2_ttf -lSDL2_image -lpthread -lm
+		LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread -lm
 		OPENMP = -fopenmp
 	endif
 	RM = rm -f
