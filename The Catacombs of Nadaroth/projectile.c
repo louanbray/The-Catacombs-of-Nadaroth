@@ -287,8 +287,12 @@ void* projectile_loop(void* args) {
     Render_Buffer* r = arg->r;
     player* p = arg->p;
 
+    int* enemy_attack_timers = NULL;
+    chunk* current_chunk = get_player_chunk(p);
+    int* enemy_ids = NULL;
+
     struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666667};  // 60 FPS
-    int tick = 0;
+
     while (1) {
         pthread_mutex_lock(&pause_mutex);
         while (GAME_PAUSED) {
@@ -296,26 +300,42 @@ void* projectile_loop(void* args) {
         }
         pthread_mutex_unlock(&pause_mutex);
 
-        // TODO : Add enemies to a pool so that the update can be separated for each enemy (+ implement spec (2 more needed) for time between attacks (ex : 180 +- 60))
-        if (tick == 60) {
-            tick = 0;
-            chunk* c = get_player_chunk(p);
-            dynarray* d = get_chunk_enemies(c);
-            for (int i = 0; i < len_dyn(d); i++) {
-                item* brain = get_dyn(d, i);
-                if (brain != NULL)
-                    enemy_attack_projectile(r, p, brain);
+        chunk* c = get_player_chunk(p);
+        dynarray* d = get_chunk_enemies(c);
+        int current_enemy_count = len_dyn(d);
+
+        if (c != current_chunk) {
+            free(enemy_attack_timers);
+            free(enemy_ids);
+            current_chunk = c;
+            enemy_attack_timers = malloc(current_enemy_count * sizeof(int));
+            enemy_ids = malloc(current_enemy_count * sizeof(int));
+
+            for (int i = 0; i < current_enemy_count; i++) {
+                enemy_attack_timers[i] = rand() % 30 + 60;  // 60-90 frames before starting to attack
+                enemy_ids[i] = i;
             }
         }
-        update_projectiles(r);
 
+        for (int i = 0; i < current_enemy_count; i++) {
+            item* brain = get_dyn(d, enemy_ids[i]);
+            if (brain != NULL) {
+                enemy_attack_timers[i]--;
+
+                if (enemy_attack_timers[i] <= 0) {
+                    enemy_attack_projectile(r, p, brain);
+                    enemy_attack_timers[i] = rand() % ((enemy*)get_item_spec(brain))->attack_interval + ((enemy*)get_item_spec(brain))->attack_delay;  // delay ~> delay+interval frames
+                }
+            }
+        }
+
+        update_projectiles(r);
         nanosleep(&ts, NULL);
-        tick++;
     }
 
-    if (arg)
-        free(arg);
-
+    free(enemy_attack_timers);
+    free(enemy_ids);
+    free(arg);
     return NULL;
 }
 

@@ -314,11 +314,11 @@ void init_assets_system() {
     add_entity_file("assets/entities/data/enemy_bronze_1.dodjo", ENEMY_BRONZE_1);
     add_entity_file("assets/entities/data/enemy_bronze_2.dodjo", ENEMY_BRONZE_2);
     add_entity_file("assets/entities/data/enemy_silver_1.dodjo", ENEMY_SILVER_1);
-    add_entity_file("assets/entities/data/enemy_silver_1.dodjo", ENEMY_SILVER_2);
+    add_entity_file("assets/entities/data/enemy_silver_2.dodjo", ENEMY_SILVER_2);
     add_entity_file("assets/entities/data/enemy_gold_1.dodjo", ENEMY_GOLD_1);
-    add_entity_file("assets/entities/data/enemy_gold_1.dodjo", ENEMY_GOLD_2);
+    add_entity_file("assets/entities/data/enemy_gold_2.dodjo", ENEMY_GOLD_2);
     add_entity_file("assets/entities/data/enemy_nadino_1.dodjo", ENEMY_NADINO_1);
-    add_entity_file("assets/entities/data/enemy_nadino_1.dodjo", ENEMY_NADINO_2);
+    add_entity_file("assets/entities/data/enemy_nadino_2.dodjo", ENEMY_NADINO_2);
     add_entity_file("assets/entities/data/bronze_chest.dodjo", BRONZE_CHEST);
     add_entity_file("assets/entities/data/silver_chest.dodjo", SILVER_CHEST);
     add_entity_file("assets/entities/data/gold_chest.dodjo", GOLD_CHEST);

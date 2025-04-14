@@ -25,12 +25,11 @@ typedef struct item item;
 
 /// @brief Type of item
 typedef struct enemy {
-    int hp;
-    int damage;
+    int hp, damage;
     int from_id;
-    int speed;
-    int infinity;
+    int speed, infinity;
     int score;
+    int attack_delay, attack_interval;
 } enemy;
 
 typedef struct lootable {
