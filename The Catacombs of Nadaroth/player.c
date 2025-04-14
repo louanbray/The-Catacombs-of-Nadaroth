@@ -3,14 +3,18 @@
 #include "handler.h"
 #include "map.h"
 
+#define START_HEALTH 2
+
 typedef struct player {
     map* map;
     int x, y, px, py;
     chunk* current_chunk;
     hotbar* hotbar;
-    int health, max_health;
-    int damage;
+    int health, max_health, mental_health;
+    int damage, arrow_speed;
+    bool infinite_range;
     int design;
+    int score, deaths;
     char* name;
 } player;
 
@@ -26,9 +30,14 @@ void center_player(player* p) {
 player* create_player(map* m) {
     player* p = malloc(sizeof(player));
     p->current_chunk = get_spawn(m);
-    p->health = 3;
-    p->max_health = 3;
+    p->score = 0;
+    p->deaths = 0;
+    p->health = START_HEALTH;
+    p->mental_health = 4;
+    p->max_health = 5;
     p->damage = 1;
+    p->arrow_speed = 6;
+    p->infinite_range = false;
     p->hotbar = NULL;
     p->design = 3486;
     p->name = NULL;
@@ -36,6 +45,19 @@ player* create_player(map* m) {
     center_player(p);
     set_map_player(m, p);
     return p;
+}
+
+void player_death(player* p) {
+    chunk* spawn_chunk = get_spawn(get_player_map(p));
+    p->current_chunk = spawn_chunk;
+    p->x = get_chunk_spawn_x(spawn_chunk);
+    p->y = get_chunk_spawn_y(spawn_chunk);
+    p->health = START_HEALTH;
+    p->px = p->x;
+    p->py = p->y;
+    p->score /= 2;
+    p->deaths++;
+    modify_player_mental_health(p, -1);
 }
 
 int get_player_x(player* p) {
@@ -86,6 +108,56 @@ int get_player_damage(player* p) {
     return p->damage;
 }
 
+bool has_infinite_range(player* p) {
+    return p->infinite_range;
+}
+
+int get_player_score(player* p) {
+    return p->score;
+}
+
+int get_player_arrow_speed(player* p) {
+    return p->arrow_speed;
+}
+
+int get_player_deaths(player* p) {
+    return p->deaths;
+}
+
+int get_player_mental_health(player* p) {
+    return p->mental_health;
+}
+
+void add_player_deaths(player* p) {
+    p->deaths++;
+}
+
+void set_player_mental_health(player* p, int mental_health) {
+    p->mental_health = mental_health;
+}
+
+void modify_player_mental_health(player* p, int mental_health) {
+    p->mental_health += mental_health;
+    if (p->mental_health < 0) p->mental_health = 0;
+    if (p->mental_health > 4) p->mental_health = 4;
+}
+
+void set_player_arrow_speed(player* p, int speed) {
+    p->arrow_speed = speed;
+}
+
+void set_player_infinite_range(player* p, bool infinite) {
+    p->infinite_range = infinite;
+}
+
+void set_player_score(player* p, int score) {
+    p->score = score;
+}
+
+void add_player_score(player* p, int score) {
+    p->score += score;
+}
+
 void set_player_max_health(player* p, unsigned int health) {
     p->max_health = health;
 }
@@ -126,12 +198,13 @@ void move_player_chunk(player* p, Direction dir) {
     center_player(p);
 }
 
-void damage_player(player* p, int damage) {
-    if (p->health - damage < 0) {
+bool damage_player(player* p, int damage) {
+    if (p->health - damage <= 0) {
         p->health = 0;
-        return;
+        return true;
     }
     p->health += -damage;
+    return false;
 }
 
 void heal_player(player* p, int heal) {

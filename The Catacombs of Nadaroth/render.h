@@ -16,10 +16,11 @@ typedef struct map map;
 // Color enumeration (using a small integer type)
 typedef enum Color {
     COLOR_DEFAULT = 0,
-    COLOR_RED,
-    COLOR_CYAN_BOLD,
-    COLOR_YELLOW,
     COLOR_MAGENTA_BOLD,
+    COLOR_RED,
+    COLOR_YELLOW,
+    COLOR_CYAN_BOLD,
+    COLOR_GREEN,
     // Extend as needed
 } Color;
 
@@ -142,5 +143,21 @@ void play_cinematic(Render_Buffer* screen, const char* filename, int delay);
 /// @param col char col
 /// @return char at these coordinates
 wchar_t render_get_cell_char(Render_Buffer* screen, int row, int col);
+
+/**
+ * @brief Renders the player's current score on the screen
+ *
+ * @param r Pointer to the render buffer where the score will be drawn
+ * @param p Pointer to the player whose score will be rendered
+ */
+void render_score(Render_Buffer* r, player* p);
+
+/**
+ * @brief Renders the player's mental health status on the screen
+ *
+ * @param r Pointer to the render buffer where the mental health will be drawn
+ * @param p Pointer to the player whose mental health will be rendered
+ */
+void render_mental_health(Render_Buffer* r, player* p);
 
 #endif

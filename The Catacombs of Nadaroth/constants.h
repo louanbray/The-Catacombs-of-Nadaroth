@@ -33,9 +33,6 @@
 /// @brief Utils
 #define CHAR_TO_INT 49
 
-/// @brief GameState
-#define RUNNING 1
-
 //! COPYRIGHT 24/01/2025 20:33, EVERY IDEA HERE IS MINE IF YOU FOUND ANY LEAKED DATA PLEASE INFORM THE DEVELOPPER OF THE GAME
 
 /*
@@ -43,17 +40,17 @@ TODO LIST:
 - Make any key event stored in an input manager object so that you can check at any moment if a key is pressed                    [DEV] (HIGH)          {DONE}
 - Update the screen render to make a part of the screen reserved to items descriptions and naration                               [RENDER] (HIGH)       {DONE}
 - Enemy->Player Interaction                                                                                                       [DEV] (HIGH)          {DONE}
-- Enemy PATHFINDING huh ? //! CHANGING GAME DESIGN, DO NOT IMPLEMENT                                                              [DEV] (HIGH->NONE)
-- Implement the mecanics below / missing items                                                                                    [DEV] (MEDIUM)        {WORKING - SCHOOL_DISHES}
+- Enemy PATHFINDING huh ? //! CHANGING GAME DESIGN, DO NOT IMPLEMENT                                                              [DEV] (HIGH->NONE)    {DONE}
+- Implement the mecanics below / missing items                                                                                    [DEV] (MEDIUM)        {DONE}
 - Work on the designs of the items and chunks                                                                                     [RENDER] (MEDIUM)
 - Implement status menu                                                                                                           [RENDER/DEV] (LOW)
 - Work on menus (!!Username!!, character selection, stat attribution aso...)                                                      [RENDER/DEV] (LOW)
 - Add cinematics                                                                                                                  [RENDER] (LOW)
-- Rework render concept to add mental health effect (limited vision)                                                              [RENDER/DEV] (LOW)
+- [Rework render concept to add mental health effect (limited vision)] -> //?Better lore                                          [RENDER/DEV] (LOW)    {DONE}
 - Add stats and achievements objects                                                                                              [RENDER/DEV] (LOW)
 - Saving Games, opening and sharing                                                                                               [DEV/RENDER] (LOW)
 - Update Entity / Chunk editor                                                                                                    [DEV] (LOW)
-- Easter Eggs (Konami Code in the character choosing menu | )									                                  [DEV] (LOW)
+- Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
 */
 
 /// @brief Gate position/type
@@ -93,11 +90,12 @@ typedef enum UsableItem {
     SILVER_KEY,
     GOLD_KEY,
     NADINO_KEY,
-    ONION_RING,     // Restore one heart (BRONZE)
-    STOCKFISH,      // Restore full health (SILVER)
-    SCHOOL_DISHES,  // Restore mental health (only if enough time: more kills = -mental health = - vision field) (BRONZE)
-    GOLDEN_APPLE,   // Add one heart (permanent (as long as you don't die you can regen)) (GOLD)
-    BOMB,           // Wanna explode a chunk ? Here's what you need (BEWARE: NO LOOT WILL BE GIVEN | A NEW CHUNK WILL BE GENERATED HERE NEXT TIME (or the same if unlucky hehe)) (SILVER)
+    ONION_RING,      // Restore one heart (BRONZE)
+    STOCKFISH,       // Restore full health (SILVER)
+    SCHOOL_DISHES,   // Restore one mental health (SILVER)
+    GOLDEN_APPLE,    // Add one heart (permanent (as long as you don't die you can regen)) (GOLD)
+    BOMB,            // Wanna explode a chunk ? Here's what you need (BEWARE: NO LOOT WILL BE GIVEN | A NEW CHUNK WILL BE GENERATED HERE NEXT TIME (or the same if unlucky hehe)) (SILVER)
+    FORGOTTEN_DISH,  // Restore full mental health (GOLD)
     //? Add armors / potions (consumables = stats up) if enough time
 
     USABLE_ITEM_COUNT

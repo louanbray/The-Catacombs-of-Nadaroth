@@ -345,5 +345,6 @@ void init_assets_system() {
     add_usable_item_file("assets/items/data/school_dishes.dodjo", SCHOOL_DISHES);
     add_usable_item_file("assets/items/data/golden_apple.dodjo", GOLDEN_APPLE);
     add_usable_item_file("assets/items/data/bomb.dodjo", BOMB);
+    add_usable_item_file("assets/items/data/forgotten_dish.dodjo", FORGOTTEN_DISH);
     // Add more usable item files here...
 }

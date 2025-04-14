@@ -42,6 +42,8 @@ const char* ansi_from_color(int color) {
             return "\033[33m";
         case COLOR_MAGENTA_BOLD:
             return "\033[35;1m";
+        case COLOR_GREEN:
+            return "\033[32m";
         case COLOR_DEFAULT:
         default:
             return "\033[0m";
@@ -137,6 +139,7 @@ void default_screen(board b) {
         }
     }
     write_wstr(b, 3, 2, L"HEALTH: ", 9, COLOR_DEFAULT);
+    write_wstr(b, 1, 2, L"SCORE: ", 8, COLOR_DEFAULT);
 }
 
 // Create the row changed flag array.
@@ -276,6 +279,20 @@ void render_player(Render_Buffer* r, player* p) {
     render_char(r->bd, get_player_x(p), get_player_y(p), get_player_design(p));
 }
 
+void render_score(Render_Buffer* r, player* p) {
+    int score = get_player_score(p);
+    char score_str[11];
+    snprintf(score_str, 11, "%d", score);
+    int len = strlen(score_str);
+    int display = 9;
+
+    for (int i = 0; i < len; i++) {
+        r->bd[1][display].ch = score_str[i];
+        r->bd[1][display].color = COLOR_DEFAULT;
+        display += 1;
+    }
+}
+
 // Renders the health bar into the board.
 void render_health(Render_Buffer* r, player* p) {
     int display = 10;
@@ -289,6 +306,28 @@ void render_health(Render_Buffer* r, player* p) {
         }
         r->bd[3][display].color = COLOR_DEFAULT;
         display += 2;
+    }
+}
+
+void render_mental_health(Render_Buffer* r, player* p) {
+    int display = 17;
+    if (get_player_deaths(p) == 0) {
+        write_wstr(r->bd, 2, 2, L"------ ------: --------", 24, COLOR_DEFAULT);
+    } else {
+        write_wstr(r->bd, 2, 2, L"MENTAL HEALTH: ", 16, COLOR_DEFAULT);
+        int mental_health = get_player_mental_health(p);
+        for (int i = 1; i <= 5; i++) {
+            if (i <= mental_health) {
+                r->bd[2][display].ch = 9608;
+                r->bd[2][display + 1].ch = 9608;
+            } else {
+                r->bd[2][display].ch = ' ';
+                r->bd[2][display + 1].ch = ' ';
+            }
+            r->bd[2][display].color = 1 + mental_health;
+            r->bd[2][display + 1].color = 1 + mental_health;
+            display += 2;
+        }
     }
 }
 
@@ -332,7 +371,9 @@ void render_from_player(Render_Buffer* r, player* p) {
     render_chunk(r, curr);
     render_player(r, p);
     render_hotbar(r, get_player_hotbar(p));
+    render_score(r, p);
     render_health(r, p);
+    render_mental_health(r, p);
 }
 
 //
@@ -578,6 +619,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
                     update_screen(r);
                     usleep(delay / 50);
                 }
+                if (KEY_PRESSED(' ')) break;
             }
             update_screen(r);
             row++;

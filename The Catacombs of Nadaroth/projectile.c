@@ -32,6 +32,7 @@ typedef struct Projectile {
     int err;                         // Error term
     int from, from_id;               // Character to ignore
     int frame, rate;                 // Animation frame and rate
+    char design;                     // Design character
     bool infinity;                   // Is the projectile infinite?
     bool home;                       // Is the projectile homing?
     bool active;                     // Is the projectile active?
@@ -45,7 +46,6 @@ pthread_mutex_t projectile_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t entity_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void kill_all_projectiles(Render_Buffer* r) {
-    pthread_mutex_lock(&projectile_mutex);
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         Projectile* p = &projectiles[i];
         if (p->active) {
@@ -57,7 +57,6 @@ void kill_all_projectiles(Render_Buffer* r) {
         }
         p->active = false;
     }
-    pthread_mutex_unlock(&projectile_mutex);
 }
 
 // Bresenham's Line Algorithm
@@ -82,11 +81,12 @@ void update_projectiles(Render_Buffer* r) {
         }
 
         if ((c != p->from || !p->home) && (((p->x == p->x1 && p->y == p->y1) && !p->infinity) || c != L' ')) {
+            p->active = false;
+
             if (p->callback) {
                 p->callback(p->x * speed - 65, 19 - p->y, p->callback_data);
             }
 
-            p->active = false;
             continue;
         }
 
@@ -105,7 +105,7 @@ void update_projectiles(Render_Buffer* r) {
         if (c == L' ') {
             if (p->home)
                 p->home = false;
-            wprintf(L"\033[%d;%dH*", p->y, p->x * speed);
+            wprintf(L"\033[%d;%dH%c", p->y, p->x * speed, p->design);
         }
     }
 
@@ -139,6 +139,7 @@ void projectile_callback(int x, int y, projectile_data* data) {
             e->hp -= data->damage;
 
             if (e->hp <= 0) {
+                add_player_score(data->p, e->score);
                 set_dyn(get_chunk_enemies(get_player_chunk(data->p)), e->from_id, NULL);
                 if (is_entity) {
                     destroy_entity_from_chunk(ent);
@@ -163,16 +164,25 @@ void projectile_callback(int x, int y, projectile_data* data) {
 }
 
 void enemy_attack_callback(int x, int y, projectile_data* data) {
+    bool dead = false;
     if (x == get_player_x(data->p) && y == get_player_y(data->p)) {
-        damage_player(data->p, data->damage);
-        render_health(data->screen, data->p);
+        if (damage_player(data->p, data->damage)) {
+            player_death(data->p);
+            render_from_player(data->screen, data->p);
+            dead = true;
+        } else
+            render_health(data->screen, data->p);
     }
-
+    if (dead) {
+        kill_all_projectiles(data->screen);
+        // TODO : Cinematic according to mental health
+        play_cinematic(data->screen, "assets/cinematics/oblivion.dodjo", 500000);
+    }
     update_screen(data->screen);
     free(data);
 }
 
-void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, bool infinity, ProjectileCallback callback, projectile_data* callback_data) {
+void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, char design, bool infinity, ProjectileCallback callback, projectile_data* callback_data) {
     pthread_mutex_lock(&projectile_mutex);
     int speed = 2;
     for (int i = 0; i < MAX_PROJECTILES; i++) {
@@ -190,6 +200,7 @@ void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, bool i
                 .from = from,
                 .frame = 0,
                 .rate = rate,
+                .design = design,
                 .active = true,
                 .home = true,
                 .infinity = infinity,
@@ -219,6 +230,7 @@ void enemy_attack_projectile(Render_Buffer* r, player* p, item* brain) {
         -get_player_y(p) + 19,
         get_item_display(brain),
         ((enemy*)get_item_spec(brain))->speed,
+        '+',
         ((enemy*)get_item_spec(brain))->infinity,
         enemy_attack_callback,
         p_data);
@@ -234,10 +246,14 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
         last_hotbar_index = index;
         item* it = get_selected_item(get_player_hotbar(p));
         set_player_damage(p, 1);
+        set_player_infinite_range(p, false);
+        set_player_arrow_speed(p, 6);
         if (it != NULL) {
             UsableItem type = get_item_usable_type(it);
             if (type == BASIC_BOW || type == ADVANCED_BOW || type == SUPER_BOW || type == NADINO_BOW) {
                 set_player_damage(p, get_usable_item_file(type)->specs.specs[1]);
+                set_player_infinite_range(p, get_usable_item_file(type)->specs.specs[2]);
+                set_player_arrow_speed(p, get_usable_item_file(type)->specs.specs[3]);
             }
         }
     }
@@ -259,8 +275,9 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
         target_x,
         target_y,
         get_player_design(p),
-        1,
-        true,
+        get_player_arrow_speed(p),
+        '*',
+        has_infinite_range(p),
         projectile_callback,
         p_data);
 }

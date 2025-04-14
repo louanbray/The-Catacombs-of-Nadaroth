@@ -30,6 +30,7 @@ typedef struct enemy {
     int from_id;
     int speed;
     int infinity;
+    int score;
 } enemy;
 
 typedef struct lootable {

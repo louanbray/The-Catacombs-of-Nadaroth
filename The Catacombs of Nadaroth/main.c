@@ -142,7 +142,16 @@ void interact(Render_Buffer* screen, player* p) {
             destroy_player_cchunk(p);
             break;
         case SCHOOL_DISHES:
-            destroy = true;
+            if (get_player_mental_health(p) != 4) {
+                destroy = true;
+                modify_player_mental_health(p, 1);
+            }
+            break;
+        case FORGOTTEN_DISH:
+            if (get_player_mental_health(p) != 4) {
+                destroy = true;
+                set_player_mental_health(p, 4);
+            }
             break;
         default:
             return;
@@ -152,6 +161,8 @@ void interact(Render_Buffer* screen, player* p) {
         drop(hb, get_selected_slot(hb));
         render_health(screen, p);
         render_hotbar(screen, hb);
+        render_score(screen, p);
+        render_mental_health(screen, p);
     }
 
     update_screen(screen);

@@ -50,6 +50,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                     elt->from_id = len_dyn(get_chunk_enemies(c));
                     elt->speed = entityFile->specs.specs[2];
                     elt->infinity = entityFile->specs.specs[3];
+                    elt->score = entityFile->specs.specs[4];
                     specialize(brain, false, false, elt);
                     append(get_chunk_enemies(c), brain);
                     break;
