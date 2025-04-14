@@ -140,4 +140,16 @@ typedef enum EntityType {  //? MODIFY TO ADD ENTITY TYPES
     ENTITY_TYPE_COUNT  // This will automatically be the count of enum entries
 } EntityType;
 
+typedef enum GamePhase {
+    INTRODUCTION,
+    FIRST_ACT_FIRST_PHASE,
+    FIRST_ACT_SECOND_PHASE,
+    FIRST_ACT_THIRD_PHASE,
+    FIRST_ACT_FOURTH_PHASE,
+    FIRST_ACT_FIFTH_PHASE,
+    FIRST_ACT_END
+} GamePhase;
+
+static const int ScorePerPhase[] = {0, 25, 75, 210, 630, 0, 0};
+
 #endif

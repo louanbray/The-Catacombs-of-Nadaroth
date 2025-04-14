@@ -291,6 +291,16 @@ void render_score(Render_Buffer* r, player* p) {
         r->bd[1][display].color = COLOR_DEFAULT;
         display += 1;
     }
+
+    char score_text[10];
+    snprintf(score_text, 10, "/%d", ScorePerPhase[get_player_phase(p)]);
+    int score_text_len = strlen(score_text);
+
+    for (int i = 0; i < score_text_len; i++) {
+        r->bd[1][display].ch = score_text[i];
+        r->bd[1][display].color = COLOR_DEFAULT;
+        display += 1;
+    }
 }
 
 // Renders the health bar into the board.

@@ -225,4 +225,27 @@ void set_player_mental_health(player* p, int mental_health);
  */
 void modify_player_mental_health(player* p, int mental_health);
 
+/**
+ * @brief Gets the current game phase of the player
+ *
+ * @param p Pointer to the player object
+ * @return GamePhase The current phase of the player
+ */
+GamePhase get_player_phase(player* p);
+
+/**
+ * @brief Sets the game phase of the player
+ *
+ * @param p Pointer to the player object
+ * @param phase The GamePhase to set for the player
+ */
+void set_player_phase(player* p, GamePhase phase);
+
+/**
+ * @brief Increments the player's game phase to the next phase
+ *
+ * @param p Pointer to the player object
+ */
+void increment_player_phase(player* p);
+
 #endif

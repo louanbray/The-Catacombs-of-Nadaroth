@@ -3,6 +3,7 @@
 #include "assets_manager.h"
 #include "audio_manager.h"
 #include "entity.h"
+#include "game_status.h"
 #include "input_manager.h"
 #include "loot_manager.h"
 #include "map.h"
@@ -216,10 +217,16 @@ int main() {
 
     pthread_detach(input_thread);
 
-    play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 500000);
+    play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 1000000);
 
     for (;;) {
-        if (USE_KEY('H') || USE_KEY('h')) {
+        if (GAME_PAUSED) {
+            if (USE_KEY('P') || USE_KEY('p')) {
+                resume_game();
+                unlock_inputs();
+            }
+            continue;
+        } else if (USE_KEY('H') || USE_KEY('h')) {
             display_interface(screen, "assets/interfaces/structures/help.dodjo");
         } else if (USE_KEY('E') || USE_KEY('e')) {
             display_item_description(screen, get_selected_item(h));

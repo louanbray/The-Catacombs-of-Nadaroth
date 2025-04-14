@@ -15,6 +15,7 @@ typedef struct player {
     bool infinite_range;
     int design;
     int score, deaths;
+    GamePhase phase;
     char* name;
 } player;
 
@@ -42,12 +43,14 @@ player* create_player(map* m) {
     p->design = 3486;
     p->name = NULL;
     p->map = m;
+    p->phase = INTRODUCTION;
     center_player(p);
     set_map_player(m, p);
     return p;
 }
 
 void player_death(player* p) {
+    if (p->phase == FIRST_ACT_END) return;
     chunk* spawn_chunk = get_spawn(get_player_map(p));
     p->current_chunk = spawn_chunk;
     p->x = get_chunk_spawn_x(spawn_chunk);
@@ -55,9 +58,13 @@ void player_death(player* p) {
     p->health = START_HEALTH;
     p->px = p->x;
     p->py = p->y;
-    p->score /= 2;
+    if (p->score >= ScorePerPhase[p->phase] || p->phase == INTRODUCTION) {
+        p->phase++;
+    } else {
+        modify_player_mental_health(p, -1);
+    }
+    p->score = 0;
     p->deaths++;
-    modify_player_mental_health(p, -1);
 }
 
 int get_player_x(player* p) {
@@ -126,6 +133,18 @@ int get_player_deaths(player* p) {
 
 int get_player_mental_health(player* p) {
     return p->mental_health;
+}
+
+GamePhase get_player_phase(player* p) {
+    return p->phase;
+}
+
+void set_player_phase(player* p, GamePhase phase) {
+    p->phase = phase;
+}
+
+void increment_player_phase(player* p) {
+    p->phase++;
 }
 
 void add_player_deaths(player* p) {

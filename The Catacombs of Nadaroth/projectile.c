@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "entity.h"
 #include "game_status.h"
+#include "input_manager.h"
 #include "player.h"
 #include "render.h"
 
@@ -175,8 +176,18 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
     }
     if (dead) {
         kill_all_projectiles(data->screen);
-        // TODO : Cinematic according to mental health
-        play_cinematic(data->screen, "assets/cinematics/oblivion.dodjo", 500000);
+        char filepath[50];
+        GamePhase phase = get_player_phase(data->p);
+        if (phase != FIRST_ACT_END)
+            snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(data->p), phase);
+        else
+            snprintf(filepath, sizeof(filepath), "assets/cinematics/wip.dodjo");
+        play_cinematic(data->screen, filepath, 1000000);
+        if (get_player_mental_health(data->p) == 0) {
+            play_cinematic(data->screen, "assets/cinematics/the_end.dodjo", 1000000);
+            pause_game();
+            lock_inputs();
+        }
     }
     update_screen(data->screen);
     free(data);
