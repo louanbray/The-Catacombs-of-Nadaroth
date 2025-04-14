@@ -45,13 +45,13 @@ void init_loot_tables() {
     add_loot_to_loot_table(66, ADVANCED_BOW, SILVER);
     add_loot_to_loot_table(83, STOCKFISH, SILVER);
     add_loot_to_loot_table(10055, BOMB, SILVER);
-    add_loot_to_loot_table(68, SCHOOL_DISHES, SILVER);
 
     // GOLD LOOT
     add_loot_to_loot_table(66, SUPER_BOW, GOLD);
     add_loot_to_loot_table(71, GOLDEN_APPLE, GOLD);
-    add_loot_to_loot_table(70, FORGOTTEN_DISH, GOLD);
+    // add_loot_to_loot_table(68, SCHOOL_DISHES, GOLD);
 
     // NADINO LOOT
+    // add_loot_to_loot_table(70, FORGOTTEN_DISH, NADINO);
     add_loot_to_loot_table(66, NADINO_BOW, NADINO);
 }

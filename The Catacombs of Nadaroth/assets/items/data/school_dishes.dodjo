@@ -1,9 +1,11 @@
-[1]
+[2]
 {School Dishes}
 "An assortment of simple, cafeteria-style meals, neatly arranged on a well-worn tray.~
-Though mundane, their hearty portions carry a strange nostalgic warmth, mending fractures in your mind."~
+Yet, beneath their unassuming appearance, a faint, otherworldly aura shimmers,~
+hinting at secrets of forgotten lore and arcane healing."~
 ~
  -> Restores mental health.~
- -> "The taste reminds you of distant memories, anchoring your mind and easing your troubled thoughts."~
+ -> "The taste not only awakens memories of simpler days but also infuses your mind with a serene,~
+    magical clarity, anchoring your thoughts and dispelling the clouds of despair."~
 ~
-Tier: Silver~
+Tier: Gold~
