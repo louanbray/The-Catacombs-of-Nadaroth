@@ -1,50 +1,49 @@
 # The Catacombs of Nadaroth
 _(School Project)_
-Welcome to **The Catacombs of Nadaroth**, a terminal-based adventure game where you play as a lost adventurer trying to find a way out of the mysterious catacombs. 
+
+A terminal-based adventure where you awaken as a lost adventurer in the twisting, haunted labyrinth of Nadaroth. Here, every step, every death, and every fragment of memory brings you closer to uncovering—or succumbing to—the dark legacy that binds you to these ancient catacombs.
+
 
 ## Story
 
 You awaken in the dark, damp corridors of the catacombs with no memory of who you are or how you got there. As you navigate through the labyrinthine passages, you will encounter enigmatic puzzles, strange entities, formidable bosses, and valuable equipment that will aid you in your quest to escape. (WIP)
 
-## Gameplay
-
-- **Exploration**: Move from room to room through two-way portals. Each room holds secrets and challenges. (Soon to be developped)
-<!-- - **Puzzles**: Solve various enigmas to unlock new areas and gain crucial items.
-- **Encounters**: Face off against strange entities and powerful bosses that stand in your way.
-- **Equipment**: Discover and equip items that will help you survive and progress through the catacombs.
+<details>
+  <summary>Spoiler warning</summary>
+  
+  Your progress is measured not just by physical survival, but also by a unique score that reflects both your achievements and your eroding mental health. With each death, you awaken anew in the spawn room, your mind further fragmented by despair. The narrative evolves depending on your mental health—ranging from clarity and determination to utter desolation.
+  
+</details>
 
 ## Features
 
-- **Immersive Storyline**: Follow the journey of an amnesiac adventurer in the eerie land of Nadaroth.
-- **Challenging Puzzles**: Test your wits with a variety of puzzles that require logic and creativity.
-- **Dynamic Combat**: Engage in strategic battles with a range of enemies and bosses.
-- **Rich Environment**: Explore the atmospheric and hauntingly beautiful catacombs. -->
+- **Dynamic Lore:** Multiple lore routes. Discover fragments of your past, and watch them unravel into chaos as despair takes hold.
+- **Procedurally Generated Catacombs:** Experience new challenges with each playthrough as rooms reset, offering diverse encounters and unforeseen dangers. (WIP)
+- **Unique Items & Loot:** Collect mystical weapons, potent restorative items, and ancient treasures. Every item tells a story and affects your survival.
+- **Score & Experience System:** Engage in combat, accumulate a score, and watch your victories become bittersweet echoes of a life slowly fading into shadow.
 
-<!-- ## Getting Started
+## Installation & Setup
 
-1. Clone the repository:
+Follow these simple steps to dive into the world of Nadaroth:
+
+1. **Clone the Repository:**
     ```bash
-    git clone https://github.com/yourusername/The-Catacombs-of-Nadaroth.git
+    git clone https://github.com/louanbray/The-Catacombs-of-Nadaroth.git
     ```
-2. Navigate to the project directory:
+
+2. **Open with VSCode:**
+    Launch the project folder in Visual Studio Code.
+
+3. **Apply a Dark Theme (Optional):**
+    For an immersive and atmospheric experience, consider using VSCode's dark theme.
+
+4. **Open the Terminal Wide:**
+    Ensure your terminal is large enough for optimal gameplay display and debugging.
+
+5. **Run the Game:**
     ```bash
-    cd The-Catacombs-of-Nadaroth
+    make run
     ```
-3. Run the game:
-    ```bash
-    python main.py
-    ``` -->
-<!-- 
-## Contributing
 
-We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) for more details.
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For any inquiries or feedback, please contact us at [email@example.com](mailto:email@example.com).
-
-Enjoy your adventure in **The Catacombs of Nadaroth**! -->
+Embrace the darkness, confront your inner echoes, and uncover the hidden legacy of Nadaroth. Happy exploring!
