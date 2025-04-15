@@ -106,15 +106,15 @@ typedef enum ChunkType {  //? MODIFY TO ADD LEVELS
     SPAWN,
     DEFAULT,
     DEFAULT2,
-    TREASURE_ROOM,           // Some chests but you need to hunt for keys (Chest value random | chest number and concept need to be worked on)
-    BOSS_ROOM,               // Depending on the boss, you need to find the right weapon | DIFFICULTY + = BETTER KEY REWARD (GOLD to NADINO)
-    WAITING_ROOM,            // Peaceful room
-    RANDOM_CHUNK_EASY,       // Randomly generated chunk (w enemies and bronze chests (1 max) | EASY)
-    RANDOM_CHUNK_MEDIUM,     // Randomly generated chunk (w enemies and bronze chests (2 max) | MEDIUM)
-    RANDOM_CHUNK_HARD,       // Randomly generated chunk (w enemies and bronze chests (3 max), 1 silver | HARD)
-    RANDOM_CHUNK_NADINHARD,  // Randomly generated chunk (w enemies and silver chests (3 max) | VERY HARD)
-    ESCAPE_ROOM_1,           // Escape rooms w enigmas, has a timer, do your best
-    ESCAPE_ROOM_2,           // Same here, another variant
+    TREASURE_ROOM,           // Some chests but you need to hunt for keys (Chest value random | chest number and concept need to be worked on)  //! Keys are not implemented
+    BOSS_ROOM,               // Depending on the boss, you need to find the right weapon | DIFFICULTY + = BETTER KEY REWARD (GOLD to NADINO)    //! WIP (Ig Boss == NADINO ?)
+    WAITING_ROOM,            // Peaceful room                                                                                                   // I can manage this
+    RANDOM_CHUNK_EASY,       // Randomly generated chunk (w enemies and bronze chests (1 max) | EASY)                                           //! WIP (NOT SO RANDOM FOR NOW)
+    RANDOM_CHUNK_MEDIUM,     // Randomly generated chunk (w enemies and bronze chests (2 max) | MEDIUM)                                         //! WIP (NOT SO RANDOM FOR NOW)
+    RANDOM_CHUNK_HARD,       // Randomly generated chunk (w enemies and bronze chests (3 max), 1 silver | HARD)                                 //! WIP (NOT SO RANDOM FOR NOW)
+    RANDOM_CHUNK_NADINHARD,  // Randomly generated chunk (w enemies and silver chests (3 max) | VERY HARD)                                      //! WIP (NOT SO RANDOM FOR NOW)
+    ESCAPE_ROOM_1,           // Escape rooms w enigmas, has a timer, do your best                                                               //! WIP (Timer ? What is that.)
+    ESCAPE_ROOM_2,           // Same here, another variant                                                                                      //! WIP (Same here...)
     //? ADD AUTO GENERATED ESCAPE ROOMS (gimme the determination)
 
     CHUNK_TYPE_COUNT  // This will automatically be the count of enum entries

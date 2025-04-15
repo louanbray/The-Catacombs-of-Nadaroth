@@ -59,20 +59,21 @@ void decorate(chunk* c, int x, int y) {
     int spawn_x = 1;  //! TO CENTER THE PLAYER
     int spawn_y = 0;
     if (x != 0 || y != 0) {
-        int t = rand() % 2;  //? MODIFY TO ADD A LEVEL (% Number of types)
-        switch (t) {
-            // case ?:
-            //     spawn_x = ?;
-            //     spawn_y = ?;
-            //     type = DUMMY;
-            //     break;
-            case 1:
-                type = SPAWN;
-                break;
-            default:
-                type = DEFAULT2;
-                break;
-        }
+        int t = rand() % (CHUNK_TYPE_COUNT - 1);  //? MODIFY TO ADD A LEVEL (% Number of types)
+        type = t + 1;
+        // switch (t) {  //! temporary offline, need to incorporate spawn pos to chunk file
+        //     // case ?:
+        //     //     spawn_x = ?;
+        //     //     spawn_y = ?;
+        //     //     type = DUMMY;
+        //     //     break;
+        //     case 1:
+        //         type = SPAWN;
+        //         break;
+        //     default:
+        //         type = DEFAULT2;
+        //         break;
+        // }
     }
     c->type = type;
     c->spawn_x = spawn_x;

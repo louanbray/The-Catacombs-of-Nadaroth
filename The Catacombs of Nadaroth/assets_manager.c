@@ -329,6 +329,16 @@ void init_assets_system() {
     add_chunk_file("assets/chunks/spawn.dodjo", SPAWN);
     add_chunk_file("assets/chunks/default.dodjo", DEFAULT);
     add_chunk_file("assets/chunks/default2.dodjo", DEFAULT2);
+    add_chunk_file("assets/chunks/treasure_room_1.dodjo", TREASURE_ROOM);
+    add_chunk_file("assets/chunks/boss_room.dodjo", BOSS_ROOM);
+    add_chunk_file("assets/chunks/waiting_room.dodjo", WAITING_ROOM);
+    add_chunk_file("assets/chunks/random_chunk_easy.dodjo", RANDOM_CHUNK_EASY);
+    add_chunk_file("assets/chunks/random_chunk_medium.dodjo", RANDOM_CHUNK_MEDIUM);
+    add_chunk_file("assets/chunks/random_chunk_hard.dodjo", RANDOM_CHUNK_HARD);
+    add_chunk_file("assets/chunks/random_chunk_nadinhard.dodjo", RANDOM_CHUNK_NADINHARD);
+    add_chunk_file("assets/chunks/escape_room_1.dodjo", ESCAPE_ROOM_1);
+    add_chunk_file("assets/chunks/escape_room_2.dodjo", ESCAPE_ROOM_2);
+
     // Add more chunk files here...
 
     // Load usable item files
