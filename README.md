@@ -37,8 +37,8 @@ Follow these simple steps to dive into the world of Nadaroth:
 3. **Apply a Dark Theme (Optional):**
     For an immersive and atmospheric experience, consider using VSCode's dark theme.
 
-4. **Copy an empty line**
-    To be able to use the left click ingame, please open EMPTY with vscode and copy the empty line
+4. **Copy an empty line:**
+    To be able to use the right click in-game, please open EMPTY with vscode and copy the empty line
 
 5. **Open the Terminal Wide:**
     Ensure your terminal is large enough for optimal gameplay display and debugging.

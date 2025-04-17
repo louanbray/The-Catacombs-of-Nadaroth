@@ -204,9 +204,6 @@ int main() {
 
     link_hotbar(p, h);
 
-    update_screen(screen);
-    render(screen, m);
-
     init_projectile_system(screen, p);
 
     pthread_t input_thread;
@@ -217,7 +214,12 @@ int main() {
 
     pthread_detach(input_thread);
 
+    update_screen(screen);
+    display_interface(screen, "assets/interfaces/structures/start_menu.dodjo");
     play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 1000000);
+
+    render(screen, m);
+    update_screen(screen);
 
     for (;;) {
         if (GAME_PAUSED) {
