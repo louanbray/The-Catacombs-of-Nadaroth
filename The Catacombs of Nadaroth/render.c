@@ -268,9 +268,9 @@ void render_chunk(Render_Buffer* r, chunk* c) {
     // Write chunk coordinates onto the board.
     wchar_t tmp[16];
     swprintf(tmp, 16, L"CHUNK X: %d", get_chunk_x(c));
-    write_wstr(b, 39, 2, tmp, 16, COLOR_DEFAULT);
+    write_wstr(b, 3, 110, tmp, 16, COLOR_DEFAULT);
     swprintf(tmp, 16, L"CHUNK Y: %d", get_chunk_y(c));
-    write_wstr(b, 38, 2, tmp, 16, COLOR_DEFAULT);
+    write_wstr(b, 1, 110, tmp, 16, COLOR_DEFAULT);
 }
 
 // Renders the player onto the board.
