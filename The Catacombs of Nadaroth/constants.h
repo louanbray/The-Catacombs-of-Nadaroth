@@ -135,6 +135,7 @@ typedef enum EntityType {  //? MODIFY TO ADD ENTITY TYPES
     SILVER_CHEST,
     GOLD_CHEST,
     NADINO_CHEST,
+    STAR_GATE,
 
     // Other entity types...
     ENTITY_TYPE_COUNT  // This will automatically be the count of enum entries

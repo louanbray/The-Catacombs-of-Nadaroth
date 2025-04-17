@@ -323,6 +323,7 @@ void init_assets_system() {
     add_entity_file("assets/entities/data/silver_chest.dodjo", SILVER_CHEST);
     add_entity_file("assets/entities/data/gold_chest.dodjo", GOLD_CHEST);
     add_entity_file("assets/entities/data/nadino_chest.dodjo", NADINO_CHEST);
+    add_entity_file("assets/entities/data/star_gate.dodjo", STAR_GATE);
     // Add more entity files here...
 
     // Load chunk files
