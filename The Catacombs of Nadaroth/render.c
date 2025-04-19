@@ -185,6 +185,15 @@ void render_char(board b, int x, int y, int c) {
     }
 }
 
+void render_char_colored(board b, int x, int y, int c, int color) {
+    int draw_y = y + 2 + RENDER_HEIGHT / 2;
+    int draw_x = x + RENDER_WIDTH / 2;
+    if (draw_y >= 0 && draw_y < RENDER_HEIGHT && draw_x >= 0 && draw_x < RENDER_WIDTH) {
+        b[draw_y][draw_x].ch = (wchar_t)c;
+        b[draw_y][draw_x].color = color;
+    }
+}
+
 wchar_t render_get_cell_char(Render_Buffer* screen, int y, int x) {
     return screen->bd[y][x].ch;
 }
@@ -276,7 +285,7 @@ void render_chunk(Render_Buffer* r, chunk* c) {
 // Renders the player onto the board.
 void render_player(Render_Buffer* r, player* p) {
     render_char(r->bd, get_player_px(p), get_player_py(p), ' ');
-    render_char(r->bd, get_player_x(p), get_player_y(p), get_player_design(p));
+    render_char_colored(r->bd, get_player_x(p), get_player_y(p), get_player_design(p), COLOR_GREEN);
 }
 
 void render_score(Render_Buffer* r, player* p) {
@@ -430,6 +439,7 @@ void update_line_(Render_Buffer* r, int row) {
         buffer[RENDER_WIDTH] = L'\0';
         wprintf(L"\033[%d;%dH%s%ls", screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
     }
+    wprintf(L"\033[%d;%dH%s", screen_row, RENDER_WIDTH, ansi_from_color(COLOR_DEFAULT));
 }
 
 // This function outputs only modified parts of the screen.

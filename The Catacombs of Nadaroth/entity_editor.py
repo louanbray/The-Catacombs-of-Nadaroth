@@ -6,13 +6,18 @@ class Sprite(IntEnum):
     VGATE = 9608
     UGATE = 9600
     DGATE = 9604
+    BRONZE = 66
+    SILVER = 83
+    GOLD = 71
+    NADINO = 78
 
 
-items = {"V":[Sprite.VGATE],
-         "U":[Sprite.UGATE],
-         "D":[Sprite.DGATE],
-         "S":[Sprite.STARGATE],
-         "T":[Sprite.WALL]}
+items = {"S":[Sprite.STARGATE],
+         "T":[Sprite.WALL],
+         "A":[Sprite.BRONZE],
+         "B":[Sprite.SILVER],
+         "C":[Sprite.GOLD],
+         "D":[Sprite.NADINO],}
 
         #                                                               C
         #                                                               E
@@ -23,7 +28,7 @@ items = {"V":[Sprite.VGATE],
         #----------------------------------------------------------------ඞ----------------------------------------------------------------
 specs = ["3"]
 entity = ["S*S*S",
-          "S* *S",
+          "S*D*S",
           "S*S*S"]
         # " ",
         # " ",

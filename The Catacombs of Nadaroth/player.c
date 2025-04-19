@@ -40,7 +40,7 @@ player* create_player(map* m) {
     p->arrow_speed = 6;
     p->infinite_range = false;
     p->hotbar = NULL;
-    p->design = 3486;
+    p->design = 9210;
     p->name = NULL;
     p->map = m;
     p->phase = INTRODUCTION;

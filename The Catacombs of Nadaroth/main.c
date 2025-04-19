@@ -191,9 +191,9 @@ int main() {
     init_assets_system();
     init_loot_tables();
 
-    if (init_audio() != 0) exit(EXIT_FAILURE);
+    // if (init_audio() != 0) exit(EXIT_FAILURE);
 
-    play_bgm("assets/audio/background.mp3", 1);
+    // play_bgm("assets/audio/background.mp3", 1);
 
     Render_Buffer* screen = create_screen();
 
@@ -216,6 +216,7 @@ int main() {
 
     update_screen(screen);
     display_interface(screen, "assets/interfaces/structures/start_menu.dodjo");
+    display_interface(screen, "assets/interfaces/structures/help.dodjo");
     play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 1000000);
 
     render(screen, m);
@@ -237,7 +238,7 @@ int main() {
         }
     }
 
-    audio_close();
+    // audio_close();
 
     return EXIT_SUCCESS;
 }
