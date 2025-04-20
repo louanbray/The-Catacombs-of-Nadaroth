@@ -32,14 +32,14 @@ Follow these simple steps to dive into the world of Nadaroth:
     ```
 
 2. **For smoother movements:**
-    [MacOS]
+    \[MacOS\]
     On your Mac, choose Apple menu > System Settings, then click Keyboard in the sidebar. (You may need to scroll down.)
     Drag the “Delay until repeat” slider towards a shorter time.
    
     Sur votre Mac, choisissez le menu Pomme > Réglages Système, puis cliquez sur Clavier dans la barre latérale. Vous devrez peut-être faire défiler la page vers le bas.
     Faites glisser le curseur « Pause avant répétition » vers le temps le plus court.
 
-    [Windows]
+    \[Windows\]
     Press Windows > Config Pannel > Search keyboard.
     Drag the “Delay until repeat” slider towards a shorter time.
     
