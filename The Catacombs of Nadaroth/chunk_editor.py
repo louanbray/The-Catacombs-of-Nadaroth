@@ -15,7 +15,7 @@ class Size(IntEnum): # Space between identical items
 
 class Sprite(IntEnum):
     WALL = 69
-    STARGATE = 9055
+    ENEMY = 9053
     VGATE = 9608
     UGATE = 9600
     DGATE = 9604
@@ -75,14 +75,14 @@ items = {"V":[Type.GATE,Sprite.VGATE,Size.COLLAPSE,Entity.NOENTITY, UsableItem.N
          #"G":[Type.PICKABLE,Sprite.O,Size.COLLAPSE,Entity.ENEMY_BRONZE_1, UsableItem.ONION_RING],
          #"N":[Type.PICKABLE,Sprite.S,Size.COLLAPSE,Entity.ENEMY_BRONZE_1, UsableItem.STOCKFISH],
          
-         "A":[Type.ENEMY,Sprite.STARGATE,Size.COLLAPSE,Entity.ENEMY_BRONZE_1, UsableItem.NOT_USABLE_ITEM],
-         "B":[Type.ENEMY,Sprite.STARGATE,Size.COLLAPSE,Entity.ENEMY_BRONZE_2, UsableItem.NOT_USABLE_ITEM],
-         "C":[Type.ENEMY,Sprite.STARGATE,Size.COLLAPSE,Entity.ENEMY_SILVER_1, UsableItem.NOT_USABLE_ITEM],
-         "D":[Type.ENEMY,Sprite.STARGATE,Size.COLLAPSE,Entity.ENEMY_SILVER_2, UsableItem.NOT_USABLE_ITEM],
-         "E":[Type.ENEMY,Sprite.STARGATE,Size.COLLAPSE,Entity.ENEMY_GOLD_1, UsableItem.NOT_USABLE_ITEM],
-         "F":[Type.ENEMY,Sprite.STARGATE,Size.COLLAPSE,Entity.ENEMY_GOLD_2, UsableItem.NOT_USABLE_ITEM],
-         "G":[Type.ENEMY,Sprite.STARGATE,Size.COLLAPSE,Entity.ENEMY_NADINO_1, UsableItem.NOT_USABLE_ITEM],
-         "H":[Type.ENEMY,Sprite.STARGATE,Size.COLLAPSE,Entity.ENEMY_NADINO_2, UsableItem.NOT_USABLE_ITEM],
+         "A":[Type.ENEMY,Sprite.ENEMY,Size.COLLAPSE,Entity.ENEMY_BRONZE_1, UsableItem.NOT_USABLE_ITEM],
+         "B":[Type.ENEMY,Sprite.ENEMY,Size.COLLAPSE,Entity.ENEMY_BRONZE_2, UsableItem.NOT_USABLE_ITEM],
+         "C":[Type.ENEMY,Sprite.ENEMY,Size.COLLAPSE,Entity.ENEMY_SILVER_1, UsableItem.NOT_USABLE_ITEM],
+         "D":[Type.ENEMY,Sprite.ENEMY,Size.COLLAPSE,Entity.ENEMY_SILVER_2, UsableItem.NOT_USABLE_ITEM],
+         "E":[Type.ENEMY,Sprite.ENEMY,Size.COLLAPSE,Entity.ENEMY_GOLD_1, UsableItem.NOT_USABLE_ITEM],
+         "F":[Type.ENEMY,Sprite.ENEMY,Size.COLLAPSE,Entity.ENEMY_GOLD_2, UsableItem.NOT_USABLE_ITEM],
+         "G":[Type.ENEMY,Sprite.ENEMY,Size.COLLAPSE,Entity.ENEMY_NADINO_1, UsableItem.NOT_USABLE_ITEM],
+         "H":[Type.ENEMY,Sprite.ENEMY,Size.COLLAPSE,Entity.ENEMY_NADINO_2, UsableItem.NOT_USABLE_ITEM],
          
          "0":[Type.LOOTABLE,Sprite.ENTITY,Size.COLLAPSE,Entity.BRONZE_CHEST,UsableItem.NOT_USABLE_ITEM],
          "1":[Type.LOOTABLE,Sprite.ENTITY,Size.COLLAPSE,Entity.SILVER_CHEST,UsableItem.NOT_USABLE_ITEM],
