@@ -323,7 +323,7 @@ void* projectile_loop(void* args) {
             enemy_ids = malloc(current_enemy_count * sizeof(int));
 
             for (int i = 0; i < current_enemy_count; i++) {
-                enemy_attack_timers[i] = rand() % 30 + 60;  // 60-90 frames before starting to attack
+                enemy_attack_timers[i] = rand() % 30 + 180;  // 60-90 frames before starting to attack
                 enemy_ids[i] = i;
             }
         }
