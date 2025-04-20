@@ -31,19 +31,35 @@ Follow these simple steps to dive into the world of Nadaroth:
     git clone https://github.com/louanbray/The-Catacombs-of-Nadaroth.git
     ```
 
-2. **Open with VSCode:**
+2. **For smoother movements:**
+    [MacOS]
+    On your Mac, choose Apple menu > System Settings, then click Keyboard in the sidebar. (You may need to scroll down.)
+    Drag the “Delay until repeat” slider towards a shorter time.
+   
+    Sur votre Mac, choisissez le menu Pomme > Réglages Système, puis cliquez sur Clavier dans la barre latérale. Vous devrez peut-être faire défiler la page vers le bas.
+    Faites glisser le curseur « Pause avant répétition » vers le temps le plus court.
+
+    [Windows]
+    Press Windows > Config Pannel > Search keyboard.
+    Drag the “Delay until repeat” slider towards a shorter time.
+    
+    Appuyer sur Windows > Panneau de configuration > Rechercher clavier.
+    Faites glisser le curseur « Délai avant répétition » vers court.
+    
+
+3. **Open with VSCode:**
     Launch the project folder in Visual Studio Code.
 
-3. **Apply a Dark Theme (Optional):**
+4. **Apply a Dark Theme (Optional):**
     For an immersive and atmospheric experience, consider using VSCode's dark theme.
 
-4. **Copy an empty line:**
+5. **Copy an empty line:**
     To be able to use the right click in-game, please open EMPTY with vscode and copy the empty line
 
-5. **Open the Terminal Wide:**
+6. **Open the Terminal Wide:**
     Ensure your terminal is large enough for optimal gameplay display and debugging.
 
-6. **Run the Game:**
+7. **Run the Game:**
     ```bash
     make run
     ```
