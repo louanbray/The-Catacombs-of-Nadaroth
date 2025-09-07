@@ -576,6 +576,44 @@ void display_item_description(Render_Buffer* r, void* it) {
     finalize_render_buffer(r);
 }
 
+// New: display interface using interactions previously loaded with load_interactions_file()
+void display_interface_with_interactions(Render_Buffer* r, const char* visual_filename, const char* interaction_id) {
+    display_interface_with_interactions_main(r, visual_filename, interaction_id);
+}
+
+// draw single pattern at a board absolute pos with color application
+void draw_pattern_at(Render_Buffer* r, Pos p, const char* pattern, int color_for_entire_pattern, bool use_per_char_color, int* per_char_colors, int per_char_count) {
+    // pattern is an ASCII null-terminated string. We'll write it starting at p.x horizontally.
+    // convert to wide and use write_wstr/write_str low-level helpers accessible via render.c functions
+    // we have write_str(board, y, x, str, len, color)
+    int len = strlen(pattern);
+    // guard
+    if (p.y < 0 || p.y >= RENDER_HEIGHT) return;
+    int startx = p.x;
+    if (startx < 0) startx = 0;
+    for (int i = 0; i < len; i++) {
+        int tx = startx + i;
+        if (tx < 0 || tx >= RENDER_WIDTH) continue;
+        char c = pattern[i];
+        // build a single-char string
+        char one[2] = {c, '\0'};
+        int color = color_for_entire_pattern;
+        if (use_per_char_color && per_char_colors && i < per_char_count) color = per_char_colors[i];
+        write_str(r->bd, RENDER_HEIGHT - p.y, tx, one, 1, color);
+    }
+}
+
+// Clear previous pattern at position p filling pattern length with spaces
+void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len) {
+    if (p.y < 0 || p.y >= RENDER_HEIGHT) return;
+    for (int i = 0; i < pattern_len; i++) {
+        int tx = p.x + i;
+        if (tx < 0 || tx >= RENDER_WIDTH) continue;
+        r->bd[RENDER_HEIGHT - p.y][tx].ch = L' ';
+        r->bd[RENDER_HEIGHT - p.y][tx].color = COLOR_DEFAULT;
+    }
+}
+
 // Displays an interface (read text from a file) using the render buffer.
 void display_interface(Render_Buffer* r, const char* filename) {
     FILE* file = fopen(filename, "r");

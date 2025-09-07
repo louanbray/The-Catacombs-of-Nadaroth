@@ -33,6 +33,7 @@
 /// @brief Utils
 #define CHAR_TO_INT 49
 
+/// @brief Player Movement results
 #define CAN_MOVE 0
 #define MOVED_CHUNK 1
 #define CANT_MOVE 2

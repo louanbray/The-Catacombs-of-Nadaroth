@@ -5,6 +5,7 @@
 #include <wchar.h>
 
 #include "constants.h"
+#include "interactions_manager.h"
 
 // Forward declarations for types used elsewhere
 typedef struct hotbar hotbar;
@@ -32,6 +33,12 @@ typedef Cell** board;
 
 // Render Buffer
 typedef struct Render_Buffer Render_Buffer;
+
+typedef struct Pos {
+    int y;
+    int x;
+    int len;  // si 0 => on écrit à partir de x normalement (on utilisera strlen(pattern))
+} Pos;
 
 //
 // Function Prototypes
@@ -160,4 +167,38 @@ void render_score(Render_Buffer* r, player* p);
  */
 void render_mental_health(Render_Buffer* r, player* p);
 
+/**
+ * @brief Displays the interface using interactions previously loaded with load_interactions_file().
+ *
+ * @param r Pointer to the render buffer.
+ * @param visual_filename Name of the visual file to display.
+ * @param interaction_id Identifier for the interaction to use.
+ */
+void display_interface_with_interactions(Render_Buffer* r, const char* visual_filename, const char* interaction_id);
+
+/**
+ * @brief Draws a single pattern at a specified board absolute position with color application.
+ *
+ * @param r Pointer to the render buffer.
+ * @param p Absolute position on the board where the pattern will be drawn.
+ * @param pattern Null-terminated ASCII string representing the pattern to draw.
+ * @param color_for_entire_pattern Color to apply to the entire pattern if per-character coloring is not used.
+ * @param use_per_char_color Boolean flag indicating whether to use per-character colors.
+ * @param per_char_colors Array of colors to apply per character in the pattern.
+ * @param per_char_count Number of colors in the per_char_colors array.
+ */
+void draw_pattern_at(Render_Buffer* r, Pos p, const char* pattern, int color_for_entire_pattern, bool use_per_char_color, int* per_char_colors, int per_char_count);
+
+/**
+ * @brief Clears the previous pattern at the specified position by filling the pattern length with spaces.
+ *
+ * @param r Pointer to the render buffer.
+ * @param p Absolute position on the board where the pattern will be cleared.
+ * @param pattern_len Length of the pattern to clear (number of spaces to write).
+ */
+void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len);
+
+void setup_render_buffer(Render_Buffer* r);
+void finalize_render_buffer(Render_Buffer* r);
+void read_text_into_render(Render_Buffer* r, FILE* file);
 #endif

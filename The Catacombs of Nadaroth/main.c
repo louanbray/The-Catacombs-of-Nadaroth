@@ -190,6 +190,8 @@ int main() {
     init_terminal();
     init_assets_system();
     init_loot_tables();
+    init_interactions_system();
+    load_interactions_file("assets/interfaces/structures/skin.interact.dodjo", "skin");
 
     // if (init_audio() != 0) exit(EXIT_FAILURE);
 
@@ -215,7 +217,7 @@ int main() {
     pthread_detach(input_thread);
 
     update_screen(screen);
-    display_interface(screen, "assets/interfaces/structures/start_menu.dodjo");
+    display_interface_with_interactions(screen, "assets/interfaces/structures/skin.dodjo", "skin");
     display_interface(screen, "assets/interfaces/structures/help.dodjo");
     play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 1000000);
 
@@ -239,6 +241,8 @@ int main() {
     }
 
     // audio_close();
+    unload_interactions("skin");
+    destroy_interactions_system();
 
     return EXIT_SUCCESS;
 }
