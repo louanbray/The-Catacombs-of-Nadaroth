@@ -200,11 +200,11 @@ int move_player(player* p, Direction dir) {
     int new_y = p->y + dy[dir];
 
     if (!is_in_box(new_x, new_y))
-        return 2;
+        return CANT_MOVE;
 
     int n = handle(p, new_x, new_y);
 
-    if (n == 0 || n == 3 || n == 4) {
+    if (n == CAN_MOVE || n == PICKED_UP || n == PICKED_UP_ENTITY) {
         p->x = new_x;
         p->y = new_y;
     }

@@ -17,17 +17,17 @@
 /// @param dir direction
 void move(Render_Buffer* screen, player* p, int dir) {
     switch (move_player(p, dir)) {
-        case 1:
+        case MOVED_CHUNK:
             kill_all_projectiles(screen);
             render_from_player(screen, p);
             break;
-        case 2:
+        case CANT_MOVE:
             break;
-        case 3:
+        case PICKED_UP:
             render_player(screen, p);
             render_hotbar(screen, get_player_hotbar(p));
             break;
-        case 4:
+        case PICKED_UP_ENTITY:
             render_from_player(screen, p);
             render_hotbar(screen, get_player_hotbar(p));
             break;

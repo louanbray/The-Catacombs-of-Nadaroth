@@ -24,10 +24,10 @@ int get_direction(int x, int y) {
 }
 
 int pickup_lootable_from_chunk(player* p, item* i) {
-    if (is_hotbar_full(get_player_hotbar(p))) return 2;
+    if (is_hotbar_full(get_player_hotbar(p))) return CANT_MOVE;
     if (!is_an_entity(i)) {
         remove_item(get_player_chunk(p), i);
-        return 0;
+        return CAN_MOVE;
     }
     entity* e = get_entity_link(i);
     i = get_entity_brain(e);
@@ -36,11 +36,11 @@ int pickup_lootable_from_chunk(player* p, item* i) {
     lootable* loot = get_item_spec(i);
     pickup(get_player_hotbar(p), generate_loot(loot));
 
-    return 4;
+    return PICKED_UP_ENTITY;
 }
 
 int pickup_from_chunk(player* p, item* i) {
-    if (is_hotbar_full(get_player_hotbar(p))) return 2;
+    if (is_hotbar_full(get_player_hotbar(p))) return CANT_MOVE;
 
     bool isAnEntity = is_an_entity(i);
 
@@ -56,7 +56,7 @@ int pickup_from_chunk(player* p, item* i) {
 
     pickup(get_player_hotbar(p), i);
 
-    return 3 + isAnEntity;
+    return PICKED_UP + isAnEntity;
 }
 
 int handle(player* p, int x, int y) {
@@ -66,16 +66,16 @@ int handle(player* p, int x, int y) {
     item* i = get_hm(h, x, y);
 
     if (i != NULL) {
-        if (is_item_hidden(i)) return 0;
+        if (is_item_hidden(i)) return CAN_MOVE;
 
         switch (get_item_type(i)) {  //? Modify to an item-player interaction
             case GATE:
                 move_player_chunk(p, get_direction(x, y));
-                return 1;
+                return MOVED_CHUNK;
                 break;
             case SGATE:
                 move_player_chunk(p, STARGATE);
-                return 1;
+                return MOVED_CHUNK;
                 break;
             case LOOTABLE:
                 return pickup_lootable_from_chunk(p, i);
@@ -84,10 +84,10 @@ int handle(player* p, int x, int y) {
                 return pickup_from_chunk(p, i);
                 break;
             default:
-                return 2;
+                return CANT_MOVE;
                 break;
         }
     }
 
-    return 0;
+    return CAN_MOVE;
 }
