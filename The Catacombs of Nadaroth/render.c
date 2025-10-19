@@ -583,23 +583,40 @@ void display_interface_with_interactions(Render_Buffer* r, const char* visual_fi
 
 // draw single pattern at a board absolute pos with color application
 void draw_pattern_at(Render_Buffer* r, Pos p, const char* pattern, int color_for_entire_pattern, bool use_per_char_color, int* per_char_colors, int per_char_count) {
-    // pattern is an ASCII null-terminated string. We'll write it starting at p.x horizontally.
-    // convert to wide and use write_wstr/write_str low-level helpers accessible via render.c functions
-    // we have write_str(board, y, x, str, len, color)
+    // pattern is an ASCII/UTF-8 string. We'll write it starting at p.x horizontally.
+    // Convert the whole string to wide chars first to handle multi-byte characters properly
     int len = strlen(pattern);
+    if (len == 0) return;
+
     // guard
     if (p.y < 0 || p.y >= RENDER_HEIGHT) return;
     int startx = p.x;
     if (startx < 0) startx = 0;
-    for (int i = 0; i < len; i++) {
+
+    // Convert entire pattern to wide chars at once
+    wchar_t wbuffer[RENDER_WIDTH] = {0};
+    size_t wlen = mbstowcs(wbuffer, pattern, RENDER_WIDTH - 1);
+
+    // If conversion failed, try simple ASCII conversion as fallback
+    if (wlen == (size_t)-1) {
+        wlen = 0;
+        for (int i = 0; i < len && i < RENDER_WIDTH - 1; i++) {
+            wbuffer[wlen++] = (wchar_t)(unsigned char)pattern[i];
+        }
+    }
+
+    // Now write each wide character with its corresponding color
+    for (size_t i = 0; i < wlen; i++) {
         int tx = startx + i;
         if (tx < 0 || tx >= RENDER_WIDTH) continue;
-        char c = pattern[i];
-        // build a single-char string
-        char one[2] = {c, '\0'};
+
         int color = color_for_entire_pattern;
-        if (use_per_char_color && per_char_colors && i < per_char_count) color = per_char_colors[i];
-        write_str(r->bd, RENDER_HEIGHT - p.y, tx, one, 1, color);
+        if (use_per_char_color && per_char_colors && i < (size_t)per_char_count) {
+            color = per_char_colors[i];
+        }
+
+        r->bd[RENDER_HEIGHT - p.y][tx].ch = wbuffer[i];
+        r->bd[RENDER_HEIGHT - p.y][tx].color = color;
     }
 }
 

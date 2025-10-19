@@ -311,13 +311,13 @@ bool load_interactions_file(const char* filename, const char* id) {
             anim->current_index = 0;
 
             for (int k = 0; k < set->color_key_count; k++) {
-                char sym = set->color_keys[k][0];
-                if (strchr(anim->pattern, sym)) {
+                // Use strstr to find the symbol string (handles multi-byte UTF-8 chars like §)
+                if (strstr(anim->pattern, set->color_keys[k])) {
                     anim->has_color_placeholder = true;
-                    anim->color_symbol = sym;
+                    anim->color_symbol = set->color_keys[k][0];  // Store first byte for now
                     // fetch color sequence; but sequence length may differ from positions count
                     int seq_len = 0;
-                    int* seq = lookup_color_sequence(set, sym, &seq_len);
+                    int* seq = lookup_color_sequence(set, set->color_keys[k][0], &seq_len);
                     if (seq && seq_len > 0) {
                         anim->color_sequence = malloc(sizeof(int) * seq_len);
                         memcpy(anim->color_sequence, seq, sizeof(int) * seq_len);
@@ -409,27 +409,41 @@ void display_interface_with_interactions_main(Render_Buffer* r, const char* visu
         char out_pattern[256] = {0};
         int per_char_colors[256];
         int out_len = 0;
-        int per_count = 0;
-        for (int i = 0; i < (int)strlen(a->pattern); i++) {
-            char c = a->pattern[i];
-            if (a->has_color_placeholder && c == a->color_symbol && i + 1 < (int)strlen(a->pattern)) {
-                char actual = a->pattern[i + 1];
-                out_pattern[out_len++] = actual;
-                // color depends on current pos index:
-                int color_val = COLOR_DEFAULT;
-                if (a->color_sequence_len > 0) {
-                    color_val = a->color_sequence[idx % a->color_sequence_len];
+
+        // Handle multi-byte UTF-8 color symbol (§ is 2 bytes: 0xC2 0xA7)
+        const char* symbol_str = a->has_color_placeholder ? "\xC2\xA7" : NULL;  // UTF-8 for §
+        int symbol_len = 2;                                                     // § is 2 bytes in UTF-8
+
+        int i = 0;
+        int pat_len = strlen(a->pattern);
+        while (i < pat_len) {
+            // Check if we're at a color symbol position
+            if (a->has_color_placeholder && symbol_str &&
+                i + symbol_len < pat_len &&
+                memcmp(&a->pattern[i], symbol_str, symbol_len) == 0) {
+                // Found §, next character should be colored
+                i += symbol_len;  // skip the § symbol (2 bytes)
+                if (i < pat_len) {
+                    out_pattern[out_len] = a->pattern[i];
+                    // color depends on current pos index:
+                    int color_val = COLOR_DEFAULT;
+                    if (a->color_sequence_len > 0) {
+                        color_val = a->color_sequence[idx % a->color_sequence_len];
+                    }
+                    per_char_colors[out_len] = color_val;
+                    out_len++;
+                    i++;
                 }
-                per_char_colors[per_count++] = color_val;
-                i++;  // skip next char from pattern (we consumed it)
             } else {
-                out_pattern[out_len++] = c;
-                per_char_colors[per_count++] = COLOR_DEFAULT;
+                out_pattern[out_len] = a->pattern[i];
+                per_char_colors[out_len] = COLOR_DEFAULT;
+                out_len++;
+                i++;
             }
         }
         out_pattern[out_len] = '\0';
         // draw:
-        draw_pattern_at(r, p, out_pattern, COLOR_DEFAULT, true, per_char_colors, per_count);
+        draw_pattern_at(r, p, out_pattern, COLOR_DEFAULT, true, per_char_colors, out_len);
     }
 
     update_screen(r);
@@ -476,13 +490,24 @@ void display_interface_with_interactions_main(Render_Buffer* r, const char* visu
                 // erase old
                 Pos oldp = a->positions[old_index];
                 // compute pattern length as number of printed chars (same logic as above)
+                const char* symbol_str_clear = a->has_color_placeholder ? "\xC2\xA7" : NULL;  // UTF-8 for §
+                int symbol_len_clear = 2;
                 int pat_len = 0;
-                for (int i = 0; i < (int)strlen(a->pattern); i++) {
-                    if (a->has_color_placeholder && a->pattern[i] == a->color_symbol && i + 1 < (int)strlen(a->pattern)) {
-                        pat_len += 1;
-                        i++;
-                    } else
-                        pat_len += 1;
+                int i_clear = 0;
+                int pat_len_total = strlen(a->pattern);
+                while (i_clear < pat_len_total) {
+                    if (a->has_color_placeholder && symbol_str_clear &&
+                        i_clear + symbol_len_clear < pat_len_total &&
+                        memcmp(&a->pattern[i_clear], symbol_str_clear, symbol_len_clear) == 0) {
+                        i_clear += symbol_len_clear;  // skip §
+                        if (i_clear < pat_len_total) {
+                            pat_len++;  // count the colored char
+                            i_clear++;
+                        }
+                    } else {
+                        pat_len++;
+                        i_clear++;
+                    }
                 }
                 clear_pattern_at(r, oldp, pat_len);
 
@@ -493,25 +518,36 @@ void display_interface_with_interactions_main(Render_Buffer* r, const char* visu
                 char out_pattern[256] = {0};
                 int per_char_colors[256];
                 int out_len = 0;
-                int per_count = 0;
-                for (int i = 0; i < (int)strlen(a->pattern); i++) {
-                    char c = a->pattern[i];
-                    if (a->has_color_placeholder && c == a->color_symbol && i + 1 < (int)strlen(a->pattern)) {
-                        char actual = a->pattern[i + 1];
-                        out_pattern[out_len++] = actual;
-                        int color_val = COLOR_DEFAULT;
-                        if (a->color_sequence_len > 0) {
-                            color_val = a->color_sequence[idx % a->color_sequence_len];
+
+                const char* symbol_str_draw = a->has_color_placeholder ? "\xC2\xA7" : NULL;  // UTF-8 for §
+                int symbol_len_draw = 2;
+
+                int i_draw = 0;
+                int pat_len_draw = strlen(a->pattern);
+                while (i_draw < pat_len_draw) {
+                    if (a->has_color_placeholder && symbol_str_draw &&
+                        i_draw + symbol_len_draw < pat_len_draw &&
+                        memcmp(&a->pattern[i_draw], symbol_str_draw, symbol_len_draw) == 0) {
+                        i_draw += symbol_len_draw;  // skip §
+                        if (i_draw < pat_len_draw) {
+                            out_pattern[out_len] = a->pattern[i_draw];
+                            int color_val = COLOR_DEFAULT;
+                            if (a->color_sequence_len > 0) {
+                                color_val = a->color_sequence[idx % a->color_sequence_len];
+                            }
+                            per_char_colors[out_len] = color_val;
+                            out_len++;
+                            i_draw++;
                         }
-                        per_char_colors[per_count++] = color_val;
-                        i++;
                     } else {
-                        out_pattern[out_len++] = c;
-                        per_char_colors[per_count++] = COLOR_DEFAULT;
+                        out_pattern[out_len] = a->pattern[i_draw];
+                        per_char_colors[out_len] = COLOR_DEFAULT;
+                        out_len++;
+                        i_draw++;
                     }
                 }
                 out_pattern[out_len] = '\0';
-                draw_pattern_at(r, p, out_pattern, COLOR_DEFAULT, true, per_char_colors, per_count);
+                draw_pattern_at(r, p, out_pattern, COLOR_DEFAULT, true, per_char_colors, out_len);
             }
         }
 

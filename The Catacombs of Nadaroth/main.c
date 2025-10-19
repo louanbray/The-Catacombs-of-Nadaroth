@@ -217,7 +217,7 @@ int main() {
     pthread_detach(input_thread);
 
     update_screen(screen);
-    display_interface_with_interactions(screen, "assets/interfaces/structures/skin.dodjo", "skin");
+    // display_interface_with_interactions(screen, "assets/interfaces/structures/skin.dodjo", "skin");
     display_interface(screen, "assets/interfaces/structures/help.dodjo");
     play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 1000000);
 
