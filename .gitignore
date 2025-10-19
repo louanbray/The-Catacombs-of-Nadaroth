@@ -4,22 +4,5 @@ The Catacombs of Nadaroth/build/Debug/outDebug.exe
 .vscode/settings.json
 .vscode/launch.json
 .vscode/c_cpp_properties.json
-The Catacombs of Nadaroth/build/Debug/assets_manager.o
-The Catacombs of Nadaroth/build/Debug/audio_manager.o
-The Catacombs of Nadaroth/build/Debug/dynarray.o
-The Catacombs of Nadaroth/build/Debug/entity.o
-The Catacombs of Nadaroth/build/Debug/game_status.o
-The Catacombs of Nadaroth/build/Debug/generation.o
-The Catacombs of Nadaroth/build/Debug/handler.o
-The Catacombs of Nadaroth/build/Debug/hash.o
-The Catacombs of Nadaroth/build/Debug/input_manager.o
-The Catacombs of Nadaroth/build/Debug/inventory.o
-The Catacombs of Nadaroth/build/Debug/item.o
-The Catacombs of Nadaroth/build/Debug/loot_manager.o
-The Catacombs of Nadaroth/build/Debug/main.o
-The Catacombs of Nadaroth/build/Debug/map.o
-The Catacombs of Nadaroth/build/Debug/parser.o
-The Catacombs of Nadaroth/build/Debug/player.o
-The Catacombs of Nadaroth/build/Debug/projectile.o
-The Catacombs of Nadaroth/build/Debug/render.o
+*.o
 The Catacombs of Nadaroth/chunk_builder.py
