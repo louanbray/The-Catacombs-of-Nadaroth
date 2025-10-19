@@ -202,6 +202,17 @@ int get_player_deaths(player* p);
 int get_player_mental_health(player* p);
 
 /**
+ * @brief Retrieve the color associated with a player.
+ *
+ * @param p Pointer to the player whose color will be returned.
+ * @return An integer encoding the player's color. The concrete mapping of
+ *         integer values to colors is defined by the project's color
+ *         constants (e.g., COLOR_RED, COLOR_BLUE). Behavior is undefined if
+ *         p is NULL.
+ */
+Color get_player_color(player* p);
+
+/**
  * @brief Increments the death count of a player
  *
  * @param p Pointer to the player
@@ -240,6 +251,14 @@ GamePhase get_player_phase(player* p);
  * @param phase The GamePhase to set for the player
  */
 void set_player_phase(player* p, GamePhase phase);
+
+/**
+ * @brief Set the visual color of a player.
+ *
+ * @param p Pointer to the player to modify. Must be a valid, mutable pointer
+ * @param color Color value to assign to the player.
+ */
+void set_player_color(player* p, Color color);
 
 /**
  * @brief Increments the player's game phase to the next phase

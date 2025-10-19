@@ -14,6 +14,7 @@ typedef struct player {
     int damage, arrow_speed;
     bool infinite_range;
     int design;
+    Color color;
     int score, deaths;
     GamePhase phase;
     char* name;
@@ -44,6 +45,7 @@ player* create_player(map* m) {
     p->name = NULL;
     p->map = m;
     p->phase = INTRODUCTION;
+    p->color = COLOR_GREEN;
     center_player(p);
     set_map_player(m, p);
     return p;
@@ -139,6 +141,10 @@ GamePhase get_player_phase(player* p) {
     return p->phase;
 }
 
+Color get_player_color(player* p) {
+    return p->color;
+}
+
 void set_player_phase(player* p, GamePhase phase) {
     p->phase = phase;
 }
@@ -183,6 +189,10 @@ void set_player_max_health(player* p, unsigned int health) {
 
 void set_player_damage(player* p, unsigned int damage) {
     p->damage = damage;
+}
+
+void set_player_color(player* p, Color color) {
+    p->color = color;
 }
 
 void link_hotbar(player* p, hotbar* h) {

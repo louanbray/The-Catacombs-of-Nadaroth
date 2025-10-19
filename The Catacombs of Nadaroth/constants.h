@@ -158,6 +158,17 @@ typedef enum GamePhase {
     FIRST_ACT_END
 } GamePhase;
 
+// Color enumeration (using a small integer type)
+typedef enum Color {
+    COLOR_DEFAULT = 0,
+    COLOR_MAGENTA_BOLD,
+    COLOR_RED,
+    COLOR_YELLOW,
+    COLOR_CYAN_BOLD,
+    COLOR_GREEN,
+    // Extend as needed
+} Color;
+
 static const int ScorePerPhase[] = {0, 25, 75, 210, 630, 0, 0};
 
 #endif

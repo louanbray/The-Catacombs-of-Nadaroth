@@ -285,7 +285,7 @@ void render_chunk(Render_Buffer* r, chunk* c) {
 // Renders the player onto the board.
 void render_player(Render_Buffer* r, player* p) {
     render_char(r->bd, get_player_px(p), get_player_py(p), ' ');
-    render_char_colored(r->bd, get_player_x(p), get_player_y(p), get_player_design(p), COLOR_GREEN);
+    render_char_colored(r->bd, get_player_x(p), get_player_y(p), get_player_design(p), get_player_color(p));
 }
 
 void render_score(Render_Buffer* r, player* p) {
@@ -577,8 +577,8 @@ void display_item_description(Render_Buffer* r, void* it) {
 }
 
 // New: display interface using interactions previously loaded with load_interactions_file()
-void display_interface_with_interactions(Render_Buffer* r, const char* visual_filename, const char* interaction_id) {
-    display_interface_with_interactions_main(r, visual_filename, interaction_id);
+int* display_interface_with_interactions(Render_Buffer* r, const char* visual_filename, const char* interaction_id, int* out_selected_indices) {
+    return display_interface_with_interactions_main(r, visual_filename, interaction_id, out_selected_indices);
 }
 
 // draw single pattern at a board absolute pos with color application
@@ -621,9 +621,9 @@ void draw_pattern_at(Render_Buffer* r, Pos p, const char* pattern, int color_for
 }
 
 // Clear previous pattern at position p filling pattern length with spaces
-void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len) {
+void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len, int heavy) {
     if (p.y < 0 || p.y >= RENDER_HEIGHT) return;
-    for (int i = 0; i < pattern_len; i++) {
+    for (int i = 0; i < pattern_len - heavy; i++) {
         int tx = p.x + i;
         if (tx < 0 || tx >= RENDER_WIDTH) continue;
         r->bd[RENDER_HEIGHT - p.y][tx].ch = L' ';
@@ -708,6 +708,16 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
     }
     finalize_render_buffer(r);
     fclose(file);
+}
+
+void home_menu(Render_Buffer* r, player* p) {
+    int res = 0;
+    int* result = display_interface_with_interactions(r, "assets/interfaces/structures/skin.dodjo", "skin", &res);
+    if (result != NULL && res >= 2) {
+        int design = result[0];
+        int color = result[1];
+        set_player_color(p, color);
+    }
 }
 
 // Mark rows as changed and update the screen.

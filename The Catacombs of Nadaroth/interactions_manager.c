@@ -33,6 +33,7 @@ typedef struct {
 
     // runtime index
     int current_index;
+    int weight;
 } UIAnimation;
 
 typedef struct InteractionSet {
@@ -252,7 +253,7 @@ bool load_interactions_file(const char* filename, const char* id) {
         } else if (l[0] == '[') {
             // animation line:
             // [a,b]:{pos,pos,..}:[pattern]
-            int a = -1, b = -1;
+            int a = -1, b = -1, w = 0;
             char posbuf[1024] = {0};
             char patternbuf[256] = {0};
             // We'll parse roughly: scan "[a,b] : { ... } : [ ... ]"
@@ -266,8 +267,8 @@ bool load_interactions_file(const char* filename, const char* id) {
                     memcpy(tmp, l + 1, len);
                     tmp[len] = '\0';
                     // tmp should be "a,b"
-                    if (sscanf(tmp, "%d , %d", &a, &b) != 2) {
-                        sscanf(tmp, "%d,%d", &a, &b);
+                    if (sscanf(tmp, "%d , %d , %d", &a, &b, &w) != 2) {
+                        sscanf(tmp, "%d,%d,%d", &a, &b, &w);
                     }
                 }
             }
@@ -297,6 +298,7 @@ bool load_interactions_file(const char* filename, const char* id) {
             memset(anim, 0, sizeof(UIAnimation));
             anim->act_dec = a;
             anim->act_inc = b;
+            anim->weight = w;
             anim->positions = parse_pos_list(posbuf, &anim->pos_count);
             anim->pattern = parse_bracket_pattern(p_pat_l ? p_pat_l - 1 : "[]");  // safe fallback
             if (!anim->pattern) {
@@ -374,18 +376,18 @@ void unload_interactions(const char* id) {
 }
 
 // main loop: display interface and handle interactions
-void display_interface_with_interactions_main(Render_Buffer* r, const char* visual_filename, const char* interaction_id) {
+int* display_interface_with_interactions_main(Render_Buffer* r, const char* visual_filename, const char* interaction_id, int* out_selected_indices) {
+    *out_selected_indices = 0;
     // open visual file and fill board like display_interface
     FILE* file = fopen(visual_filename, "r");
     if (!file) {
         perror("Error opening visual file");
-        return;
+        return NULL;
     }
     InteractionSet* set = find_set_by_id(interaction_id);
 
     setup_render_buffer(r);
 
-    render_string(r, -8, -18, " PRESS [H] TO EXIT", 19);
     read_text_into_render(r, file);
     fclose(file);
 
@@ -394,7 +396,7 @@ void display_interface_with_interactions_main(Render_Buffer* r, const char* visu
         update_screen(r);
         while (!USE_KEY('H') && !USE_KEY('h'));
         finalize_render_buffer(r);
-        return;
+        return NULL;
     }
 
     // Draw initial animations (index 0 for all)
@@ -451,8 +453,12 @@ void display_interface_with_interactions_main(Render_Buffer* r, const char* visu
     // Main interaction loop: update animations when corresponding actions keys pressed.
     // We'll sample keys with USE_KEY for the mapped chars (g_dir_keys).
     while (1) {
-        // exit check
-        // if (USE_KEY('H') || USE_KEY('h')) break;
+        // exit checks
+        // if (USE_KEY('H') || USE_KEY('h')) {
+        //     finalize_render_buffer(r);
+        //     return NULL;
+        // }
+        if (USE_KEY('H') || USE_KEY('h') || USE_KEY('\n')) break;
 
         // Poll all direction keys and produce action ids 0..3
         bool any_action = false;
@@ -509,7 +515,7 @@ void display_interface_with_interactions_main(Render_Buffer* r, const char* visu
                         i_clear++;
                     }
                 }
-                clear_pattern_at(r, oldp, pat_len);
+                clear_pattern_at(r, oldp, pat_len, a->weight);
 
                 // draw new
                 int idx = a->current_index % a->pos_count;
@@ -528,7 +534,7 @@ void display_interface_with_interactions_main(Render_Buffer* r, const char* visu
                     if (a->has_color_placeholder && symbol_str_draw &&
                         i_draw + symbol_len_draw < pat_len_draw &&
                         memcmp(&a->pattern[i_draw], symbol_str_draw, symbol_len_draw) == 0) {
-                        i_draw += symbol_len_draw;  // skip §
+                        i_draw += symbol_len_draw;  // skip §.
                         if (i_draw < pat_len_draw) {
                             out_pattern[out_len] = a->pattern[i_draw];
                             int color_val = COLOR_DEFAULT;
@@ -557,5 +563,14 @@ void display_interface_with_interactions_main(Render_Buffer* r, const char* visu
         usleep(80000);
     }
 
+    *out_selected_indices = set->anim_count;
+    int* selected_indices = malloc(sizeof(int) * set->anim_count);
+    for (int ai = 0; ai < set->anim_count; ai++) {
+        UIAnimation* a = set->anims[ai];
+        selected_indices[ai] = a->current_index % a->pos_count;
+    }
+
     finalize_render_buffer(r);
+
+    return selected_indices;
 }

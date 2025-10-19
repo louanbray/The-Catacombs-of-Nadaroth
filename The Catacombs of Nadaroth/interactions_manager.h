@@ -21,5 +21,5 @@ void unload_interactions(const char* id);
 
 // Optionnel : remapper les touches de direction (0..3)
 void set_direction_key(int dir_index, char key);
-void display_interface_with_interactions_main(Render_Buffer* r, const char* visual_filename, const char* interaction_id);
+int* display_interface_with_interactions_main(Render_Buffer* r, const char* visual_filename, const char* interaction_id, int* out_selected_indices);
 #endif  // INTERACTIONS_MANAGER_H

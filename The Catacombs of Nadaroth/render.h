@@ -14,17 +14,6 @@ typedef struct player player;
 typedef struct chunk chunk;
 typedef struct map map;
 
-// Color enumeration (using a small integer type)
-typedef enum Color {
-    COLOR_DEFAULT = 0,
-    COLOR_MAGENTA_BOLD,
-    COLOR_RED,
-    COLOR_YELLOW,
-    COLOR_CYAN_BOLD,
-    COLOR_GREEN,
-    // Extend as needed
-} Color;
-
 // Each cell now stores a wide character and a color.
 typedef struct Cell Cell;
 
@@ -174,7 +163,7 @@ void render_mental_health(Render_Buffer* r, player* p);
  * @param visual_filename Name of the visual file to display.
  * @param interaction_id Identifier for the interaction to use.
  */
-void display_interface_with_interactions(Render_Buffer* r, const char* visual_filename, const char* interaction_id);
+int* display_interface_with_interactions(Render_Buffer* r, const char* visual_filename, const char* interaction_id, int* out_selected_indices);
 
 /**
  * @brief Draws a single pattern at a specified board absolute position with color application.
@@ -196,7 +185,9 @@ void draw_pattern_at(Render_Buffer* r, Pos p, const char* pattern, int color_for
  * @param p Absolute position on the board where the pattern will be cleared.
  * @param pattern_len Length of the pattern to clear (number of spaces to write).
  */
-void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len);
+void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len, int heavy);
+
+void home_menu(Render_Buffer* r, player* p);
 
 void setup_render_buffer(Render_Buffer* r);
 void finalize_render_buffer(Render_Buffer* r);
