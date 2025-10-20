@@ -2,6 +2,7 @@
 
 #include "handler.h"
 #include "map.h"
+#include "statistics.h"
 
 #define START_HEALTH 2
 
@@ -221,6 +222,7 @@ int move_player(player* p, Direction dir) {
     if (n == CAN_MOVE || n == PICKED_UP || n == PICKED_UP_ENTITY) {
         p->x = new_x;
         p->y = new_y;
+        increment_statistic(STAT_DISTANCE_TRAVELED, 1);
     }
 
     return n;

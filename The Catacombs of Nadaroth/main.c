@@ -1,5 +1,6 @@
 #include <pthread.h>
 
+#include "achievements.h"
 #include "assets_manager.h"
 #include "audio_manager.h"
 #include "entity.h"
@@ -10,6 +11,7 @@
 #include "player.h"
 #include "projectile.h"
 #include "render.h"
+#include "statistics.h"
 
 static int SEED;
 
@@ -195,6 +197,8 @@ int main() {
     init_assets_system();
     init_loot_tables();
     init_interactions_system();
+    load_achievements();
+    load_statistics();
     load_interactions_file("assets/interfaces/structures/skin.interact.dodjo", "skin");
 
     // if (init_audio() != 0) exit(EXIT_FAILURE);

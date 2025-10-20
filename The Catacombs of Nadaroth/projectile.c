@@ -1,5 +1,6 @@
 #include "projectile.h"
 
+#include "achievements.h"
 #include "assets_manager.h"
 #include "constants.h"
 #include "entity.h"
@@ -7,6 +8,7 @@
 #include "input_manager.h"
 #include "player.h"
 #include "render.h"
+#include "statistics.h"
 
 #define MAX_PROJECTILES 128
 
@@ -140,6 +142,8 @@ void projectile_callback(int x, int y, projectile_data* data) {
             e->hp -= data->damage;
 
             if (e->hp <= 0) {
+                increment_statistic(STAT_ENEMIES_KILLED, 1);
+                set_achievement_progress(ACH_FIRST_BLOOD, 1);
                 add_player_score(data->p, e->score);
                 set_dyn(get_chunk_enemies(get_player_chunk(data->p)), e->from_id, NULL);
                 if (is_entity) {

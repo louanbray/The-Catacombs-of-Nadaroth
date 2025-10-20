@@ -6,3 +6,5 @@ The Catacombs of Nadaroth/build/Debug/outDebug.exe
 .vscode/c_cpp_properties.json
 *.o
 The Catacombs of Nadaroth/chunk_builder.py
+The Catacombs of Nadaroth/assets/data/player_achievements.dodjo
+The Catacombs of Nadaroth/assets/data/player_statistics.dodjo

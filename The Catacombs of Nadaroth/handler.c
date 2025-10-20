@@ -5,6 +5,7 @@
 #include "entity.h"
 #include "generation.h"
 #include "loot_manager.h"
+#include "statistics.h"
 
 /// @brief Returns the part of the map the player is in as a direction (USED ONLY FOR GATES)
 /// @param x player x
@@ -35,6 +36,7 @@ int pickup_lootable_from_chunk(player* p, item* i) {
 
     lootable* loot = get_item_spec(i);
     pickup(get_player_hotbar(p), generate_loot(loot));
+    increment_statistic(STAT_CHEST_OPENED, 1);
 
     return PICKED_UP_ENTITY;
 }
