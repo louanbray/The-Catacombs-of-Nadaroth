@@ -6,8 +6,8 @@
 typedef struct Render_Buffer Render_Buffer;
 
 // Initialise / détruit le système
-void init_interactions_system(void);
-void destroy_interactions_system(void);
+void init_interactions_system();
+void destroy_interactions_system();
 
 // Charge un fichier d'interactions et l'associe à un id (ex "skin").
 // Le fichier d'interactions est un fichier texte contenant des lignes comme:

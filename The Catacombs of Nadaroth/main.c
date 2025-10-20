@@ -15,6 +15,19 @@
 
 static int SEED;
 
+/// @brief
+/// Initialize global game state and core subsystems.
+void init_game_system() {
+    SEED = time(NULL);
+    srand(SEED);
+    init_terminal();
+    init_assets_system();
+    init_loot_tables();
+    init_interactions_system();
+    load_achievements();
+    load_statistics();
+}
+
 /// @brief Handle the player movement and use the appropriate render
 /// @param b board
 /// @param p player
@@ -191,20 +204,12 @@ void* process_input_thread(void* arg) {
 /// @brief Where it all begins
 /// @return I dream of a 0
 int main() {
-    SEED = time(NULL);
-    srand(SEED);
-    init_terminal();
-    init_assets_system();
-    init_loot_tables();
-    init_interactions_system();
-    load_achievements();
-    load_statistics();
-    load_interactions_file("assets/interfaces/structures/skin.interact.dodjo", "skin");
+    init_game_system();
 
     // if (init_audio() != 0) exit(EXIT_FAILURE);
-
     // play_bgm("assets/audio/background.mp3", 1);
 
+    // ------------------- Create core game objects -------------------
     Render_Buffer* screen = create_screen();
 
     map* m = create_map();
@@ -216,6 +221,7 @@ int main() {
 
     init_projectile_system(screen, p);
 
+    // ------------------- Start input processing thread -------------------
     pthread_t input_thread;
     InputThreadArgs input_args = {p, screen, fire_projectile, interact, arrow_move, compute_entry};
 
@@ -224,8 +230,10 @@ int main() {
 
     pthread_detach(input_thread);
 
+    // ------------------- Initial renders -------------------
     update_screen(screen);
 
+    // ------------------- Show home menu and help -------------------
     home_menu(screen, p);
     display_interface(screen, "assets/interfaces/structures/help.dodjo");
     play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 1000000);
@@ -233,6 +241,7 @@ int main() {
     render(screen, m);
     update_screen(screen);
 
+    // ------------------- Main game loop -------------------
     for (;;) {
         if (GAME_PAUSED) {
             if (USE_KEY('P') || USE_KEY('p')) {

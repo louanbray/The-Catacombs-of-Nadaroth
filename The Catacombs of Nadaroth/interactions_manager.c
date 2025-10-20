@@ -147,12 +147,14 @@ static InteractionSet* create_interaction_set(const char* id) {
     return s;
 }
 
-void init_interactions_system(void) {
+void init_interactions_system() {
     g_sets = NULL;
     g_set_count = 0;
+
+    load_interactions_file("assets/interfaces/structures/skin.interact.dodjo", "skin");
 }
 
-void destroy_interactions_system(void) {
+void destroy_interactions_system() {
     for (int si = 0; si < g_set_count; si++) {
         InteractionSet* s = g_sets[si];
         for (int ai = 0; ai < s->anim_count; ai++) {
