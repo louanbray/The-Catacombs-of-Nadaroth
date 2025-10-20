@@ -41,7 +41,7 @@ player* create_player(map* m) {
     p->arrow_speed = 6;
     p->infinite_range = false;
     p->hotbar = NULL;
-    p->design = 9210;
+    p->design = PLAYER_DESIGN_BALL;
     p->name = NULL;
     p->map = m;
     p->phase = INTRODUCTION;
@@ -193,6 +193,10 @@ void set_player_damage(player* p, unsigned int damage) {
 
 void set_player_color(player* p, Color color) {
     p->color = color;
+}
+
+void set_player_design(player* p, int design) {
+    p->design = design;
 }
 
 void link_hotbar(player* p, hotbar* h) {

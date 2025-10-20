@@ -260,6 +260,8 @@ void set_player_phase(player* p, GamePhase phase);
  */
 void set_player_color(player* p, Color color);
 
+void set_player_design(player* p, int design);
+
 /**
  * @brief Increments the player's game phase to the next phase
  *

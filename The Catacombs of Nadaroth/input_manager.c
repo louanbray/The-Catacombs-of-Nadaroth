@@ -1,9 +1,12 @@
 #include "input_manager.h"
+
 #include <time.h>
 
 #define MAX_KEYS 256
 #define MAX_BUFFER_SIZE 1024
 
+static bool arrow_states[4] = {false, false, false, false};
+static bool arrows_pressed_last_frame[4] = {false, false, false, false};
 static bool key_states[MAX_KEYS] = {false};
 static bool key_pressed_last_frame[MAX_KEYS] = {false};
 static bool unlock = true;
@@ -194,6 +197,14 @@ void release_key(unsigned char key) {
     key_pressed_last_frame[key] = false;
 }
 
+bool get_arrow_state(unsigned char key) {
+    return arrows_pressed_last_frame[key];
+}
+
+void release_arrow(unsigned char key) {
+    arrows_pressed_last_frame[key] = false;
+}
+
 void lock_inputs() {
     unlock = false;
 }
@@ -261,6 +272,8 @@ void process_input(player* p, Render_Buffer* screen,
                 if (unlock)
                     arrow_key_callback(screen, p, (input_buffer + processed)[2]);
 
+                arrow_states[(input_buffer + processed)[2] - 'A'] = true;
+
                 processed += 3;  // Arrow keys are 3 bytes
             } else if ((input_buffer[processed] >= 32 && input_buffer[processed] <= 126) ||
                        input_buffer[processed] == '\n' || input_buffer[processed] == '\r') {
@@ -280,9 +293,11 @@ void process_input(player* p, Render_Buffer* screen,
 
         // Store the current state before resetting key_states
         memcpy(key_pressed_last_frame, key_states, sizeof(key_states));
+        memcpy(arrows_pressed_last_frame, arrow_states, sizeof(arrow_states));
 
         // Reset key states for next loop iteration
         memset(key_states, 0, sizeof(key_states));
+        memset(arrow_states, 0, sizeof(arrow_states));
 
         // Move unprocessed data to the beginning of the buffer
         if (processed < input_buffer_length) {

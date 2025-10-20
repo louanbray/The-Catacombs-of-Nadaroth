@@ -646,7 +646,7 @@ void display_interface(Render_Buffer* r, const char* filename) {
 
     update_screen(r);
 
-    while (!USE_KEY('H') && !USE_KEY('h'));
+    while (!USE_KEY('H') && !USE_KEY('h') && !USE_KEY('\n') && !USE_KEY(' '));
 
     finalize_render_buffer(r);
     fclose(file);
@@ -716,6 +716,7 @@ void home_menu(Render_Buffer* r, player* p) {
     if (result != NULL && res >= 2) {
         int design = result[0];
         int color = result[1];
+        if (design == 1) set_player_design(p, PLAYER_DESIGN_CAMO);
         set_player_color(p, color);
     }
 }

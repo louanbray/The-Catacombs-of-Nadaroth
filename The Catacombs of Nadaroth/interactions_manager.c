@@ -55,6 +55,7 @@ static int g_set_count = 0;
 // default key mapping for direction indices 0..3
 // 0 = UP, 1 = RIGHT, 2 = DOWN, 3 = LEFT
 static char g_dir_keys[4] = {'z', 'd', 's', 'q'};
+static int g_dir_arrows[4] = {0, 2, 1, 3};
 
 // ----- Helpers -----
 static InteractionSet* find_set_by_id(const char* id) {
@@ -454,17 +455,13 @@ int* display_interface_with_interactions_main(Render_Buffer* r, const char* visu
     // We'll sample keys with USE_KEY for the mapped chars (g_dir_keys).
     while (1) {
         // exit checks
-        // if (USE_KEY('H') || USE_KEY('h')) {
-        //     finalize_render_buffer(r);
-        //     return NULL;
-        // }
-        if (USE_KEY('H') || USE_KEY('h') || USE_KEY('\n')) break;
+        if (USE_KEY('H') || USE_KEY('h') || USE_KEY('\n') || USE_KEY(' ')) break;
 
         // Poll all direction keys and produce action ids 0..3
         bool any_action = false;
         int action_indices[4] = {0, 0, 0, 0};
         for (int d = 0; d < 4; d++) {
-            if (USE_KEY(g_dir_keys[d])) {
+            if (USE_KEY(g_dir_keys[d]) || USE_ARROW(g_dir_arrows[d])) {
                 action_indices[d] = 1;
                 any_action = true;
             }

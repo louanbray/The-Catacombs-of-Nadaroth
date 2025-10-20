@@ -13,8 +13,10 @@
 #include <unistd.h>
 #include <wchar.h>
 
-#define KEY_PRESSED(key) (get_key_state((unsigned char)(key)))                                                  //! [/!\ RESETS ONLY AFTER OTHER KEY EVENT]
-#define USE_KEY(key) (get_key_state((unsigned char)(key)) ? (release_key((unsigned char)(key)), true) : false)  //! ['EAT' THE KEY, SIMULATE A RELEASE]
+#define KEY_PRESSED(key) (get_key_state((unsigned char)(key)))                                                        //! [/!\ RESETS ONLY AFTER OTHER KEY EVENT]
+#define USE_KEY(key) (get_key_state((unsigned char)(key)) ? (release_key((unsigned char)(key)), true) : false)        //! ['EAT' THE KEY, SIMULATE A RELEASE]
+#define ARROW_PRESSED(key) (get_arrow_state((unsigned char)(key)))                                                    //! [/!\ RESETS ONLY AFTER OTHER KEY EVENT]
+#define USE_ARROW(key) (get_arrow_state((unsigned char)(key)) ? (release_arrow((unsigned char)(key)), true) : false)  //! ['EAT' THE KEY, SIMULATE A RELEASE]
 
 typedef struct Render_Buffer Render_Buffer;
 typedef struct player player;
@@ -65,6 +67,23 @@ bool get_key_state(unsigned char key);
  * @param key The key to be released. This is an unsigned char representing the key.
  */
 void release_key(unsigned char key);
+
+/**
+ * @brief Checks if a specific arrow key is currently pressed.
+ *
+ * @param key The key to check the state of.
+ * @return true if the key is currently pressed, false otherwise.
+ */
+bool get_arrow_state(unsigned char key);
+
+/**
+ * @brief Releases the specified arrow key.
+ *
+ * This function is called to release a key that was previously pressed.
+ *
+ * @param key The key to be released. This is an unsigned char representing the key.
+ */
+void release_arrow(unsigned char key);
 
 /**
  * @brief Locks the inputs by setting the unlock flag to false.
