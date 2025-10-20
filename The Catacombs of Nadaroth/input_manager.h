@@ -95,4 +95,11 @@ void lock_inputs();
  */
 void unlock_inputs();
 
+/**
+ * @brief Checks if CTRL+C was pressed (returns true once and resets the flag).
+ *
+ * @return true if CTRL+C was pressed, false otherwise.
+ */
+bool check_ctrl_c();
+
 #endif

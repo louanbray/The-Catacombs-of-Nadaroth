@@ -4,12 +4,14 @@
 
 #define MAX_KEYS 256
 #define MAX_BUFFER_SIZE 1024
+#define CTRL_C 0x03  // CTRL+C character code
 
 static bool arrow_states[4] = {false, false, false, false};
 static bool arrows_pressed_last_frame[4] = {false, false, false, false};
 static bool key_states[MAX_KEYS] = {false};
 static bool key_pressed_last_frame[MAX_KEYS] = {false};
 static bool unlock = true;
+static volatile bool ctrl_c_pressed = false;
 
 static struct termios original_termios;  // Global to store original terminal settings
 
@@ -43,8 +45,9 @@ void handle_signal(int signo) {
 /// @brief Ensure restoration on program exit
 void setup_terminal_restoration() {
     save_original_mode();
-    atexit(restore_terminal_mode);   // Ensure restoration on normal exit
-    signal(SIGINT, handle_signal);   // Handle Ctrl+C (SIGINT)
+    atexit(restore_terminal_mode);  // Ensure restoration on normal exit
+    // Note: SIGINT is disabled at the terminal level (ISIG flag)
+    // so CTRL+C generates character 0x03 instead of a signal
     signal(SIGTERM, handle_signal);  // Handle termination signals
 }
 
@@ -59,9 +62,10 @@ void set_raw_mode() {
     }
 
     // Modify the terminal attributes for raw mode
-    t.c_lflag &= ~(ICANON | ECHO);  // Disable canonical mode and echo
-    t.c_cc[VMIN] = 1;               // Minimum number of characters to read
-    t.c_cc[VTIME] = 0;              // Timeout (deciseconds) for read
+    t.c_lflag &= ~(ICANON | ECHO | ISIG);  // Disable canonical mode, echo, and signal generation
+    t.c_iflag &= ~(IXON);                  // Disable flow control (CTRL+S/CTRL+Q)
+    t.c_cc[VMIN] = 1;                      // Minimum number of characters to read
+    t.c_cc[VTIME] = 0;                     // Timeout (deciseconds) for read
 
     tcsetattr(STDIN_FILENO, TCSANOW, &t);
 }
@@ -273,6 +277,10 @@ void process_input(player* p, Render_Buffer* screen,
                 arrow_states[(input_buffer + processed)[2] - 'A'] = true;
 
                 processed += 3;  // Arrow keys are 3 bytes
+            } else if (input_buffer[processed] == CTRL_C) {
+                // CTRL+C detected in raw mode
+                ctrl_c_pressed = true;
+                processed++;
             } else if ((input_buffer[processed] >= 32 && input_buffer[processed] <= 126) ||
                        input_buffer[processed] == '\n' || input_buffer[processed] == '\r') {
                 unsigned char key = (unsigned char)input_buffer[processed];
@@ -304,4 +312,12 @@ void process_input(player* p, Render_Buffer* screen,
 
         input_buffer_length -= processed;
     }
+}
+
+bool check_ctrl_c() {
+    if (ctrl_c_pressed) {
+        ctrl_c_pressed = false;
+        return true;
+    }
+    return false;
 }

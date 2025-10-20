@@ -6,6 +6,7 @@
 #include "entity.h"
 #include "game_status.h"
 #include "input_manager.h"
+#include "logger.h"
 #include "loot_manager.h"
 #include "map.h"
 #include "player.h"
@@ -18,6 +19,7 @@ static int SEED;
 /// @brief
 /// Initialize global game state and core subsystems.
 void init_game_system() {
+    init_logger();  // Initialize logger first
     SEED = time(NULL);
     srand(SEED);
     init_terminal();
@@ -26,6 +28,7 @@ void init_game_system() {
     init_interactions_system();
     load_achievements();
     load_statistics();
+    LOG_INFO("Game system initialized with SEED: %d", SEED);
 }
 
 /// @brief Handle the player movement and use the appropriate render
@@ -243,6 +246,11 @@ int main() {
 
     // ------------------- Main game loop -------------------
     for (;;) {
+        if (check_ctrl_c()) {
+            LOG_INFO("CTRL+C detected, initiating graceful shutdown...");
+            break;
+        }
+
         if (GAME_PAUSED) {
             if (USE_KEY('P') || USE_KEY('p')) {
                 resume_game();
@@ -258,9 +266,20 @@ int main() {
         }
     }
 
+    // ------------------- Cleanup on exit -------------------
+    LOG_INFO("Starting cleanup...");
+
+    // Save game state
+    save_achievements();
+    save_statistics();
+    LOG_INFO("Game state saved");
+
     // audio_close();
     unload_interactions("skin");
     destroy_interactions_system();
+
+    LOG_INFO("Game session ended normally");
+    close_logger();
 
     return EXIT_SUCCESS;
 }
