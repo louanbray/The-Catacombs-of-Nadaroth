@@ -2,6 +2,7 @@
 #define LOGGER_H
 
 #include <stdio.h>
+#include <time.h>
 
 // Log file handle - defined in logger.c
 extern FILE* g_log_file;

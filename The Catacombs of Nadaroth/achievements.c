@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "constants.h"
+#include "logger.h"
 
 #define PLAYER_FILE "assets/data/player_achievements.dodjo"
 #define DATA_FILE "assets/data/achievements.dodjo"
@@ -47,6 +48,7 @@ void set_achievement_progress(enum AchievementID id, int progress) {
     if (id < 0 || id >= ACHIEVEMENT_COUNT) return;
     if (progress != achievements[id]->progress) {
         achievements[id]->progress = progress;
+        LOG_INFO("Achievement %s progress set to %d/%d", achievements[id]->name, progress, achievements[id]->max_progress);
         save_achievements();
     }
 }

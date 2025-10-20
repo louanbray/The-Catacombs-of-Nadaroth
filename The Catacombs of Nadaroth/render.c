@@ -8,6 +8,7 @@
 #include "game_status.h"
 #include "input_manager.h"
 #include "item.h"
+#include "logger.h"
 #include "map.h"
 #include "player.h"
 
@@ -720,6 +721,7 @@ void home_menu(Render_Buffer* r, player* p) {
         if (design == 1) set_player_design(p, PLAYER_DESIGN_CAMO);
         if (design == 2) set_player_design(p, PLAYER_DESIGN_BRAWLER);
         if (design == 3) set_player_design(p, PLAYER_DESIGN_SHIELD);
+        LOG_INFO("Player changed design to %d and color to %d", get_player_design(p), color);
         set_player_color(p, color);
     }
 }

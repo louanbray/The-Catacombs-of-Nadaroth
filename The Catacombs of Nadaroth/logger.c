@@ -1,7 +1,6 @@
 #include "logger.h"
 
 #include <string.h>
-#include <time.h>
 
 FILE* g_log_file = NULL;
 
