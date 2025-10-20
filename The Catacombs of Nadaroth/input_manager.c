@@ -85,8 +85,6 @@ void init_terminal() {
     set_raw_mode();
     set_nonblocking_mode(STDIN_FILENO);
 
-    srand(time(NULL));
-
     setlocale(LC_CTYPE, "");
     wprintf(L"\33[?25l");                // Disable cursor
     wprintf(L"\033[H\033[J");            // Clear

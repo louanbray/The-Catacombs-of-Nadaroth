@@ -716,11 +716,13 @@ void home_menu(Render_Buffer* r, player* p) {
     if (result != NULL && res >= 2) {
         int design = result[0];
         int color = result[1];
+        if (design == 0) set_player_design(p, PLAYER_DESIGN_BALL);
         if (design == 1) set_player_design(p, PLAYER_DESIGN_CAMO);
+        if (design == 2) set_player_design(p, PLAYER_DESIGN_BRAWLER);
+        if (design == 3) set_player_design(p, PLAYER_DESIGN_SHIELD);
         set_player_color(p, color);
     }
 }
-
 // Mark rows as changed and update the screen.
 void update_line(Render_Buffer* r, int row) {
     mark_changed_rows(r);

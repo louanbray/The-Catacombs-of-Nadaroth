@@ -11,6 +11,8 @@
 #include "projectile.h"
 #include "render.h"
 
+static int SEED;
+
 /// @brief Handle the player movement and use the appropriate render
 /// @param b board
 /// @param p player
@@ -187,6 +189,8 @@ void* process_input_thread(void* arg) {
 /// @brief Where it all begins
 /// @return I dream of a 0
 int main() {
+    SEED = time(NULL);
+    srand(SEED);
     init_terminal();
     init_assets_system();
     init_loot_tables();
