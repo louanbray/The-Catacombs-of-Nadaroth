@@ -275,7 +275,6 @@ int main() {
     LOG_INFO("Game state saved");
 
     // audio_close();
-    unload_interactions("skin");
     destroy_interactions_system();
 
     LOG_INFO("Game session ended normally");
