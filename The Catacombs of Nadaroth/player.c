@@ -285,9 +285,9 @@ void set_player_class(player* p, int class) {
         RANGE = 10;
     } else if (class == 3) {
         p->design = PLAYER_DESIGN_SHIELD;
+        ADDITIONAL_DAMAGE = -0.25;
         ADDITIONAL_HEALTH = 3;
         ADDITIONAL_MAX_HEALTH = 5;
-        ADDITIONAL_DAMAGE = -0.25;
         ADDITIONAL_ARROW_SPEED = -1;
     }
     START_HEALTH += ADDITIONAL_HEALTH;
