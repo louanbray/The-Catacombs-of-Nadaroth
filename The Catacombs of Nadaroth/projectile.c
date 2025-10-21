@@ -35,6 +35,8 @@ typedef struct Projectile {
     int err;                         // Error term
     int from, from_id;               // Character to ignore
     int frame, rate;                 // Animation frame and rate
+    int range;                       // Maximum range (-1 for unlimited)
+    int distance_traveled;           // Distance traveled so far
     char design;                     // Design character
     bool infinity;                   // Is the projectile infinite?
     bool home;                       // Is the projectile homing?
@@ -83,7 +85,13 @@ void update_projectiles(Render_Buffer* r) {
             wprintf(L"\033[%d;%dH ", p->y, p->x * speed);
         }
 
-        if ((c != p->from || !p->home) && (((p->x == p->x1 && p->y == p->y1) && !p->infinity) || c != L' ')) {
+        // Check if range limit is exceeded (only if range >= 0)
+        bool range_exceeded = false;
+        if (p->range >= 0 && p->distance_traveled >= p->range) {
+            range_exceeded = true;
+        }
+
+        if ((c != p->from || !p->home) && (((p->x == p->x1 && p->y == p->y1) && !p->infinity) || c != L' ' || range_exceeded)) {
             p->active = false;
 
             if (p->callback) {
@@ -97,10 +105,12 @@ void update_projectiles(Render_Buffer* r) {
         if (e2 >= p->dy) {
             p->err += p->dy;
             p->x += p->sx;
+            p->distance_traveled++;  // Increment distance when moving horizontally
         }
         if (e2 <= p->dx) {
             p->err += p->dx;
             p->y += p->sy;
+            p->distance_traveled++;  // Increment distance when moving vertically
         }
 
         c = render_get_cell_char(r, RENDER_HEIGHT - p->y, p->x * speed - 1);
@@ -197,7 +207,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
     free(data);
 }
 
-void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, char design, bool infinity, ProjectileCallback callback, projectile_data* callback_data) {
+void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, char design, int range, bool infinity, ProjectileCallback callback, projectile_data* callback_data) {
     pthread_mutex_lock(&projectile_mutex);
     int speed = 2;
     for (int i = 0; i < MAX_PROJECTILES; i++) {
@@ -218,6 +228,8 @@ void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, char d
                 .design = design,
                 .active = true,
                 .home = true,
+                .range = range,
+                .distance_traveled = 0,
                 .infinity = infinity,
                 .callback = callback,
                 .callback_data = callback_data};
@@ -246,6 +258,7 @@ void enemy_attack_projectile(Render_Buffer* r, player* p, item* brain) {
         get_item_display(brain),
         ((enemy*)get_item_spec(brain))->speed,
         '+',
+        -1,
         ((enemy*)get_item_spec(brain))->infinity,
         enemy_attack_callback,
         p_data);
@@ -261,13 +274,13 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
         last_hotbar_index = index;
         item* it = get_selected_item(get_player_hotbar(p));
         set_player_damage(p, 1);
-        set_player_infinite_range(p, false);
+        set_player_infinity(p, false);
         set_player_arrow_speed(p, 6);
         if (it != NULL) {
             UsableItem type = get_item_usable_type(it);
             if (type == BASIC_BOW || type == ADVANCED_BOW || type == SUPER_BOW || type == NADINO_BOW) {
                 set_player_damage(p, get_usable_item_file(type)->specs.specs[1]);
-                set_player_infinite_range(p, get_usable_item_file(type)->specs.specs[2]);
+                set_player_infinity(p, get_usable_item_file(type)->specs.specs[2]);
                 set_player_arrow_speed(p, get_usable_item_file(type)->specs.specs[3]);
             }
         }
@@ -292,7 +305,8 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
         get_player_design(p),
         get_player_arrow_speed(p),
         '*',
-        has_infinite_range(p),
+        get_player_range(p),
+        has_infinity(p),
         projectile_callback,
         p_data);
 }

@@ -715,12 +715,9 @@ void home_menu(Render_Buffer* r, player* p) {
     int res = 0;
     int* result = display_interface_with_interactions(r, "assets/interfaces/structures/skin.dodjo", "skin", &res);
     if (result != NULL && res >= 2) {
-        int design = result[0];
+        int class = result[0];
         int color = result[1];
-        if (design == 0) set_player_design(p, PLAYER_DESIGN_BALL);
-        if (design == 1) set_player_design(p, PLAYER_DESIGN_CAMO);
-        if (design == 2) set_player_design(p, PLAYER_DESIGN_BRAWLER);
-        if (design == 3) set_player_design(p, PLAYER_DESIGN_SHIELD);
+        set_player_class(p, class);
         LOG_INFO("Player changed design to %d and color to %d", get_player_design(p), color);
         set_player_color(p, color);
     }

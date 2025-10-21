@@ -4,7 +4,14 @@
 #include "map.h"
 #include "statistics.h"
 
-#define START_HEALTH 2
+static int START_HEALTH = 2;
+static int START_MAX_HEALTH = 5;
+static int ADDITIONAL_HEALTH = 0;
+static int ADDITIONAL_MAX_HEALTH = 0;
+static float ADDITIONAL_DAMAGE = 0.0;
+static int ADDITIONAL_ARROW_SPEED = 0;
+static int RANGE = -1;
+static bool ACCURACY_MODE = false;
 
 typedef struct player {
     map* map;
@@ -13,7 +20,7 @@ typedef struct player {
     hotbar* hotbar;
     int health, max_health, mental_health;
     int damage, arrow_speed;
-    bool infinite_range;
+    int range, infinity;
     int design;
     Color color;
     int score, deaths;
@@ -37,10 +44,11 @@ player* create_player(map* m) {
     p->deaths = 0;
     p->health = START_HEALTH;
     p->mental_health = 4;
-    p->max_health = 5;
+    p->max_health = START_MAX_HEALTH;
     p->damage = 1;
     p->arrow_speed = 6;
-    p->infinite_range = false;
+    p->range = RANGE;
+    p->infinity = false;
     p->hotbar = NULL;
     p->design = PLAYER_DESIGN_BALL;
     p->name = NULL;
@@ -115,11 +123,15 @@ int get_player_max_health(player* p) {
 }
 
 int get_player_damage(player* p) {
-    return p->damage;
+    return p->damage + (int)(p->damage * ADDITIONAL_DAMAGE);
 }
 
-bool has_infinite_range(player* p) {
-    return p->infinite_range;
+int get_player_range(player* p) {
+    return p->range;
+}
+
+bool has_infinity(player* p) {
+    return p->infinity && (!ACCURACY_MODE);
 }
 
 int get_player_score(player* p) {
@@ -127,7 +139,7 @@ int get_player_score(player* p) {
 }
 
 int get_player_arrow_speed(player* p) {
-    return p->arrow_speed;
+    return p->arrow_speed - ADDITIONAL_ARROW_SPEED;
 }
 
 int get_player_deaths(player* p) {
@@ -172,12 +184,16 @@ void set_player_arrow_speed(player* p, int speed) {
     p->arrow_speed = speed;
 }
 
-void set_player_infinite_range(player* p, bool infinite) {
-    p->infinite_range = infinite;
+void set_player_range(player* p, int range) {
+    p->range = range;
 }
 
 void set_player_score(player* p, int score) {
     p->score = score;
+}
+
+void set_player_infinity(player* p, bool infinite) {
+    p->infinity = infinite;
 }
 
 void add_player_score(player* p, int score) {
@@ -248,6 +264,37 @@ void heal_player(player* p, int heal) {
         return;
     }
     p->health += heal;
+}
+
+void set_player_class(player* p, int class) {
+    if (class == 0)
+        p->design = PLAYER_DESIGN_BALL;
+    else if (class == 1) {
+        p->design = PLAYER_DESIGN_CAMO;
+        ADDITIONAL_DAMAGE = 0.25;
+        ADDITIONAL_HEALTH = -1;
+        ADDITIONAL_MAX_HEALTH = -2;
+        ADDITIONAL_ARROW_SPEED = 2;
+        ACCURACY_MODE = true;
+    } else if (class == 2) {
+        p->design = PLAYER_DESIGN_BRAWLER;
+        ADDITIONAL_DAMAGE = 0.5;
+        ADDITIONAL_HEALTH = 2;
+        ADDITIONAL_MAX_HEALTH = 3;
+        ADDITIONAL_ARROW_SPEED = -2;
+        RANGE = 10;
+    } else if (class == 3) {
+        p->design = PLAYER_DESIGN_SHIELD;
+        ADDITIONAL_HEALTH = 3;
+        ADDITIONAL_MAX_HEALTH = 5;
+        ADDITIONAL_DAMAGE = -0.25;
+        ADDITIONAL_ARROW_SPEED = -1;
+    }
+    START_HEALTH += ADDITIONAL_HEALTH;
+    START_MAX_HEALTH += ADDITIONAL_MAX_HEALTH;
+    p->health = START_HEALTH;
+    p->max_health = START_MAX_HEALTH;
+    p->range = RANGE;
 }
 
 void destroy_player_cchunk(player* p) {

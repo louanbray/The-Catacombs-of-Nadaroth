@@ -128,7 +128,7 @@ void destroy_player_cchunk(player* p);
  * @param p Pointer to the player structure.
  * @return true if the player has infinite range, false otherwise.
  */
-bool has_infinite_range(player* p);
+int get_player_range(player* p);
 
 /**
  * @brief Retrieves the score of the player.
@@ -144,7 +144,7 @@ int get_player_score(player* p);
  * @param p Pointer to the player structure.
  * @param infinite Boolean value indicating whether to enable or disable infinite range.
  */
-void set_player_infinite_range(player* p, bool infinite);
+void set_player_range(player* p, int range);
 
 /**
  * @brief Sets the score of the player.
@@ -212,6 +212,8 @@ int get_player_mental_health(player* p);
  */
 Color get_player_color(player* p);
 
+bool has_infinity(player* p);
+
 /**
  * @brief Increments the death count of a player
  *
@@ -261,6 +263,10 @@ void set_player_phase(player* p, GamePhase phase);
 void set_player_color(player* p, Color color);
 
 void set_player_design(player* p, int design);
+
+void set_player_class(player* p, int class);
+
+void set_player_infinity(player* p, bool infinite);
 
 /**
  * @brief Increments the player's game phase to the next phase

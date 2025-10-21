@@ -4,7 +4,7 @@
 
 FILE* g_log_file = NULL;
 
-#define LOG_FILE_PATH "game.log"
+#define LOG_FILE_PATH "assets/data/game.log"
 
 void init_logger() {
     g_log_file = fopen(LOG_FILE_PATH, "a");

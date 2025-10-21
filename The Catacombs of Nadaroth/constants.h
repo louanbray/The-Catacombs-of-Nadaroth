@@ -57,10 +57,11 @@ TODO LIST:
 - Implement the mecanics below / missing items                                                                                    [DEV] (MEDIUM)        {DONE}
 - Work on the designs of the items and chunks                                                                                     [RENDER] (MEDIUM)     {DONE}
 - Implement status menu                                                                                                           [RENDER/DEV] (LOW)
-- Work on menus (!!Username!!, character selection, stat attribution aso...)                                                      [RENDER/DEV] (LOW)
+- Work on menus (!!Username!!, stat attribution aso...)                                                                           [RENDER/DEV] (LOW)
 - Add cinematics                                                                                                                  [RENDER] (LOW)        {DONE - Lore}
 - [Rework render concept to add mental health effect (limited vision)] -> //?Better lore                                          [RENDER/DEV] (LOW)    {DONE}
-- Add stats and achievements objects                                                                                              [RENDER/DEV] (LOW)
+- Add stats and achievements objects                                                                                              [DEV] (LOW)           {DONE}
+- Have a way to render achievements and stats on the screen                                                                       [RENDER] (LOW)
 - Saving Games, opening and sharing                                                                                               [DEV/RENDER] (LOW)
 - Update Entity / Chunk editor                                                                                                    [DEV] (LOW)
 - Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
