@@ -259,27 +259,26 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        if (GAME_PAUSED) {
-            if (USE_KEY('P') || USE_KEY('p')) {
-                resume_game();
-                unlock_inputs();
-            }
-            continue;
-        } else if (USE_KEY('H') || USE_KEY('h')) {
+        if (USE_KEY('H') || USE_KEY('h')) {
             display_interface(screen, "assets/interfaces/structures/help.dodjo");
         } else if (USE_KEY('E') || USE_KEY('e')) {
             display_item_description(screen, get_selected_item(h));
-        } else if (USE_KEY('R') || USE_KEY('r')) {
-            kill_all_projectiles(screen);
-        } else if (USE_KEY('P') || USE_KEY('p')) {
-            pause_game();
-            lock_inputs();
         }
 
         if (is_debug_mode()) {
             if (USE_KEY('I') || USE_KEY('i')) {
                 set_player_can_die(!can_player_die());
                 LOG_INFO("Player can_die set to %d", can_player_die());
+            } else if (USE_KEY('P') || USE_KEY('p')) {
+                if (GAME_PAUSED) {
+                    resume_game();
+                    unlock_inputs();
+                } else {
+                    pause_game();
+                    lock_inputs();
+                }
+            } else if (USE_KEY('R') || USE_KEY('r')) {
+                kill_all_projectiles(screen);
             }
         }
     }
