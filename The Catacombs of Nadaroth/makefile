@@ -62,6 +62,10 @@ $(BUILD_DIR):
 run: $(TARGET)
 	$(RUN_CMD)
 
+# Run the executable
+debug: $(TARGET)
+	$(RUN_CMD) -debug
+
 # Debug with valgrind (for Linux/macOS)
 run_debug: $(TARGET)
 	valgrind --leak-check=full --show-leak-kinds=definite --track-origins=yes -s $(TARGET)

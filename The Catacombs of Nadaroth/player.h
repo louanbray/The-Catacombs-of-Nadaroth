@@ -268,9 +268,13 @@ void set_player_class(player* p, int class);
 
 void set_player_infinity(player* p, bool infinite);
 
+void set_player_can_die(bool can_die);
+
 int distance_to_player_sq(player* p, int x, int y);
 
 bool is_player_aggroed(player* p, int x, int y);
+
+bool can_player_die();
 
 /**
  * @brief Increments the player's game phase to the next phase

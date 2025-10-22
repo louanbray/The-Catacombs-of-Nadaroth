@@ -13,6 +13,7 @@ static int ADDITIONAL_ARROW_SPEED = 0;
 static int RANGE = -1;
 static bool ACCURACY_MODE = false;
 static int AGGRO_RANGE = -1;
+static int CAN_DIE = true;
 
 typedef struct player {
     map* map;
@@ -251,6 +252,7 @@ void move_player_chunk(player* p, Direction dir) {
 }
 
 bool damage_player(player* p, int damage) {
+    if (!CAN_DIE) return false;
     if (p->health - damage <= 0) {
         p->health = 0;
         return true;
@@ -314,4 +316,12 @@ int distance_to_player_sq(player* p, int x, int y) {
 bool is_player_aggroed(player* p, int x, int y) {
     if (AGGRO_RANGE == -1) return true;
     return distance_to_player_sq(p, x, y) <= AGGRO_RANGE * AGGRO_RANGE;
+}
+
+void set_player_can_die(bool can_die) {
+    CAN_DIE = can_die;
+}
+
+bool can_player_die() {
+    return CAN_DIE;
 }

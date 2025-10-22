@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <string.h>
 
 #include "achievements.h"
 #include "assets_manager.h"
@@ -206,8 +207,15 @@ void* process_input_thread(void* arg) {
 
 /// @brief Where it all begins
 /// @return I dream of a 0
-int main() {
+int main(int argc, char* argv[]) {
     init_game_system();
+
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-debug") == 0) {
+            set_debug_mode(1);
+            break;
+        }
+    }
 
     // if (init_audio() != 0) exit(EXIT_FAILURE);
     // play_bgm("assets/audio/background.mp3", 1);
@@ -263,6 +271,16 @@ int main() {
             display_item_description(screen, get_selected_item(h));
         } else if (USE_KEY('R') || USE_KEY('r')) {
             kill_all_projectiles(screen);
+        } else if (USE_KEY('P') || USE_KEY('p')) {
+            pause_game();
+            lock_inputs();
+        }
+
+        if (is_debug_mode()) {
+            if (USE_KEY('I') || USE_KEY('i')) {
+                set_player_can_die(!can_player_die());
+                LOG_INFO("Player can_die set to %d", can_player_die());
+            }
         }
     }
 
