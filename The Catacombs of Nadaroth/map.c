@@ -83,7 +83,7 @@ chunk* get_chunk(map* m, int x, int y) {
     IS_NEW_CHUNK = true;
     if (get_achievement_progress(ACH_MASTER_EXPLORER) < 11)
         add_achievement_progress(ACH_MASTER_EXPLORER, 1);
-    if (get_achievement_progress(ACH_MASTER_EXPLORER) % 11 == 0 && get_statistic(STAT_DISTANCE_TRAVELED) >= 100000) {
+    if (get_achievement_progress(ACH_MASTER_EXPLORER) % 11 == 0 && get_statistic(STAT_DISTANCE_TRAVELED) >= 10000) {
         add_achievement_progress(ACH_MASTER_EXPLORER, 1);
     }
     ck = generate_chunk(x, y);
