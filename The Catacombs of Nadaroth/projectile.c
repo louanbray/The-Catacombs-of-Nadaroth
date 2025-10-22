@@ -319,8 +319,9 @@ void* projectile_loop(void* args) {
     player* p = arg->p;
 
     int* enemy_attack_timers = NULL;
-    chunk* current_chunk = get_player_chunk(p);
     int* enemy_ids = NULL;
+    chunk* current_chunk = NULL;
+    int current_enemy_count = 0;
 
     struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666667};  // 60 FPS
 
@@ -333,18 +334,22 @@ void* projectile_loop(void* args) {
 
         chunk* c = get_player_chunk(p);
         dynarray* d = get_chunk_enemies(c);
-        int current_enemy_count = len_dyn(d);
+        int new_enemy_count = len_dyn(d);
 
-        if (c != current_chunk) {
+        if (c != current_chunk || new_enemy_count != current_enemy_count) {
             free(enemy_attack_timers);
             free(enemy_ids);
             current_chunk = c;
-            enemy_attack_timers = malloc(current_enemy_count * sizeof(int));
-            enemy_ids = malloc(current_enemy_count * sizeof(int));
+            current_enemy_count = new_enemy_count;
+            
+            if (current_enemy_count > 0) {
+                enemy_attack_timers = malloc(current_enemy_count * sizeof(int));
+                enemy_ids = malloc(current_enemy_count * sizeof(int));
 
-            for (int i = 0; i < current_enemy_count; i++) {
-                enemy_attack_timers[i] = rand() % 30 + 180;  // 60-90 frames before starting to attack
-                enemy_ids[i] = i;
+                for (int i = 0; i < current_enemy_count; i++) {
+                    enemy_attack_timers[i] = rand() % 30 + 180;  // 60-90 frames before starting to attack
+                    enemy_ids[i] = i;
+                }
             }
         }
 
