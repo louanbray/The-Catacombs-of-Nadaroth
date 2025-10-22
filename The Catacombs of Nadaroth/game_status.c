@@ -5,7 +5,7 @@
 pthread_mutex_t pause_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t pause_cond = PTHREAD_COND_INITIALIZER;
 int GAME_PAUSED = 0;
-int DEBUG_MODE = 0;
+static int DEBUG_MODE = 0;
 
 void pause_game(void) {
     pthread_mutex_lock(&pause_mutex);

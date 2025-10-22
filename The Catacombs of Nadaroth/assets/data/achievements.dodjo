@@ -1,15 +1,15 @@
-0;First Blood;Do your first kill;1;1
-1; ; ;1;1
-2; ; ;1;1
-3; ; ;1;1
-4; ; ;1;1
-5; ; ;1;1
-6; ; ;1;1
-7; ; ;1;1
-8; ; ;1;1
-9; ; ;1;1
-10; ; ;1;1
-11; ; ;1;1
-12; ; ;1;1
-13; ; ;1;1
-14; ; ;1;1
+0;First Blood;Take your first damage;1;1
+1;Monster Hunter;Get your first kill;2;1
+2;Treasure Seeker;Open your first chest;1;1
+3;Unstoppable;Kill three enemies without taking damage;5;3
+4;Master Explorer;Survive 10 rooms without dying once and walk more than 100 000 steps (all time);10;12
+5;Puzzle Solver;Unobtainable;0;666
+6;Speed Runner;Beat the game without losing mental health in less than 10 minutes;25;1
+7;Survivor;Explore five new rooms in succession with a single HP;10;5
+8;Loot Collector;Collect over 100 chests;5;100
+9;Secret Finder;Get your first Nadino-tier loot;7;1
+10;Boss Slayer;Slay 10 Nadino-tier ennemies;15;10
+11;Perfectionnist;Eliminate all enemies in each room you pass through and claim victory;1;1
+12;Craftsman;Have a full inventory of tools;10;9
+13;Gourmet;Have a full inventory of food;10;9
+14;Hero of Nadaroth;Win once with every class and slay over 500 enemies;50;1

@@ -1,5 +1,6 @@
 #include "player.h"
 
+#include "achievements.h"
 #include "handler.h"
 #include "map.h"
 #include "statistics.h"
@@ -248,12 +249,19 @@ int move_player(player* p, Direction dir) {
 
 void move_player_chunk(player* p, Direction dir) {
     p->current_chunk = get_chunk_from(p->map, p->current_chunk, dir);
+    if (is_new_chunk_generated() && p->health == 1) add_achievement_progress(ACH_SURVIVOR, 1);
     center_player(p);
 }
 
 bool damage_player(player* p, int damage) {
     if (!CAN_DIE) return false;
+    if (damage > 0) {
+        set_achievement_progress(ACH_FIRST_BLOOD, 1);
+        set_achievement_progress(ACH_UNSTOPPABLE, 0);
+        set_achievement_progress(ACH_SURVIVOR, 0);
+    }
     if (p->health - damage <= 0) {
+        set_achievement_progress(ACH_MASTER_EXPLORER, 0);
         p->health = 0;
         return true;
     }
@@ -262,6 +270,7 @@ bool damage_player(player* p, int damage) {
 }
 
 void heal_player(player* p, int heal) {
+    if (heal > 0) set_achievement_progress(ACH_SURVIVOR, 0);
     if (p->health + heal > p->max_health) {
         p->health = p->max_health;
         return;
@@ -299,6 +308,18 @@ void set_player_class(player* p, int class) {
     p->health = START_HEALTH;
     p->max_health = START_MAX_HEALTH;
     p->range = RANGE;
+}
+
+int get_player_class(player* p) {
+    if (p->design == PLAYER_DESIGN_BALL)
+        return 0;
+    else if (p->design == PLAYER_DESIGN_CAMO)
+        return 1;
+    else if (p->design == PLAYER_DESIGN_BRAWLER)
+        return 2;
+    else if (p->design == PLAYER_DESIGN_SHIELD)
+        return 3;
+    return -1;
 }
 
 void destroy_player_cchunk(player* p) {

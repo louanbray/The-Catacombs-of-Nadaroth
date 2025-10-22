@@ -55,4 +55,6 @@ void print_chunk(chunk* chunk);
 /// @param map map
 void print_map(map* map);
 
+bool is_new_chunk_generated();
+
 #endif

@@ -100,15 +100,17 @@ typedef enum UsableItem {
     ADVANCED_BOW,
     SUPER_BOW,
     NADINO_BOW,
+    BOWS_END,  // Marker to separate bows from other usable items
     BRONZE_KEY,
     SILVER_KEY,
     GOLD_KEY,
     NADINO_KEY,
+    BOMB,            // Wanna explode a chunk ? Here's what you need (BEWARE: NO LOOT WILL BE GIVEN | A NEW CHUNK WILL BE GENERATED HERE NEXT TIME (or the same if unlucky hehe)) (SILVER)
+    FOOD_START,      // Marker to separate food from other usable items
     ONION_RING,      // Restore one heart (BRONZE)
     STOCKFISH,       // Restore full health (SILVER)
     SCHOOL_DISHES,   // Restore one mental health (SILVER)
     GOLDEN_APPLE,    // Add one heart (permanent (as long as you don't die you can regen)) (GOLD)
-    BOMB,            // Wanna explode a chunk ? Here's what you need (BEWARE: NO LOOT WILL BE GIVEN | A NEW CHUNK WILL BE GENERATED HERE NEXT TIME (or the same if unlucky hehe)) (SILVER)
     FORGOTTEN_DISH,  // Restore full mental health (GOLD)
     //? Add armors / potions (consumables = stats up) if enough time
 

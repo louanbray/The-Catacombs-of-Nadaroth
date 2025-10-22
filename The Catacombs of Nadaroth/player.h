@@ -276,6 +276,8 @@ bool is_player_aggroed(player* p, int x, int y);
 
 bool can_player_die();
 
+int get_player_class(player* p);
+
 /**
  * @brief Increments the player's game phase to the next phase
  *

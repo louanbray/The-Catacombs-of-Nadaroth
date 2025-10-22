@@ -252,8 +252,19 @@ int main(int argc, char* argv[]) {
     render(screen, m);
     update_screen(screen);
 
+    increment_statistic(STAT_GAME_STARTED, 1);
+    time_t start_time = time(NULL);
+
     // ------------------- Main game loop -------------------
     for (;;) {
+        time_t current_time = time(NULL);
+        if (GAME_PAUSED) start_time = current_time;
+        int elapsed_seconds = (int)(current_time - start_time);
+        if (elapsed_seconds != 0) {
+            increment_statistic(STAT_TIME_PLAYED, elapsed_seconds);
+            start_time = current_time;
+        }
+
         if (check_ctrl_c()) {
             LOG_INFO("CTRL+C detected, initiating graceful shutdown...");
             break;
@@ -269,7 +280,8 @@ int main(int argc, char* argv[]) {
             if (USE_KEY('I') || USE_KEY('i')) {
                 set_player_can_die(!can_player_die());
                 LOG_INFO("Player can_die set to %d", can_player_die());
-            } else if (USE_KEY('P') || USE_KEY('p')) {
+            }
+            if (USE_KEY('P') || USE_KEY('p')) {
                 if (GAME_PAUSED) {
                     resume_game();
                     unlock_inputs();
@@ -277,7 +289,8 @@ int main(int argc, char* argv[]) {
                     pause_game();
                     lock_inputs();
                 }
-            } else if (USE_KEY('R') || USE_KEY('r')) {
+            }
+            if (USE_KEY('R') || USE_KEY('r')) {
                 kill_all_projectiles(screen);
             }
         }

@@ -2,13 +2,16 @@
 
 #include <stdio.h>
 
-#include "generation.h"
+#include "achievements.h"
+#include "statistics.h"
 
 typedef struct map {
     hm* hashmap;
     chunk* spawn;
     player* player;
 } map;
+
+static bool IS_NEW_CHUNK = false;
 
 /// @brief Create an empty set of links
 /// @return the link set
@@ -73,9 +76,16 @@ chunk* get_chunk(map* m, int x, int y) {
     chunk* ck = get_hm(m->hashmap, x, y);
 
     if (ck != NULL) {
+        IS_NEW_CHUNK = false;
         return ck;
     }
 
+    IS_NEW_CHUNK = true;
+    if (get_achievement_progress(ACH_MASTER_EXPLORER) < 11)
+        add_achievement_progress(ACH_MASTER_EXPLORER, 1);
+    if (get_achievement_progress(ACH_MASTER_EXPLORER) % 11 == 0 && get_statistic(STAT_DISTANCE_TRAVELED) >= 100000) {
+        add_achievement_progress(ACH_MASTER_EXPLORER, 1);
+    }
     ck = generate_chunk(x, y);
     set_hm(m->hashmap, x, y, ck);
 
@@ -155,4 +165,8 @@ void print_chunk(chunk* ck) {
 void print_map(map* m) {
     print_hm(m->hashmap);
     print_chunk(m->spawn);
+}
+
+bool is_new_chunk_generated() {
+    return IS_NEW_CHUNK;
 }

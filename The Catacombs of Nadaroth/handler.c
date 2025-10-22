@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "achievements.h"
 #include "entity.h"
 #include "generation.h"
 #include "loot_manager.h"
@@ -37,6 +38,8 @@ int pickup_lootable_from_chunk(player* p, item* i) {
     lootable* loot = get_item_spec(i);
     pickup(get_player_hotbar(p), generate_loot(loot));
     increment_statistic(STAT_CHEST_OPENED, 1);
+    set_achievement_progress(ACH_TREASURE_SEEKER, 1);
+    set_achievement_progress(ACH_LOOT_COLLECTOR, get_statistic(STAT_CHEST_OPENED));
 
     return PICKED_UP_ENTITY;
 }

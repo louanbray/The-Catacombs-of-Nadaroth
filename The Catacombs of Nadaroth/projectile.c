@@ -13,6 +13,7 @@
 #define MAX_PROJECTILES 128
 
 int last_hotbar_index = 0;
+static int game_started = 0;
 
 typedef struct {
     Render_Buffer* r;
@@ -153,7 +154,9 @@ void projectile_callback(int x, int y, projectile_data* data) {
 
             if (e->hp <= 0) {
                 increment_statistic(STAT_ENEMIES_KILLED, 1);
-                set_achievement_progress(ACH_FIRST_BLOOD, 1);
+                add_achievement_progress(ACH_UNSTOPPABLE, 1);
+                set_achievement_progress(ACH_MONSTER_HUNTER, 1);
+                if (e->score > 70) add_achievement_progress(ACH_BOSS_SLAYER, 1);
                 add_player_score(data->p, e->score);
                 set_dyn(get_chunk_enemies(get_player_chunk(data->p)), e->from_id, NULL);
                 if (is_entity) {
@@ -194,8 +197,29 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
         GamePhase phase = get_player_phase(data->p);
         if (phase != FIRST_ACT_END)
             snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(data->p), phase);
-        else
+        else {
             snprintf(filepath, sizeof(filepath), "assets/cinematics/wip.dodjo");
+            increment_statistic(STAT_GAME_COMPLETIONS, 1);
+            if (get_player_design(data->p) == PLAYER_DESIGN_BALL)
+                increment_statistic(STAT_GAME_COMPLETION_AS_BALL, 1);
+            else if (get_player_design(data->p) == PLAYER_DESIGN_CAMO)
+                increment_statistic(STAT_GAME_COMPLETION_AS_CAMO, 1);
+            else if (get_player_design(data->p) == PLAYER_DESIGN_BRAWLER)
+                increment_statistic(STAT_GAME_COMPLETION_AS_BRAWLER, 1);
+            else if (get_player_design(data->p) == PLAYER_DESIGN_SHIELD)
+                increment_statistic(STAT_GAME_COMPLETION_AS_SHIELD, 1);
+            if (get_statistic(STAT_TIME_PLAYED) - game_started <= 600) {
+                increment_statistic(STAT_SPEED_RUNS, 1);
+                set_achievement_progress(ACH_SPEED_RUNNER, 1);
+            }
+            if (get_statistic(STAT_GAME_COMPLETION_AS_BALL) >= 1 &&
+                get_statistic(STAT_GAME_COMPLETION_AS_CAMO) >= 1 &&
+                get_statistic(STAT_GAME_COMPLETION_AS_BRAWLER) >= 1 &&
+                get_statistic(STAT_GAME_COMPLETION_AS_SHIELD) >= 1 &&
+                get_statistic(STAT_ENEMIES_KILLED) >= 500) {
+                set_achievement_progress(ACH_HERO_OF_NADAROTH, 1);
+            }
+        }
         play_cinematic(data->screen, filepath, 1000000);
         if (get_player_mental_health(data->p) == 0) {
             play_cinematic(data->screen, "assets/cinematics/the_end.dodjo", 1000000);
@@ -377,6 +401,7 @@ void init_projectile_system(Render_Buffer* r, player* p) {
     InitThreadArgs* input_args = malloc(sizeof(InitThreadArgs));
     input_args->r = r;
     input_args->p = p;
+    game_started = get_statistic(STAT_TIME_PLAYED);
     if (pthread_create(&thread_id, NULL, projectile_loop, input_args) != 0) {
         fprintf(stderr, "Failed to create projectile thread\n");
         exit(EXIT_FAILURE);
