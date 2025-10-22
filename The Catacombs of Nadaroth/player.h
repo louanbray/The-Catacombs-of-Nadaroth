@@ -268,6 +268,10 @@ void set_player_class(player* p, int class);
 
 void set_player_infinity(player* p, bool infinite);
 
+int distance_to_player_sq(player* p, int x, int y);
+
+bool is_player_aggroed(player* p, int x, int y);
+
 /**
  * @brief Increments the player's game phase to the next phase
  *

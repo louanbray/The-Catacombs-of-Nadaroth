@@ -243,6 +243,8 @@ void enemy_attack_projectile(Render_Buffer* r, player* p, item* brain) {
     int x = get_item_x(brain) + 65;
     int y = -get_item_y(brain) + 19;
 
+    if (!is_player_aggroed(p, x, y)) return;
+
     projectile_data* p_data = malloc(sizeof(projectile_data));
     p_data->x0 = x;
     p_data->y0 = y;

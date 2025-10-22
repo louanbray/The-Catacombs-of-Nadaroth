@@ -12,6 +12,7 @@ static float ADDITIONAL_DAMAGE = 0.0;
 static int ADDITIONAL_ARROW_SPEED = 0;
 static int RANGE = -1;
 static bool ACCURACY_MODE = false;
+static int AGGRO_RANGE = -1;
 
 typedef struct player {
     map* map;
@@ -276,6 +277,7 @@ void set_player_class(player* p, int class) {
         ADDITIONAL_MAX_HEALTH = -2;
         ADDITIONAL_ARROW_SPEED = 2;
         ACCURACY_MODE = true;
+        AGGRO_RANGE = 15;
     } else if (class == 2) {
         p->design = PLAYER_DESIGN_BRAWLER;
         ADDITIONAL_DAMAGE = 0.5;
@@ -301,4 +303,15 @@ void destroy_player_cchunk(player* p) {
     map* m = p->map;
     chunk* c = p->current_chunk;
     destroy_chunk(m, get_chunk(m, get_chunk_x(c), get_chunk_y(c) + 1));
+}
+
+int distance_to_player_sq(player* p, int x, int y) {
+    int dx = (get_player_x(p) + 65 - x) / 2;
+    int dy = -get_player_y(p) + 19 - y;
+    return dx * dx + dy * dy;
+}
+
+bool is_player_aggroed(player* p, int x, int y) {
+    if (AGGRO_RANGE == -1) return true;
+    return distance_to_player_sq(p, x, y) <= AGGRO_RANGE * AGGRO_RANGE;
 }

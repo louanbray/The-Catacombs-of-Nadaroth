@@ -26,8 +26,6 @@ typedef struct Render_Buffer {
     int* rc;     // row changed flags
 } Render_Buffer;
 
-int abs_val(int x) { return x > 0 ? x : -x; }
-
 //
 // NEW HELPER FUNCTIONS
 //
@@ -131,7 +129,7 @@ void default_screen(board b) {
                     else
                         b[i][j].ch = 9565;
                 }
-            } else if (i == 3 && (abs_val((RENDER_WIDTH + 1) / 2 - j) < 10 && j % 2 == 0)) {
+            } else if (i == 3 && (abs((RENDER_WIDTH + 1) / 2 - j) < 10 && j % 2 == 0)) {
                 b[i][j].ch = 9145;
             } else {
                 b[i][j].ch = L' ';
