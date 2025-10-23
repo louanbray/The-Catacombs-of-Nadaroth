@@ -5,12 +5,12 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include "logger.h"
-#include "inventory.h"
-#include "item.h"
-#include "map.h"
 #include "generation.h"
 #include "hash.h"
+#include "inventory.h"
+#include "item.h"
+#include "logger.h"
+#include "map.h"
 #include "player.h"
 
 #define SAVE_VERSION 2
@@ -19,7 +19,7 @@
 /// @brief Save player data to file
 static bool save_player_data(FILE* f, player* p) {
     if (!f || !p) return false;
-    
+
     // Save player position and state using getter functions
     int x = get_player_x(p);
     int y = get_player_y(p);
@@ -36,7 +36,7 @@ static bool save_player_data(FILE* f, player* p) {
     int score = get_player_score(p);
     int deaths = get_player_deaths(p);
     GamePhase phase = get_player_phase(p);
-    
+
     fwrite(&x, sizeof(int), 1, f);
     fwrite(&y, sizeof(int), 1, f);
     fwrite(&px, sizeof(int), 1, f);
@@ -95,7 +95,7 @@ static bool load_player_data(FILE* f, player* p) {
     set_player_score(p, score);
     set_player_phase(p, (GamePhase)phase);
     set_player_deaths(p, deaths);
-    
+
     // Health needs special handling
     if (health < get_player_health(p)) {
         damage_player(p, get_player_health(p) - health);
