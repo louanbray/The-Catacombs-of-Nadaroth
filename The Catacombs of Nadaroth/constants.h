@@ -53,18 +53,18 @@ TODO LIST:
 - Make any key event stored in an input manager object so that you can check at any moment if a key is pressed                    [DEV] (HIGH)          {DONE}
 - Update the screen render to make a part of the screen reserved to items descriptions and naration                               [RENDER] (HIGH)       {DONE}
 - Enemy->Player Interaction                                                                                                       [DEV] (HIGH)          {DONE}
-- Enemy PATHFINDING huh ? //! CHANGING GAME DESIGN, DO NOT IMPLEMENT                                                              [DEV] (HIGH->NONE)    {DONE}
+- Enemy PATHFINDING huh ? //// CHANGING GAME DESIGN, DO NOT IMPLEMENT                                                             [DEV] (HIGH->NONE)    {DONE}
 - Implement the mecanics below / missing items                                                                                    [DEV] (MEDIUM)        {DONE}
 - Work on the designs of the items and chunks                                                                                     [RENDER] (MEDIUM)     {DONE}
-- Implement status menu                                                                                                           [RENDER/DEV] (LOW)
-- Work on menus (!!Username!!, stat attribution aso...)                                                                           [RENDER/DEV] (LOW)
+* - Implement status menu                                                                                                         [RENDER/DEV] (LOW)
+* - Work on menus (!!Username!!, stat attribution aso...)                                                                         [RENDER/DEV] (LOW)
 - Add cinematics                                                                                                                  [RENDER] (LOW)        {DONE - Lore}
 - [Rework render concept to add mental health effect (limited vision)] -> //?Better lore                                          [RENDER/DEV] (LOW)    {DONE}
-- Add stats and achievements objects                                                                                              [DEV] (LOW)           {DONE}
-- Have a way to render achievements and stats on the screen                                                                       [RENDER] (LOW)
-- Saving Games, opening and sharing                                                                                               [DEV/RENDER] (LOW)
-- Update Entity / Chunk editor                                                                                                    [DEV] (LOW)
-- Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
+- Add stats and achievements objects                                                                                              [DEV] (LOW)           {DONE \Perfectionnist}
+* - Have a way to render achievements and stats on the screen                                                                     [RENDER] (LOW)
+* - Saving Games, opening and sharing                                                                                             [DEV/RENDER] (LOW)
+- Update Entity / Chunk editor                                                                                                    [DEV] (LOW)           {DONE}
+* - Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
 */
 
 /// @brief Gate position/type
