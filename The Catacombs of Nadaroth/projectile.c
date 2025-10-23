@@ -14,6 +14,7 @@
 
 int last_hotbar_index = 0;
 static int game_started = 0;
+static unsigned int projectile_rng_seed = 0;
 
 typedef struct {
     Render_Buffer* r;
@@ -367,7 +368,7 @@ void* projectile_loop(void* args) {
             enemy_ids = malloc(current_enemy_count * sizeof(int));
 
             for (int i = 0; i < current_enemy_count; i++) {
-                enemy_attack_timers[i] = rand() % 30 + 180;  // 60-90 frames before starting to attack
+                enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % 30 + 180;  // 60-90 frames before starting to attack
                 enemy_ids[i] = i;
             }
         }
@@ -381,7 +382,7 @@ void* projectile_loop(void* args) {
 
                 if (enemy_attack_timers[i] <= 0) {
                     enemy_attack_projectile(r, p, brain);
-                    enemy_attack_timers[i] = rand() % ((enemy*)get_item_spec(brain))->attack_interval + ((enemy*)get_item_spec(brain))->attack_delay;  // delay ~> delay+interval frames
+                    enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % ((enemy*)get_item_spec(brain))->attack_interval + ((enemy*)get_item_spec(brain))->attack_delay;  // delay ~> delay+interval frames
                 }
             }
         }
@@ -396,12 +397,15 @@ void* projectile_loop(void* args) {
     return NULL;
 }
 
-void init_projectile_system(Render_Buffer* r, player* p) {
+void init_projectile_system(Render_Buffer* r, player* p, int seed) {
     pthread_t thread_id;
     InitThreadArgs* input_args = malloc(sizeof(InitThreadArgs));
     input_args->r = r;
     input_args->p = p;
     game_started = get_statistic(STAT_TIME_PLAYED);
+
+    projectile_rng_seed = seed * 31 + 1;  // Derive a different seed from main seed
+
     if (pthread_create(&thread_id, NULL, projectile_loop, input_args) != 0) {
         fprintf(stderr, "Failed to create projectile thread\n");
         exit(EXIT_FAILURE);

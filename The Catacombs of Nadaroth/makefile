@@ -60,11 +60,15 @@ $(BUILD_DIR):
 
 # Run the executable
 run: $(TARGET)
-	$(RUN_CMD)
+	$(RUN_CMD) $(filter-out run,$(MAKECMDGOALS)) $(ARGS)
 
-# Run the executable
+# Run the executable with debug flag
 debug: $(TARGET)
-	$(RUN_CMD) -debug
+	$(RUN_CMD) -debug $(filter-out debug,$(MAKECMDGOALS)) $(ARGS)
+
+# Prevent make from treating extra arguments as targets
+%:
+	@:
 
 # Debug with valgrind (for Linux/macOS)
 run_debug: $(TARGET)

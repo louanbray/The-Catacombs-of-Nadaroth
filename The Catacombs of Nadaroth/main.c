@@ -21,7 +21,6 @@ static int SEED;
 /// Initialize global game state and core subsystems.
 void init_game_system() {
     init_logger();  // Initialize logger first
-    SEED = time(NULL);
     srand(SEED);
     init_terminal();
     init_assets_system();
@@ -208,6 +207,13 @@ void* process_input_thread(void* arg) {
 /// @brief Where it all begins
 /// @return I dream of a 0
 int main(int argc, char* argv[]) {
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-seed") == 0 && i + 1 < argc) {
+            SEED = atoi(argv[i + 1]);
+            break;
+        } else
+            SEED = time(NULL);
+    }
     init_game_system();
 
     for (int i = 1; i < argc; i++) {
@@ -230,7 +236,7 @@ int main(int argc, char* argv[]) {
 
     link_hotbar(p, h);
 
-    init_projectile_system(screen, p);
+    init_projectile_system(screen, p, SEED);
 
     // ------------------- Start input processing thread -------------------
     pthread_t input_thread;
