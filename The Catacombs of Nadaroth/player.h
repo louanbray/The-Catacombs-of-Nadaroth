@@ -40,6 +40,26 @@ int get_player_px(player* player);
 /// @return previous y
 int get_player_py(player* player);
 
+/// @brief Set player coord x in chunk
+/// @param player player
+/// @param x new x coordinate
+void set_player_x(player* player, int x);
+
+/// @brief Set player coord y in chunk
+/// @param player player
+/// @param y new y coordinate
+void set_player_y(player* player, int y);
+
+/// @brief Set player previous coord x in chunk
+/// @param player player
+/// @param px new previous x coordinate
+void set_player_px(player* player, int px);
+
+/// @brief Set player previous coord y in chunk
+/// @param player player
+/// @param py new previous y coordinate
+void set_player_py(player* player, int py);
+
 /// @brief Returns player current chunk
 /// @param player player
 /// @return chunk*
@@ -220,6 +240,14 @@ bool has_infinity(player* p);
  * @param p Pointer to the player
  */
 void add_player_deaths(player* p);
+
+/**
+ * @brief Sets the death count of a player
+ *
+ * @param p Pointer to the player
+ * @param deaths The new death count
+ */
+void set_player_deaths(player* p, int deaths);
 
 /**
  * @brief Sets the mental health of a player to a specified value

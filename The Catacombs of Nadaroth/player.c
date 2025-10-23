@@ -102,6 +102,22 @@ int get_player_py(player* p) {
     return p->py;
 }
 
+void set_player_x(player* p, int x) {
+    if (p) p->x = x;
+}
+
+void set_player_y(player* p, int y) {
+    if (p) p->y = y;
+}
+
+void set_player_px(player* p, int px) {
+    if (p) p->px = px;
+}
+
+void set_player_py(player* p, int py) {
+    if (p) p->py = py;
+}
+
 chunk* get_player_chunk(player* p) {
     return p->current_chunk;
 }
@@ -176,6 +192,10 @@ void increment_player_phase(player* p) {
 
 void add_player_deaths(player* p) {
     p->deaths++;
+}
+
+void set_player_deaths(player* p, int deaths) {
+    if (p) p->deaths = deaths;
 }
 
 void set_player_mental_health(player* p, int mental_health) {

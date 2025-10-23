@@ -101,3 +101,7 @@ void select_slot(hotbar* h, int index) {
         h->selected_item = get_hotbar(h, index);
     }
 }
+
+int get_hotbar_entries(hotbar* h) {
+    return h->entries;
+}

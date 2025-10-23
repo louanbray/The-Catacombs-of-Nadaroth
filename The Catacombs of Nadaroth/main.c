@@ -13,6 +13,7 @@
 #include "player.h"
 #include "projectile.h"
 #include "render.h"
+#include "save_manager.h"
 #include "statistics.h"
 
 static int SEED;
@@ -299,6 +300,22 @@ int main(int argc, char* argv[]) {
             }
             if (USE_KEY('R') || USE_KEY('r')) {
                 kill_all_projectiles(screen);
+            }
+            if (USE_KEY('N') || USE_KEY('n')) {
+                if (save_game("assets/data/save.dat", p, m, h)) {
+                    LOG_INFO("Game saved successfully!");
+                } else {
+                    LOG_ERROR("Failed to save game");
+                }
+            }
+            if (USE_KEY('B') || USE_KEY('b')) {
+                if (load_game("assets/data/save.dat", p, m, h)) {
+                    render(screen, m);
+                    update_screen(screen);
+                    LOG_INFO("Game loaded successfully!");
+                } else {
+                    LOG_ERROR("Failed to load game");
+                }
             }
         }
     }

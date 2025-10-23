@@ -58,4 +58,9 @@ void drop(hotbar* hotbar, int index);
 /// @param index index
 void select_slot(hotbar* hotbar, int index);
 
+/// @brief Get current number of items in hotbar
+/// @param hotbar hotbar
+/// @return number of items
+int get_hotbar_entries(hotbar* hotbar);
+
 #endif
