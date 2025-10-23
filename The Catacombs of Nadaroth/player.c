@@ -1,7 +1,10 @@
 #include "player.h"
 
+#include <time.h>
+
 #include "achievements.h"
 #include "handler.h"
+#include "logger.h"
 #include "map.h"
 #include "statistics.h"
 
@@ -15,6 +18,8 @@ static int RANGE = -1;
 static bool ACCURACY_MODE = false;
 static int AGGRO_RANGE = -1;
 static int CAN_DIE = true;
+
+static int TIME_SURVIVOR_IN_CHUNK = -1;
 
 typedef struct player {
     map* map;
@@ -249,8 +254,16 @@ int move_player(player* p, Direction dir) {
 
 void move_player_chunk(player* p, Direction dir) {
     p->current_chunk = get_chunk_from(p->map, p->current_chunk, dir);
-    if (is_new_chunk_generated() && p->health == 1) add_achievement_progress(ACH_SURVIVOR, 1);
+    LOG_INFO("Is new chunk generated: %s", is_new_chunk() ? "true" : "false");
+    if (is_new_chunk() && p->health == 1) {
+        TIME_SURVIVOR_IN_CHUNK = 10;
+        LOG_INFO("Survivor achievement countdown started.");
+    } else {
+        set_achievement_progress(ACH_SURVIVOR, 0);
+        TIME_SURVIVOR_IN_CHUNK = -1;
+    }
     center_player(p);
+    reset_new_chunk_flag();
 }
 
 bool damage_player(player* p, int damage) {
@@ -259,6 +272,7 @@ bool damage_player(player* p, int damage) {
         set_achievement_progress(ACH_FIRST_BLOOD, 1);
         set_achievement_progress(ACH_UNSTOPPABLE, 0);
         set_achievement_progress(ACH_SURVIVOR, 0);
+        TIME_SURVIVOR_IN_CHUNK = -1;
     }
     if (p->health - damage <= 0) {
         set_achievement_progress(ACH_MASTER_EXPLORER, 0);
@@ -270,7 +284,10 @@ bool damage_player(player* p, int damage) {
 }
 
 void heal_player(player* p, int heal) {
-    if (heal > 0) set_achievement_progress(ACH_SURVIVOR, 0);
+    if (heal > 0) {
+        set_achievement_progress(ACH_SURVIVOR, 0);
+        TIME_SURVIVOR_IN_CHUNK = -1;
+    }
     if (p->health + heal > p->max_health) {
         p->health = p->max_health;
         return;
@@ -345,4 +362,13 @@ void set_player_can_die(bool can_die) {
 
 bool can_player_die() {
     return CAN_DIE;
+}
+
+void survivor_countdown(int seconds) {
+    if (TIME_SURVIVOR_IN_CHUNK == -1) return;
+    TIME_SURVIVOR_IN_CHUNK -= seconds;
+    if (TIME_SURVIVOR_IN_CHUNK <= 0) {
+        add_achievement_progress(ACH_SURVIVOR, 1);
+        TIME_SURVIVOR_IN_CHUNK = -1;
+    }
 }

@@ -261,6 +261,7 @@ int main(int argc, char* argv[]) {
         if (GAME_PAUSED) start_time = current_time;
         int elapsed_seconds = (int)(current_time - start_time);
         if (elapsed_seconds != 0) {
+            survivor_countdown(elapsed_seconds);
             increment_statistic(STAT_TIME_PLAYED, elapsed_seconds);
             start_time = current_time;
         }

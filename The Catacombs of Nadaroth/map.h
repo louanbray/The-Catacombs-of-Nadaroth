@@ -13,6 +13,13 @@ typedef struct player player;
 /// @return map
 map* create_map();
 
+/// @brief Get new chunk status
+/// @return true if the last chunk accessed was newly generated, false otherwise
+bool is_new_chunk();
+
+/// @brief Reset the new chunk flag after it has been read
+void reset_new_chunk_flag();
+
 /// @brief Get the chunk in x,y or create it
 /// @param m map
 /// @param pos_x chunk x
@@ -54,7 +61,5 @@ void print_chunk(chunk* chunk);
 /// @brief Print the @map->hashtable and the @map->spawn chunk
 /// @param map map
 void print_map(map* map);
-
-bool is_new_chunk_generated();
 
 #endif

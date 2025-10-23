@@ -5,7 +5,7 @@
 4;Master Explorer;Survive 10 rooms without dying once and walk more than 10 000 steps (all time);10;11
 5;Puzzle Solver;Unobtainable;0;666
 6;Speed Runner;Beat the game without losing mental health in less than 10 minutes;25;1
-7;Survivor;Explore five new rooms in succession with a single HP;10;5
+7;Survivor;Explore five new rooms for 10 seconds in succession with a single HP;10;5
 8;Loot Collector;Collect over 100 chests;5;100
 9;Secret Finder;Get your first Nadino-tier loot;7;1
 10;Boss Slayer;Slay 10 Nadino-tier ennemies;15;10

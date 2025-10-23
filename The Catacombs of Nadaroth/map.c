@@ -72,6 +72,14 @@ void set_map_player(map* m, player* p) {
     m->player = p;
 }
 
+bool is_new_chunk() {
+    return IS_NEW_CHUNK;
+}
+
+void reset_new_chunk_flag() {
+    IS_NEW_CHUNK = false;
+}
+
 chunk* get_chunk(map* m, int x, int y) {
     chunk* ck = get_hm(m->hashmap, x, y);
 
@@ -165,8 +173,4 @@ void print_chunk(chunk* ck) {
 void print_map(map* m) {
     print_hm(m->hashmap);
     print_chunk(m->spawn);
-}
-
-bool is_new_chunk_generated() {
-    return IS_NEW_CHUNK;
 }

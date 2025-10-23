@@ -278,6 +278,8 @@ bool can_player_die();
 
 int get_player_class(player* p);
 
+void survivor_countdown(int seconds);
+
 /**
  * @brief Increments the player's game phase to the next phase
  *

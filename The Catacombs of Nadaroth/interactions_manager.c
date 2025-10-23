@@ -151,7 +151,7 @@ void init_interactions_system() {
     g_sets = NULL;
     g_set_count = 0;
 
-    load_interactions_file("assets/interfaces/structures/skin.interact.dodjo", "skin");
+    load_interactions_file("assets/interfaces/interactions/skin.interact.dodjo", "skin");
 }
 
 void destroy_interactions_system() {
