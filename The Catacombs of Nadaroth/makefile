@@ -5,7 +5,7 @@ CFLAGS = -Wall -Wextra -Wpedantic -Wshadow -Wformat=0 -Wcast-align -Wnull-derefe
 # Platform-specific settings
 ifeq ($(OS),Windows_NT)
 	EXECUTABLE = outDebug.exe
-	LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread
+	LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread -lz
 	OPENMP = -fopenmp
 	RM = rm -f
 	MKDIR = mkdir -p $(1)
@@ -15,14 +15,14 @@ else
 	EXECUTABLE = outDebug
 	ifeq ($(shell uname -s),Darwin)
 		# macOS specific flags
-		LDFLAGS = -L/usr/local/lib -L/opt/homebrew/lib -lSDL2 -lSDL2_mixer -lpthread -lomp
+		LDFLAGS = -L/usr/local/lib -L/opt/homebrew/lib -lSDL2 -lSDL2_mixer -lpthread -lomp -lz
 		# Add SDL2 include paths for macOS
 		CFLAGS += -I/opt/homebrew/include -I/usr/local/include
 		# Set OpenMP flags for macOS/clang
 		OPENMP = -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include -L/opt/homebrew/opt/libomp/lib
 	else
 		# Linux specific flags
-		LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread -lm
+		LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread -lm -lz
 		OPENMP = -fopenmp
 	endif
 	RM = rm -f

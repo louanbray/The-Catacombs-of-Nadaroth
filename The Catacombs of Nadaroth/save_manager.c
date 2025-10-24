@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <zlib.h>
 
 #include "entity.h"
 #include "generation.h"
@@ -807,9 +808,13 @@ static bool load_map_data(FILE* f, map* m) {
 bool save_game(const char* filename, player* p, map* m, hotbar* h) {
     if (!filename || !p || !m || !h) return false;
 
-    FILE* f = fopen(filename, "wb");
+    // First, save to an uncompressed temporary file
+    char temp_filename[512];
+    snprintf(temp_filename, sizeof(temp_filename), "%s.tmp", filename);
+
+    FILE* f = fopen(temp_filename, "wb");
     if (!f) {
-        LOG_ERROR("Failed to open save file: %s", filename);
+        LOG_ERROR("Failed to open temp save file: %s", temp_filename);
         return false;
     }
 
@@ -823,6 +828,7 @@ bool save_game(const char* filename, player* p, map* m, hotbar* h) {
     if (!save_player_data(f, p)) {
         LOG_ERROR("Failed to save player data");
         fclose(f);
+        remove(temp_filename);
         return false;
     }
 
@@ -830,6 +836,7 @@ bool save_game(const char* filename, player* p, map* m, hotbar* h) {
     if (!save_hotbar_data(f, h)) {
         LOG_ERROR("Failed to save hotbar data");
         fclose(f);
+        remove(temp_filename);
         return false;
     }
 
@@ -837,20 +844,102 @@ bool save_game(const char* filename, player* p, map* m, hotbar* h) {
     if (!save_map_data(f, m)) {
         LOG_ERROR("Failed to save map data");
         fclose(f);
+        remove(temp_filename);
         return false;
     }
 
     fclose(f);
-    LOG_INFO("Game saved to: %s", filename);
+
+    // Now compress the temporary file to the final file
+    FILE* src = fopen(temp_filename, "rb");
+    if (!src) {
+        LOG_ERROR("Failed to reopen temp file for compression");
+        remove(temp_filename);
+        return false;
+    }
+
+    gzFile dest = gzopen(filename, "wb9");  // 9 = maximum compression
+    if (!dest) {
+        LOG_ERROR("Failed to open compressed save file: %s", filename);
+        fclose(src);
+        remove(temp_filename);
+        return false;
+    }
+
+    // Read from temp and write compressed
+    unsigned char buffer[8192];
+    size_t bytes_read;
+    size_t uncompressed_size = 0;
+    while ((bytes_read = fread(buffer, 1, sizeof(buffer), src)) > 0) {
+        uncompressed_size += bytes_read;
+        if (gzwrite(dest, buffer, bytes_read) != (int)bytes_read) {
+            LOG_ERROR("Failed to write compressed data");
+            fclose(src);
+            gzclose(dest);
+            remove(temp_filename);
+            remove(filename);
+            return false;
+        }
+    }
+
+    fclose(src);
+    gzclose(dest);
+    remove(temp_filename);
+
+    // Get compressed file size
+    struct stat st;
+    size_t compressed_size = 0;
+    if (stat(filename, &st) == 0) {
+        compressed_size = st.st_size;
+    }
+
+    float ratio = (uncompressed_size > 0) ? (100.0f * compressed_size / uncompressed_size) : 0.0f;
+    LOG_INFO("Game saved to: %s (%zu bytes -> %zu bytes, %.1f%%)",
+             filename, uncompressed_size, compressed_size, ratio);
     return true;
 }
 
 bool load_game(const char* filename, player* p, map* m, hotbar* h) {
     if (!filename || !p || !m || !h) return false;
 
-    FILE* f = fopen(filename, "rb");
+    // First, decompress the file to a temporary file
+    gzFile src = gzopen(filename, "rb");
+    if (!src) {
+        LOG_ERROR("Failed to open compressed save file: %s", filename);
+        return false;
+    }
+
+    char temp_filename[512];
+    snprintf(temp_filename, sizeof(temp_filename), "%s.tmp", filename);
+
+    FILE* dest = fopen(temp_filename, "wb");
+    if (!dest) {
+        LOG_ERROR("Failed to create temp file for decompression");
+        gzclose(src);
+        return false;
+    }
+
+    // Decompress
+    unsigned char buffer[8192];
+    int bytes_read;
+    while ((bytes_read = gzread(src, buffer, sizeof(buffer))) > 0) {
+        if (fwrite(buffer, 1, bytes_read, dest) != (size_t)bytes_read) {
+            LOG_ERROR("Failed to write decompressed data");
+            fclose(dest);
+            gzclose(src);
+            remove(temp_filename);
+            return false;
+        }
+    }
+
+    gzclose(src);
+    fclose(dest);
+
+    // Now read from the decompressed temp file
+    FILE* f = fopen(temp_filename, "rb");
     if (!f) {
-        LOG_ERROR("Failed to open save file: %s", filename);
+        LOG_ERROR("Failed to open decompressed temp file");
+        remove(temp_filename);
         return false;
     }
 
@@ -862,12 +951,14 @@ bool load_game(const char* filename, player* p, map* m, hotbar* h) {
     if (magic != SAVE_MAGIC) {
         LOG_ERROR("Invalid save file (wrong magic number)");
         fclose(f);
+        remove(temp_filename);
         return false;
     }
 
     if (version != SAVE_VERSION) {
         LOG_ERROR("Incompatible save file version: %d (expected %d)", version, SAVE_VERSION);
         fclose(f);
+        remove(temp_filename);
         return false;
     }
 
@@ -875,6 +966,7 @@ bool load_game(const char* filename, player* p, map* m, hotbar* h) {
     if (!load_player_data(f, p)) {
         LOG_ERROR("Failed to load player data");
         fclose(f);
+        remove(temp_filename);
         return false;
     }
 
@@ -882,6 +974,7 @@ bool load_game(const char* filename, player* p, map* m, hotbar* h) {
     if (!load_hotbar_data(f, h)) {
         LOG_ERROR("Failed to load hotbar data");
         fclose(f);
+        remove(temp_filename);
         return false;
     }
 
@@ -889,8 +982,12 @@ bool load_game(const char* filename, player* p, map* m, hotbar* h) {
     if (!load_map_data(f, m)) {
         LOG_ERROR("Failed to load map data");
         fclose(f);
+        remove(temp_filename);
         return false;
     }
+
+    fclose(f);
+    remove(temp_filename);
 
     // Restore player's current chunk using the stored coordinates
     chunk* current_chunk = get_chunk(m, g_player_chunk_x, g_player_chunk_y);
@@ -903,7 +1000,6 @@ bool load_game(const char* filename, player* p, map* m, hotbar* h) {
         set_player_chunk(p, get_spawn(m));
     }
 
-    fclose(f);
     LOG_INFO("Game loaded from: %s", filename);
     return true;
 }

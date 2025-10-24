@@ -302,13 +302,19 @@ int main(int argc, char* argv[]) {
                 kill_all_projectiles(screen);
             }
             if (USE_KEY('N') || USE_KEY('n')) {
+                pause_game();
+                lock_inputs();
                 if (save_game("assets/data/save.dat", p, m, h)) {
                     LOG_INFO("Game saved successfully!");
                 } else {
                     LOG_ERROR("Failed to save game");
                 }
+                resume_game();
+                unlock_inputs();
             }
             if (USE_KEY('B') || USE_KEY('b')) {
+                pause_game();
+                lock_inputs();
                 if (load_game("assets/data/save.dat", p, m, h)) {
                     render(screen, m);
                     update_screen(screen);
@@ -316,6 +322,8 @@ int main(int argc, char* argv[]) {
                 } else {
                     LOG_ERROR("Failed to load game");
                 }
+                resume_game();
+                unlock_inputs();
             }
             if (USE_KEY('U') || USE_KEY('u')) {
                 render(screen, m);
