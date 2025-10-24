@@ -278,7 +278,6 @@ int move_player(player* p, Direction dir) {
 
 void move_player_chunk(player* p, Direction dir) {
     p->current_chunk = get_chunk_from(p->map, p->current_chunk, dir);
-    LOG_INFO("Is new chunk generated: %s", is_new_chunk() ? "true" : "false");
     if (is_new_chunk() && p->health == 1) {
         TIME_SURVIVOR_IN_CHUNK = 10;
         LOG_INFO("Survivor achievement countdown started.");
