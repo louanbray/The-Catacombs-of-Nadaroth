@@ -19,7 +19,7 @@ typedef struct chunk {
     hm* hashmap;
 } chunk;
 
-/// @brief Gives a random type (w/ exceptions) and add furnitures.
+/// @brief Gives a random type (w/ exceptions) and add furniture.
 /// @param c raw chunk
 /// @param x pos x
 /// @param y pos y
