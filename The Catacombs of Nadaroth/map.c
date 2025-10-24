@@ -49,13 +49,13 @@ chunk* generate_chunk(int x, int y) {
 /// @brief Create a core map bound the the player
 /// @param p player
 /// @return map
-map* create_map(player* p) {
+map* create_map() {
     map* m = malloc(sizeof(map));
     chunk* ck = generate_chunk(0, 0);
 
     m->hashmap = create_hashmap();
     m->spawn = ck;
-    m->player = p;
+    m->player = NULL;
     set_hm(m->hashmap, 0, 0, ck);
     return m;
 }
@@ -70,6 +70,10 @@ player* get_player(map* m) {
 
 void set_map_player(map* m, player* p) {
     m->player = p;
+}
+
+hm* get_map_hashmap(map* m) {
+    return m->hashmap;
 }
 
 bool is_new_chunk() {

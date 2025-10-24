@@ -122,6 +122,10 @@ chunk* get_player_chunk(player* p) {
     return p->current_chunk;
 }
 
+void set_player_chunk(player* p, chunk* ck) {
+    p->current_chunk = ck;
+}
+
 hotbar* get_player_hotbar(player* p) {
     return p->hotbar;
 }

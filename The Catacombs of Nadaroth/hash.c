@@ -193,3 +193,16 @@ void print_hm(hm* t) {
         }
     }
 }
+
+void for_each_hm(hm* t, void (*f)(int key_x, int key_y, element_h element, void* user_data), void* user_data) {
+    if (t == NULL || f == NULL) return;
+
+    int len = t->length;
+    for (int i = 0; i < len; i++) {
+        list* l = t->hash_map[i];
+        while (l != NULL) {
+            f(l->x, l->y, l->ck, user_data);
+            l = l->next;
+        }
+    }
+}

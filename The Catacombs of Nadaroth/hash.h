@@ -59,4 +59,10 @@ void free_hm(hm* hashmap);
 /// @param hashmap hashmap*
 void print_hm(hm* hashmap);
 
+/// @brief Iterate over all elements in the hashmap and apply a function to each
+/// @param hashmap hashmap*
+/// @param f function to apply (takes key_x, key_y, element, and user_data)
+/// @param user_data pointer to user data passed to the function
+void for_each_hm(hm* hashmap, void (*f)(int key_x, int key_y, element_h element, void* user_data), void* user_data);
+
 #endif

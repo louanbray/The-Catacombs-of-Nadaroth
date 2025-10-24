@@ -317,6 +317,11 @@ int main(int argc, char* argv[]) {
                     LOG_ERROR("Failed to load game");
                 }
             }
+            if (USE_KEY('U') || USE_KEY('u')) {
+                render(screen, m);
+                update_screen(screen);
+                LOG_INFO("Screen re-rendered");
+            }
         }
     }
 

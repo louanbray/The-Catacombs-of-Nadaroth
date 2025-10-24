@@ -65,6 +65,11 @@ void set_player_py(player* player, int py);
 /// @return chunk*
 chunk* get_player_chunk(player* player);
 
+/// @brief Set player current chunk
+/// @param player player
+/// @param chunk new current chunk
+void set_player_chunk(player* player, chunk* chunk);
+
 /// @brief Returns player hotbar
 /// @param player player
 /// @return hotbar

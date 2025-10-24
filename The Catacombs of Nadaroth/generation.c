@@ -32,6 +32,14 @@ dynarray* get_chunk_enemies(chunk* ck) {
     return ck->enemies;
 }
 
+ChunkType get_chunk_type(chunk* ck) {
+    return ck->type;
+}
+
+chunk_link get_chunk_links(chunk* ck) {
+    return ck->link;
+}
+
 /// @brief Copy the content of the items dynarrray to put it into the hashmap
 /// @param c chunk
 void fill_chunk_hm_from_dyn(chunk* c) {

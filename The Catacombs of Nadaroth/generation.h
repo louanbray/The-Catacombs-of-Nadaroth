@@ -70,4 +70,14 @@ void remove_item(chunk* chunk, item* item);
 /// @return dynarray of enemies
 dynarray* get_chunk_enemies(chunk* chunk);
 
+/// @brief Get the type of the chunk
+/// @param chunk chunk
+/// @return ChunkType
+ChunkType get_chunk_type(chunk* chunk);
+
+/// @brief Get the links of the chunk
+/// @param chunk chunk
+/// @return chunk_link (array of 5 chunk pointers)
+chunk_link get_chunk_links(chunk* chunk);
+
 #endif

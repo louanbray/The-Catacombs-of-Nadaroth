@@ -49,6 +49,11 @@ player* get_player(map* map);
 /// @param player player
 void set_map_player(map* map, player* player);
 
+/// @brief Get the hashmap of chunks from the map
+/// @param map map
+/// @return hashmap of chunks
+hm* get_map_hashmap(map* map);
+
 /// @brief Free full chunk in the map and itself
 /// @param map map
 /// @param chunk chunk to free
