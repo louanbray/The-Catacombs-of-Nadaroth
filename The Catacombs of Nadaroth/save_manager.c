@@ -210,6 +210,11 @@ static bool load_hotbar_data(FILE* f, hotbar* h) {
     // Restore selected slot
     select_slot(h, selected_slot);
 
+    // Force update of selected_item (in case selected_slot was already 0)
+    // This ensures render_item_title displays correctly on first load
+    select_slot(h, (selected_slot + 1) % max_size);
+    select_slot(h, selected_slot);
+
     return true;
 }
 
@@ -578,6 +583,13 @@ static bool save_map_data(FILE* f, map* m) {
     return saver.success;
 }
 
+// Temporary structure to store chunk link info during loading
+typedef struct {
+    int chunk_x;
+    int chunk_y;
+    int link_coords[5][2];  // For each direction: [x, y] or [-9999, -9999] if no link
+} chunk_link_info;
+
 /// @brief Load map data from file
 static bool load_map_data(FILE* f, map* m) {
     if (!f || !m) return false;
@@ -587,6 +599,9 @@ static bool load_map_data(FILE* f, map* m) {
     LOG_INFO("Loading %d chunks from file", chunk_count);
 
     hm* chunks_map = get_map_hashmap(m);
+
+    // Store link info for second pass
+    chunk_link_info* link_infos = malloc(sizeof(chunk_link_info) * chunk_count);
 
     // First pass: load all chunks (structure and items)
     for (int i = 0; i < chunk_count; i++) {
@@ -600,10 +615,11 @@ static bool load_map_data(FILE* f, map* m) {
         fread(&type, sizeof(int), 1, f);
 
         // Read link coordinates (we'll restore them in second pass)
-        int link_coords[5][2];
+        link_infos[i].chunk_x = x;
+        link_infos[i].chunk_y = y;
         for (int j = 0; j < 5; j++) {
-            fread(&link_coords[j][0], sizeof(int), 1, f);
-            fread(&link_coords[j][1], sizeof(int), 1, f);
+            fread(&link_infos[i].link_coords[j][0], sizeof(int), 1, f);
+            fread(&link_infos[i].link_coords[j][1], sizeof(int), 1, f);
         }
 
         // Get or create the chunk
@@ -756,22 +772,35 @@ static bool load_map_data(FILE* f, map* m) {
                 append(ck->enemies, NULL);
             }
         }
+    }
 
-        // Store link coordinates for second pass
-        // We'll restore links after all chunks are loaded
+    // Second pass: restore chunk links
+    for (int i = 0; i < chunk_count; i++) {
+        chunk* ck = get_hm(chunks_map, link_infos[i].chunk_x, link_infos[i].chunk_y);
+        if (!ck) continue;
+
+        chunk_link links = get_chunk_links(ck);
         for (int j = 0; j < 5; j++) {
-            if (link_coords[j][0] != -9999) {
-                // We'll need to find this chunk and link to it
-                // For now, just note that we need to process links
-                (void)link_coords;  // Will be handled in second pass if needed
+            int link_x = link_infos[i].link_coords[j][0];
+            int link_y = link_infos[i].link_coords[j][1];
+
+            if (link_x != -9999) {
+                // Find the linked chunk
+                chunk* linked_chunk = get_hm(chunks_map, link_x, link_y);
+                if (linked_chunk) {
+                    links[j] = linked_chunk;
+                } else {
+                    LOG_WARN("Chunk (%d, %d) link[%d] points to non-existent chunk (%d, %d)",
+                             link_infos[i].chunk_x, link_infos[i].chunk_y, j, link_x, link_y);
+                    links[j] = NULL;
+                }
+            } else {
+                links[j] = NULL;
             }
         }
     }
 
-    // Second pass: restore chunk links
-    // For now, links will be reconstructed naturally as the player explores
-    // This is acceptable since links are reconstructed in get_chunk_from()
-
+    free(link_infos);
     return true;
 }
 
