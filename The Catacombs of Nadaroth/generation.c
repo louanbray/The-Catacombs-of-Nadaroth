@@ -1,5 +1,7 @@
 #include "generation.h"
 
+#include "game_status.h"
+
 dynarray* get_chunk_furniture_list(chunk* ck) {
     return ck->elements;
 }
@@ -63,12 +65,12 @@ void fill_furniture(chunk* c, ChunkType type) {
 }
 
 void decorate(chunk* c, int x, int y) {
-    int type = SPAWN;
+    int type = is_debug_mode() ? DEBUG : SPAWN;
     int spawn_x = 1;  //! TO CENTER THE PLAYER
     int spawn_y = 0;
     if (x != 0 || y != 0) {
         int t = rand() % (CHUNK_TYPE_COUNT - 1);  //? MODIFY TO ADD A LEVEL (% Number of types)
-        type = t + 1;
+        type = t + 2;                             // +2 to skip SPAWN and DEBUG
         // switch (t) {  //! temporary offline, need to incorporate spawn pos to chunk file
         //     // case ?:
         //     //     spawn_x = ?;

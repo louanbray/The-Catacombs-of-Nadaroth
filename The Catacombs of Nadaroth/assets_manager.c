@@ -327,6 +327,7 @@ void init_assets_system() {
     // Add more entity files here...
 
     // Load chunk files
+    add_chunk_file("assets/chunks/debug.dodjo", DEBUG);
     add_chunk_file("assets/chunks/spawn.dodjo", SPAWN);
     add_chunk_file("assets/chunks/default.dodjo", DEFAULT);
     add_chunk_file("assets/chunks/default2.dodjo", DEFAULT2);

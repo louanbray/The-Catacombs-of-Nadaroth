@@ -119,6 +119,7 @@ typedef enum UsableItem {
 
 /// @brief chunk type (0,0) -> SPAWN
 typedef enum ChunkType {  //? MODIFY TO ADD LEVELS
+    DEBUG,
     SPAWN,
     DEFAULT,
     DEFAULT2,
