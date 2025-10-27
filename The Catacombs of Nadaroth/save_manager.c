@@ -41,6 +41,7 @@ static bool save_player_data(FILE* f, player* p) {
     int design = get_player_design(p);
     int score = get_player_score(p);
     int deaths = get_player_deaths(p);
+    Color color = get_player_color(p);
     GamePhase phase = get_player_phase(p);
 
     // Save current chunk coordinates
@@ -62,6 +63,7 @@ static bool save_player_data(FILE* f, player* p) {
     fwrite(&design, sizeof(int), 1, f);
     fwrite(&score, sizeof(int), 1, f);
     fwrite(&deaths, sizeof(int), 1, f);
+    fwrite(&color, sizeof(int), 1, f);
     fwrite(&phase, sizeof(int), 1, f);
     fwrite(&chunk_x, sizeof(int), 1, f);
     fwrite(&chunk_y, sizeof(int), 1, f);
@@ -75,7 +77,7 @@ static bool load_player_data(FILE* f, player* p) {
 
     int x, y, px, py, health, max_health, mental_health, damage, arrow_speed, range;
     bool infinity;
-    int design, score, deaths, phase;
+    int design, score, deaths, color, phase;
     int chunk_x, chunk_y;
 
     fread(&x, sizeof(int), 1, f);
@@ -92,6 +94,7 @@ static bool load_player_data(FILE* f, player* p) {
     fread(&design, sizeof(int), 1, f);
     fread(&score, sizeof(int), 1, f);
     fread(&deaths, sizeof(int), 1, f);
+    fread(&color, sizeof(int), 1, f);
     fread(&phase, sizeof(int), 1, f);
     fread(&chunk_x, sizeof(int), 1, f);
     fread(&chunk_y, sizeof(int), 1, f);
@@ -113,6 +116,7 @@ static bool load_player_data(FILE* f, player* p) {
     set_player_infinity(p, infinity);
     set_player_design(p, design);
     set_player_score(p, score);
+    set_player_color(p, (Color)color);
     set_player_phase(p, (GamePhase)phase);
     set_player_deaths(p, deaths);
 
@@ -536,10 +540,10 @@ typedef struct {
 } chunk_counter_ctx;
 
 /// @brief Callback to count chunks
-static void count_chunk_callback(int x, int y, element_h element, void* user_data) {
+static void count_chunk_callback(int x, int y, element_h elt, void* user_data) {
     (void)x;
     (void)y;
-    (void)element;
+    (void)elt;
     chunk_counter_ctx* ctx = (chunk_counter_ctx*)user_data;
     ctx->count++;
 }
@@ -551,13 +555,13 @@ typedef struct {
 } chunk_saver_ctx;
 
 /// @brief Callback to save a chunk
-static void save_chunk_callback(int x, int y, element_h element, void* user_data) {
+static void save_chunk_callback(int x, int y, element_h elt, void* user_data) {
     (void)x;
     (void)y;
     chunk_saver_ctx* ctx = (chunk_saver_ctx*)user_data;
     if (!ctx->success) return;  // Stop if already failed
 
-    chunk* ck = (chunk*)element;
+    chunk* ck = (chunk*)elt;
     if (!save_chunk_data(ctx->f, ck)) {
         ctx->success = false;
         LOG_ERROR("Failed to save chunk at (%d, %d)", x, y);

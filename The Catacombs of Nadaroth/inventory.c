@@ -13,8 +13,6 @@ typedef struct hotbar {
     int max_size;
 } hotbar;
 
-const int HOTBAR_SIZE = 9;
-
 hotbar* create_hotbar() {
     hotbar* h = malloc(sizeof(hotbar));
     item** i = calloc(9, sizeof(item*));

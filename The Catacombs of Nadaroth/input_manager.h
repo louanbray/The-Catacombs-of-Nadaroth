@@ -38,8 +38,11 @@ void init_terminal();
  *
  * @param p Pointer to user-defined data that will be passed to the callback functions.
  * @param screen Pointer to the screen or context that will be passed to the callback functions.
- * @param mouse_left_event_callback Callback function to handle mouse events. It takes the screen pointer, user-defined data pointer,
+ * @param mouse_left_event_callback Callback function to handle left mouse button events. It takes the screen pointer, user-defined data pointer,
  *                             and the x and y coordinates of the mouse event.
+ * @param mouse_right_event_callback Callback function to handle right mouse button events. It takes the screen pointer and user-defined data pointer.
+ * @param mouse_scroll_callback Callback function to handle mouse scroll events. It takes the screen pointer, user-defined data pointer,
+ *                              x and y coordinates, and scroll direction (1 for up, -1 for down).
  * @param arrow_key_callback Callback function to handle arrow key events. It takes the screen pointer, user-defined data pointer,
  *                           and the arrow key character.
  * @param printable_char_callback Callback function to handle printable character events. It takes the screen pointer, user-defined data pointer,
@@ -48,6 +51,7 @@ void init_terminal();
 void process_input(player* p, Render_Buffer* screen,
                    void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y),
                    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p),
+                   void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction),
                    void (*arrow_key_callback)(Render_Buffer* screen, player* p, int arrow_key),
                    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c));
 

@@ -47,19 +47,16 @@ Follow these simple steps to dive into the world of Nadaroth:
     Faites glisser le curseur « Délai avant répétition » vers court.
     
 
-4. **Open with VSCode:**
+3. **Open with VSCode:**
     Launch the project folder in Visual Studio Code.
 
-5. **Apply a Dark Theme (Optional):**
+4. **Apply a Dark Theme (Optional):**
     For an immersive and atmospheric experience, consider using VSCode's dark theme.
 
-6. **Copy an empty line:**
-    To be able to use the right click in-game, please open EMPTY with vscode and copy the empty line
-
-7. **Open the Terminal Wide:**
+5. **Open the Terminal Wide:**
     Ensure your terminal is large enough for optimal gameplay display and debugging.
 
-8. **Run the Game:**
+6. **Run the Game:**
     ```bash
     make run
     ```

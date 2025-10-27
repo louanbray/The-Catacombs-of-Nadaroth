@@ -46,6 +46,9 @@
 #define PLAYER_DESIGN_BRAWLER 9632
 #define PLAYER_DESIGN_SHIELD 9960
 
+/// @brief Inventory
+#define HOTBAR_SIZE 9
+
 //! COPYRIGHT 24/01/2025 20:33, EVERY IDEA HERE IS MINE IF YOU FOUND ANY LEAKED DATA PLEASE INFORM THE DEVELOPPER OF THE GAME
 
 /*
@@ -59,7 +62,7 @@ TODO LIST:
 ? - Implement status menu                                                                                                         [RENDER/DEV] (LOW)
 ? - Work on menus (!!Username!!, stat attribution aso...)                                                                         [RENDER/DEV] (LOW)
 - Add cinematics                                                                                                                  [RENDER] (LOW)        {DONE - Lore}
-- [Rework render concept to add mental health effect (limited vision)] -> //?Better lore                                          [RENDER/DEV] (LOW)    {DONE}
+- [Rework render concept to add mental health effect (limited vision)] -> Better lore                                             [RENDER/DEV] (LOW)    {DONE}
 - Add stats and achievements objects                                                                                              [DEV] (LOW)           {DONE \Perfectionist}
 * - Have a way to render achievements and stats on the screen                                                                     [RENDER] (LOW)
 - Saving Games, opening and sharing                                                                                               [DEV/RENDER] (LOW)    {DONE}

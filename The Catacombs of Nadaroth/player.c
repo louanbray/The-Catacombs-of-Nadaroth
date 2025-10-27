@@ -167,7 +167,7 @@ int get_player_score(player* p) {
 }
 
 int get_player_arrow_speed(player* p) {
-    return p->arrow_speed - ADDITIONAL_ARROW_SPEED;
+    return p->arrow_speed - ADDITIONAL_ARROW_SPEED > 0 ? p->arrow_speed - ADDITIONAL_ARROW_SPEED : 1;
 }
 
 int get_player_deaths(player* p) {

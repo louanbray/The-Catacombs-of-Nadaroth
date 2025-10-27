@@ -30,7 +30,8 @@ void restore_terminal_mode() {
         exit(EXIT_FAILURE);
     }
     wprintf(L"\33[?25h");                // Re-enable cursor visibility
-    wprintf(L"\033[?1003l\033[?1006l");  // Enable Mouse events
+    wprintf(L"\033[?1003l\033[?1006l");  // Disable Mouse events
+    wprintf(L"\033[?2004l");             // Disable bracketed paste mode
     wprintf(L"\033[H\033[J");            // Clear the screen
     wprintf(L"\033[0m");                 // Reset color
     fflush(stdout);
@@ -38,6 +39,7 @@ void restore_terminal_mode() {
 
 /// @brief Signal handler to restore terminal on unexpected termination
 void handle_signal(int signo) {
+    (void)signo;
     restore_terminal_mode();
     exit(EXIT_FAILURE);
 }
@@ -93,6 +95,7 @@ void init_terminal() {
     wprintf(L"\33[?25l");                // Disable cursor
     wprintf(L"\033[H\033[J");            // Clear
     wprintf(L"\033[?1003h\033[?1006h");  // Enable mouse motion events
+    wprintf(L"\033[?2004h");             // Enable bracketed paste mode
     fflush(stdout);
 }
 
@@ -103,6 +106,8 @@ typedef struct MouseEvent {
     bool right_just_pressed;
     int left_click;
     int right_click;
+    int scroll_up;
+    int scroll_down;
 } MouseEvent;
 
 /**
@@ -122,9 +127,25 @@ void parse_sgr_mouse_event(const char* buffer, MouseEvent* event) {
 
     event->left_click = 0;
     event->right_click = 0;
+    event->scroll_up = 0;
+    event->scroll_down = 0;
 
     if (sscanf(buffer, "\033[<%d;%d;%d%c", &button, &x, &y, &event_type) == 4) {
-        if (button >= 64) return;
+        // Check for scroll events (button 64 = scroll up, 65 = scroll down)
+        if (button == 64) {
+            event->scroll_up = 1;
+            event->target_x = (x / 2) * 2;
+            event->target_y = y;
+            return;
+        } else if (button == 65) {
+            event->scroll_down = 1;
+            event->target_x = (x / 2) * 2;
+            event->target_y = y;
+            return;
+        }
+
+        // Ignore other high button numbers (motion events, etc.)
+        if (button >= 66) return;
 
         int btn = button & 0x03;
 
@@ -168,6 +189,30 @@ bool is_mouse_event(const char* buffer, size_t length) {
  */
 bool is_arrow_key(const char* buffer, size_t length) {
     return length >= 3 && buffer[0] == '\033' && buffer[1] == '[' && (buffer[2] == 'A' || buffer[2] == 'B' || buffer[2] == 'C' || buffer[2] == 'D');
+}
+
+/**
+ * @brief Checks if the given buffer contains a bracketed paste start sequence.
+ *
+ * @param buffer The buffer to check.
+ * @param length The length of the buffer.
+ * @return true if the buffer contains "\033[200~", false otherwise.
+ */
+bool is_paste_start(const char* buffer, size_t length) {
+    return length >= 6 && buffer[0] == '\033' && buffer[1] == '[' &&
+           buffer[2] == '2' && buffer[3] == '0' && buffer[4] == '0' && buffer[5] == '~';
+}
+
+/**
+ * @brief Checks if the given buffer contains a bracketed paste end sequence.
+ *
+ * @param buffer The buffer to check.
+ * @param length The length of the buffer.
+ * @return true if the buffer contains "\033[201~", false otherwise.
+ */
+bool is_paste_end(const char* buffer, size_t length) {
+    return length >= 6 && buffer[0] == '\033' && buffer[1] == '[' &&
+           buffer[2] == '2' && buffer[3] == '0' && buffer[4] == '1' && buffer[5] == '~';
 }
 
 /**
@@ -218,14 +263,16 @@ void unlock_inputs() {
 void process_input(player* p, Render_Buffer* screen,
                    void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y),
                    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p),
+                   void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction),
                    void (*arrow_key_callback)(Render_Buffer* screen, player* p, int arrow_key),
                    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c)) {
     char buffer[128];
     char input_buffer[MAX_BUFFER_SIZE];
 
     size_t input_buffer_length = 0;
+    bool in_paste_mode = false;  // Track if we're inside a paste sequence
 
-    MouseEvent event = {0, 1, false, false, 0, 0};
+    MouseEvent event = {0, 1, false, false, 0, 0, 0, 0};
 
     while (1) {
         ssize_t bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer));
@@ -252,6 +299,23 @@ void process_input(player* p, Render_Buffer* screen,
         size_t processed = 0;
 
         while (processed < input_buffer_length) {
+            // Check for paste start/end sequences first
+            if (is_paste_start(input_buffer + processed, input_buffer_length - processed)) {
+                in_paste_mode = true;
+                processed += 6;  // Skip "\033[200~"
+                continue;
+            } else if (is_paste_end(input_buffer + processed, input_buffer_length - processed)) {
+                in_paste_mode = false;
+                processed += 6;  // Skip "\033[201~"
+                continue;
+            }
+
+            // If we're in paste mode, skip all characters until we find the end sequence
+            if (in_paste_mode) {
+                processed++;
+                continue;
+            }
+
             if (is_mouse_event(input_buffer + processed, input_buffer_length - processed)) {
                 size_t mouse_event_length = get_mouse_event_length(input_buffer + processed, input_buffer_length - processed);
                 if (mouse_event_length > 0) {
@@ -263,6 +327,12 @@ void process_input(player* p, Render_Buffer* screen,
                         }
                         if (event.right_click) {
                             mouse_right_event_callback(screen, p);
+                        }
+                        if (event.scroll_up) {
+                            mouse_scroll_callback(screen, p, event.target_x, event.target_y, 1);
+                        }
+                        if (event.scroll_down) {
+                            mouse_scroll_callback(screen, p, event.target_x, event.target_y, -1);
                         }
                     }
 

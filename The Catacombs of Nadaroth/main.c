@@ -190,18 +190,40 @@ void interact(Render_Buffer* screen, player* p) {
     update_screen(screen);
 }
 
-typedef struct {
+void scroll_callback(Render_Buffer* screen, player* p, int x, int y, int direction) {
+    (void)x;
+    (void)y;
+    hotbar* hb = get_player_hotbar(p);
+    int selected = get_selected_slot(hb);
+
+    if (direction > 0) {
+        // Scroll up
+        selected--;
+        if (selected < 0) selected = HOTBAR_SIZE - 1;
+    } else {
+        // Scroll down
+        selected++;
+        if (selected >= HOTBAR_SIZE) selected = 0;
+    }
+
+    select_slot(hb, selected);
+    render_hotbar(screen, hb);
+    update_screen(screen);
+}
+
+typedef struct InputThreadArgs {
     player* p;
     Render_Buffer* screen;
     void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y);
     void (*mouse_right_event_callback)(Render_Buffer* screen, player* p);
+    void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction);
     void (*arrow_key_callback)(Render_Buffer* screen, player* p, int arrow_key);
     void (*printable_char_callback)(Render_Buffer* screen, player* p, int c);
 } InputThreadArgs;
 
 void* process_input_thread(void* arg) {
     InputThreadArgs* args = (InputThreadArgs*)arg;
-    process_input(args->p, args->screen, args->mouse_left_event_callback, args->mouse_right_event_callback, args->arrow_key_callback, args->printable_char_callback);
+    process_input(args->p, args->screen, args->mouse_left_event_callback, args->mouse_right_event_callback, args->mouse_scroll_callback, args->arrow_key_callback, args->printable_char_callback);
     return NULL;
 }
 
@@ -241,7 +263,7 @@ int main(int argc, char* argv[]) {
 
     // ------------------- Start input processing thread -------------------
     pthread_t input_thread;
-    InputThreadArgs input_args = {p, screen, fire_projectile, interact, arrow_move, compute_entry};
+    InputThreadArgs input_args = {p, screen, fire_projectile, interact, scroll_callback, arrow_move, compute_entry};
 
     if (pthread_create(&input_thread, NULL, process_input_thread, &input_args) != 0)
         return EXIT_FAILURE;
