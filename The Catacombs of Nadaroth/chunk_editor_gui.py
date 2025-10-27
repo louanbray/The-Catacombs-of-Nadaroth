@@ -818,13 +818,53 @@ class ChunkEditor(tk.Tk):
             self.current_file = filename
             
     def save_to_file(self, filename):
-        """Save chunk to file - all 127 characters per line"""
+        """Save chunk to file"""
+        output_lines = []
+        chunk_copy = [list(row) for row in self.chunk]
+        
+        for i in range(CHUNK_HEIGHT):
+            row_repeat = col_repeat = 1
+            row = list(chunk_copy[i])  # Full 127-char row
+            
+            for j in range(CHUNK_WIDTH):
+                cell = row[j]
+                # Skip spaces and asterisks and unknown items
+                if cell == '*' or cell == ' ' or cell not in items:
+                    pass
+                # Check for horizontal repetition (row_repeat)
+                elif j < CHUNK_WIDTH - 1 - items[cell][2] and cell == row[j + 1 + items[cell][2]]:
+                    row_repeat += 1
+                else:
+                    # Export this cell
+                    # Check for vertical repetition (col_repeat)
+                    if i < CHUNK_HEIGHT - 1 and row_repeat == 1:
+                        for k in range(CHUNK_HEIGHT - 1 - i):
+                            col = list(chunk_copy[i + 1 + k])
+                            if cell == col[j]:
+                                col_repeat += 1
+                                col[j] = ' '
+                                chunk_copy[i + 1 + k] = col
+                            else:
+                                break
+                    
+                    output_lines.append("%d,%d,%d,%d,%d,%d,%d,%d,%d" % (
+                        j - 63,
+                        -i + 17,
+                        items[cell][0],
+                        items[cell][1],
+                        row_repeat,
+                        items[cell][2],
+                        col_repeat,
+                        items[cell][3],
+                        items[cell][4]
+                    ))
+                    row_repeat = col_repeat = 1
+        
+        output = "\n".join(output_lines)
+        
         try:
             with open(filename, 'w') as f:
-                for row in self.chunk:
-                    # Write all 127 characters
-                    line = ''.join(row)
-                    f.write(line + '\n')
+                f.write(output)
             self.status_label.config(text=f"Saved: {os.path.basename(filename)}")
             messagebox.showinfo("Success", "Chunk saved successfully!")
         except Exception as e:
