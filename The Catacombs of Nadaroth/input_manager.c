@@ -386,6 +386,7 @@ void process_input(player* p, Render_Buffer* screen,
 
 bool check_ctrl_c() {
     if (ctrl_c_pressed) {
+        restore_terminal_mode();
         ctrl_c_pressed = false;
         return true;
     }
