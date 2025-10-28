@@ -61,13 +61,15 @@ TODO LIST:
 - Work on the designs of the items and chunks                                                                                     [RENDER] (MEDIUM)     {DONE}
 ? - Implement status menu                                                                                                         [RENDER/DEV] (LOW)
 ? - Work on menus (!!Username!!, stat attribution aso...)                                                                         [RENDER/DEV] (LOW)
-- Add cinematics                                                                                                                  [RENDER] (LOW)        {DONE - Lore}
+- Add cinematics                                                                                                                  [RENDER] (LOW)        {DONE}
 - [Rework render concept to add mental health effect (limited vision)] -> Better lore                                             [RENDER/DEV] (LOW)    {DONE}
 - Add stats and achievements objects                                                                                              [DEV] (LOW)           {DONE \Perfectionist}
-* - Have a way to render achievements and stats on the screen                                                                     [RENDER] (LOW)
+- Have a way to render achievements and stats on the screen                                                                       [RENDER] (LOW)        {DONE}
 - Saving Games, opening and sharing                                                                                               [DEV/RENDER] (LOW)    {DONE}
 - Update Entity / Chunk editor                                                                                                    [DEV] (LOW)           {DONE}
 ? - Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
+* - Pause menu with options (Resume, Save, Load, Quit, Stats, Ach)                                                                [RENDER/DEV] (LOW)
+* - Change time_played timer precision to microseconds                                                                            [DEV] (LOW)
 */
 
 /// @brief Gate position/type

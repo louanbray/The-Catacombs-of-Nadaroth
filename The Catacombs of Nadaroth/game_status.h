@@ -11,5 +11,6 @@ void pause_game(void);
 void resume_game(void);
 void set_debug_mode(int mode);
 int is_debug_mode(void);
+int need_reset(void);
 
 #endif

@@ -44,6 +44,16 @@ const char* get_achievement_description(enum AchievementID id) {
     return achievements[id]->description;
 }
 
+int get_achievement_progress(enum AchievementID id) {
+    if (id < 0 || id >= ACHIEVEMENT_COUNT) return 0;
+    return achievements[id]->progress;
+}
+
+int get_achievement_max_progress(enum AchievementID id) {
+    if (id < 0 || id >= ACHIEVEMENT_COUNT) return 0;
+    return achievements[id]->max_progress;
+}
+
 void set_achievement_progress(enum AchievementID id, int progress) {
     if (id < 0 || id >= ACHIEVEMENT_COUNT) return;
     if (achievements[id]->progress == achievements[id]->max_progress)
@@ -71,11 +81,6 @@ void add_achievement_progress(enum AchievementID id, int progress) {
         LOG_INFO("Achievement %s progress increased to %d/%d", achievements[id]->name, new_progress, achievements[id]->max_progress);
         save_achievements();
     }
-}
-
-int get_achievement_progress(enum AchievementID id) {
-    if (id < 0 || id >= ACHIEVEMENT_COUNT) return 0;
-    return achievements[id]->progress;
 }
 
 bool is_achievement_unlocked(enum AchievementID id) {

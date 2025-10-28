@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
     // ------------------- Main game loop -------------------
     for (;;) {
         time_t current_time = time(NULL);
-        if (GAME_PAUSED) start_time = current_time;
+        if (GAME_PAUSED || need_reset()) start_time = current_time;
         int elapsed_seconds = (int)(current_time - start_time);
         if (elapsed_seconds != 0) {
             survivor_countdown(elapsed_seconds);
@@ -351,6 +351,12 @@ int main(int argc, char* argv[]) {
                 render(screen, m);
                 update_screen(screen);
                 LOG_INFO("Screen re-rendered");
+            }
+
+            if (USE_KEY('A') || USE_KEY('a')) {
+                display_achievements(screen);
+            } else if (USE_KEY('T') || USE_KEY('t')) {
+                display_statistics(screen);
             }
         }
     }

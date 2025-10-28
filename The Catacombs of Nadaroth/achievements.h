@@ -24,6 +24,7 @@ enum AchievementID {
 
 int get_achievement_points(enum AchievementID id);
 int get_achievement_progress(enum AchievementID id);
+int get_achievement_max_progress(enum AchievementID id);
 int get_total_points();
 const char* get_achievement_name(enum AchievementID id);
 const char* get_achievement_description(enum AchievementID id);

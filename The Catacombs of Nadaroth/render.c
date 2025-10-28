@@ -3,6 +3,7 @@
 #include <omp.h>
 #include <time.h>
 
+#include "achievements.h"
 #include "assets_manager.h"
 #include "dynarray.h"
 #include "game_status.h"
@@ -11,6 +12,7 @@
 #include "logger.h"
 #include "map.h"
 #include "player.h"
+#include "statistics.h"
 
 typedef struct Cell {
     wchar_t ch;
@@ -100,8 +102,7 @@ void blank_screen(board b) {
     }
 }
 
-// Draws the default screen borders and decorations.
-void default_screen(board b) {
+void clear_screen(board b) {
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         for (int j = 0; j < RENDER_WIDTH; j++) {
             if (i > 0 && (j == 0 || j == RENDER_WIDTH - 1)) {
@@ -129,14 +130,20 @@ void default_screen(board b) {
                     else
                         b[i][j].ch = 9565;
                 }
-            } else if (i == 3 && (abs((RENDER_WIDTH + 1) / 2 - j) < 10 && j % 2 == 0)) {
-                b[i][j].ch = 9145;
             } else {
                 b[i][j].ch = L' ';
             }
             b[i][j].color = COLOR_DEFAULT;
         }
     }
+}
+
+// Draws the default screen borders and decorations.
+void default_screen(board b) {
+    clear_screen(b);
+    for (int j = (RENDER_WIDTH + 1) / 2 - 10; j < (RENDER_WIDTH + 1) / 2 + 10; j++)
+        if (j % 2 == 0) b[3][j].ch = 9145;
+
     write_wstr(b, 3, 2, L"HEALTH: ", 9, COLOR_DEFAULT);
     write_wstr(b, 1, 2, L"SCORE: ", 8, COLOR_DEFAULT);
 }
@@ -151,7 +158,7 @@ Render_Buffer* create_screen() {
     Render_Buffer* r = malloc(sizeof(Render_Buffer));
 
     board b = create_board();
-    default_screen(b);
+    clear_screen(b);
 
     board pv = create_board();
     blank_screen(pv);
@@ -567,10 +574,10 @@ void display_item_description(Render_Buffer* r, void* it) {
     swprintf(buff, 50, L"  Analysing >> %lc - %.*s : ", get_item_display(item_), (int)strlen(item_file->title) - 1, item_file->title);
     render_unicode_string(r, -63, 13, buff, 50);
 
-    render_string(r, -8, -18, " PRESS [E] TO EXIT", 19);
+    render_string(r, -10, -18, " PRESS [SPACE] TO EXIT", 23);
 
     update_screen(r);
-    while (!USE_KEY('e') && !USE_KEY('E'));
+    while (!USE_KEY('e') && !USE_KEY('E') && !USE_KEY('\n') && !USE_KEY(' '));
 
     finalize_render_buffer(r);
 }
@@ -640,15 +647,15 @@ void display_interface(Render_Buffer* r, const char* filename) {
 
     setup_render_buffer(r);
 
-    render_string(r, -8, -18, " PRESS [H] TO EXIT", 19);
+    render_string(r, -10, -18, " PRESS [SPACE] TO EXIT", 23);
     read_text_into_render(r, file);
+    fclose(file);
 
     update_screen(r);
 
     while (!USE_KEY('H') && !USE_KEY('h') && !USE_KEY('\n') && !USE_KEY(' '));
 
     finalize_render_buffer(r);
-    fclose(file);
 }
 
 // Plays a cinematic by reading lines from a file and updating the board.
@@ -707,6 +714,63 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
     }
     finalize_render_buffer(r);
     fclose(file);
+}
+
+void display_statistics(Render_Buffer* r) {
+    const int row[STATISTIC_COUNT] = {6, 9, 12, 15, 21, 18, 22, 23, 24, 25, 28};
+    const int col[STATISTIC_COUNT] = {26, 25, 29, 23, 28, 25, 22, 22, 25, 24, 50};
+
+    FILE* file = fopen("assets/interfaces/structures/statistics.dodjo", "r");
+    if (!file) {
+        perror("Error opening statistics file");
+        return;
+    }
+
+    setup_render_buffer(r);
+
+    read_text_into_render(r, file);
+    fclose(file);
+
+    for (int i = 0; i < STATISTIC_COUNT; i++) {
+        wchar_t buffer[20];
+        swprintf(buffer, 20, L"%d", get_statistic((enum StatisticID)i));
+        write_wstr(r->bd, RENDER_HEIGHT - row[i] - 2, col[i], buffer, wcslen(buffer), COLOR_DEFAULT);
+    }
+
+    update_screen(r);
+
+    while (!USE_KEY('T') && !USE_KEY('t') && !USE_KEY('\n') && !USE_KEY(' '));
+
+    finalize_render_buffer(r);
+}
+
+void display_achievements(Render_Buffer* r) {
+    clear_screen(r->pv);
+    setup_render_buffer(r);
+
+    for (int i = 0; i < ACHIEVEMENT_COUNT; i++) {
+        wchar_t buffer[150];
+        const char* title = get_achievement_name((enum AchievementID)i);
+        int color = COLOR_RED;
+        if (is_achievement_unlocked((enum AchievementID)i)) {
+            swprintf(buffer, 150, L"%s: %s", title, "UNLOCKED");
+            color = COLOR_GREEN;
+        } else
+            swprintf(buffer, 150, L"%s: %s (%d/%d)", title, "LOCKED", get_achievement_progress((enum AchievementID)i), get_achievement_max_progress((enum AchievementID)i));
+
+        write_wstr(r->bd, RENDER_HEIGHT - (3 + 2 * i) - 2, 6, buffer, wcslen(buffer), color);
+        swprintf(buffer, 150, L"└─ %s", get_achievement_description((enum AchievementID)i));
+        write_wstr(r->bd, RENDER_HEIGHT - (4 + 2 * i) - 2, 6, buffer, wcslen(buffer), COLOR_DEFAULT);
+    }
+
+    render_string(r, -10, -18, " PRESS [SPACE] TO EXIT", 23);
+    render_string(r, -6, 16, "* ACHIEVEMENTS *", 17);
+
+    update_screen(r);
+
+    while (!USE_KEY('A') && !USE_KEY('a') && !USE_KEY('\n') && !USE_KEY(' '));
+
+    finalize_render_buffer(r);
 }
 
 void home_menu(Render_Buffer* r, player* p) {

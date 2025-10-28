@@ -187,6 +187,10 @@ void draw_pattern_at(Render_Buffer* r, Pos p, const char* pattern, int color_for
  */
 void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len, int heavy);
 
+void display_statistics(Render_Buffer* r);
+
+void display_achievements(Render_Buffer* r);
+
 void home_menu(Render_Buffer* r, player* p);
 
 void setup_render_buffer(Render_Buffer* r);
