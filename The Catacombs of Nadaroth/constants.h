@@ -69,7 +69,7 @@ TODO LIST:
 - Update Entity / Chunk editor                                                                                                    [DEV] (LOW)           {DONE}
 ? - Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
 * - Pause menu with options (Resume, Save, Load, Quit, Stats, Ach)                                                                [RENDER/DEV] (LOW)
-* - Change time_played timer precision to microseconds                                                                            [DEV] (LOW)
+* - Change time_played timer precision to microseconds + fix timer reset when loading a save                                      [DEV] (MEDIUM)
 */
 
 /// @brief Gate position/type
