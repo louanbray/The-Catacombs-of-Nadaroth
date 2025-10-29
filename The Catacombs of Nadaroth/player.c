@@ -6,6 +6,7 @@
 #include "handler.h"
 #include "logger.h"
 #include "map.h"
+#include "projectile.h"
 #include "statistics.h"
 
 static int START_HEALTH = 2;
@@ -278,6 +279,7 @@ int move_player(player* p, Direction dir) {
 
 void move_player_chunk(player* p, Direction dir) {
     p->current_chunk = get_chunk_from(p->map, p->current_chunk, dir);
+    if (is_new_chunk()) add_total_enemies(p);
     if (is_new_chunk() && p->health == 1) {
         TIME_SURVIVOR_IN_CHUNK = 10;
         LOG_INFO("Survivor achievement countdown started.");

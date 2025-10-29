@@ -15,6 +15,7 @@
 
 int last_hotbar_index = 0;
 static unsigned int projectile_rng_seed = 0;
+static int total_enemies = 0;
 
 typedef struct {
     Render_Buffer* r;
@@ -161,6 +162,7 @@ void projectile_callback(int x, int y, projectile_data* data) {
                 if (e->score > 70) add_achievement_progress(ACH_BOSS_SLAYER, 1);
                 add_player_score(data->p, e->score);
                 set_dyn(get_chunk_enemies(get_player_chunk(data->p)), e->from_id, NULL);
+                total_enemies--;
                 if (is_entity) {
                     destroy_entity_from_chunk(ent);
                     render_from_player(data->screen, data->p);
@@ -197,7 +199,6 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
         kill_all_projectiles(data->screen);
         char filepath[50];
         GamePhase phase = get_player_phase(data->p);
-        // snprintf(filepath, sizeof(filepath), "assets/cinematics/wip.dodjo");
         snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(data->p), phase);
         if (phase == FIRST_ACT_END) {
             LOG_INFO("Game completed in %u seconds and %u microseconds", get_time_played().tv_sec, get_time_played().tv_usec);
@@ -217,6 +218,9 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
                     increment_statistic(STAT_SPEED_RUNS, 1);
                     set_achievement_progress(ACH_SPEED_RUNNER, 1);
                 }
+                if (total_enemies == 0) {
+                    set_achievement_progress(ACH_PERFECTIONIST, 1);
+                }
             }
             if (get_statistic(STAT_GAME_COMPLETION_AS_BALL) >= 1 &&
                 get_statistic(STAT_GAME_COMPLETION_AS_CAMO) >= 1 &&
@@ -229,6 +233,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
             lock_inputs();
         }
         play_cinematic(data->screen, filepath, 1000000);
+        if (phase == FIRST_ACT_END) play_cinematic(data->screen, "assets/cinematics/wip.dodjo", 1000000);  //! Placeholder for future content
         if (get_player_mental_health(data->p) == 0) {
             play_cinematic(data->screen, "assets/cinematics/the_end.dodjo", 1000000);
             pause_game();
@@ -413,6 +418,7 @@ void init_projectile_system(Render_Buffer* r, player* p, int seed) {
     gettimeofday(&started, NULL);
     set_game_started(started);
 
+    add_total_enemies(p);
     projectile_rng_seed = seed * 31 + 1;  // Derive a different seed from main seed
 
     if (pthread_create(&thread_id, NULL, projectile_loop, input_args) != 0) {
@@ -429,4 +435,11 @@ void simulate_projectile_hit(int damage, player* p, Render_Buffer* screen) {
     p_data->screen = screen;
 
     enemy_attack_callback(get_player_x(p), get_player_y(p), p_data);
+}
+
+void add_total_enemies(player* p) {
+    chunk* c = get_player_chunk(p);
+    dynarray* d = get_chunk_enemies(c);
+    int count = len_dyn(d);
+    total_enemies += count;
 }
