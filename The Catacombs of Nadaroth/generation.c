@@ -68,23 +68,21 @@ void decorate(chunk* c, int x, int y) {
     int type = is_debug_mode() ? DEBUG : SPAWN;
     int spawn_x = 1;  //! TO CENTER THE PLAYER
     int spawn_y = 0;
-    if (x != 0 || y != 0) {
-        int t = rand() % (CHUNK_TYPE_COUNT - 1);  //? MODIFY TO ADD A LEVEL (% Number of types)
-        type = t + 2;                             // +2 to skip SPAWN and DEBUG
-        // switch (t) {  //! temporary offline, need to incorporate spawn pos to chunk file
-        //     // case ?:
-        //     //     spawn_x = ?;
-        //     //     spawn_y = ?;
-        //     //     type = DUMMY;
-        //     //     break;
-        //     case 1:
-        //         type = SPAWN;
-        //         break;
-        //     default:
-        //         type = DEFAULT2;
-        //         break;
-        // }
-    }
+    if (x != 0 || y != 0) type = 2 + (rand() % (CHUNK_TYPE_COUNT - 2));  //? MODIFY TO ADD A LEVEL (% Number of types) +2 to skip SPAWN and DEBUG
+    // switch (type) {  //! temporary offline, need to incorporate spawn pos to chunk file (TODO or not if you spawn next to the gates)
+    //     // case ?:
+    //     //     spawn_x = ?;
+    //     //     spawn_y = ?;
+    //     //     type = DUMMY;
+    //     //     break;
+    //     case 1:
+    //         type = SPAWN;
+    //         break;
+    //     default:
+    //         type = DEFAULT2;
+    //         break;
+    // }
+
     c->type = type;
     c->spawn_x = spawn_x;
     c->spawn_y = spawn_y;
