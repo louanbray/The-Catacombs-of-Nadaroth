@@ -173,8 +173,9 @@ typedef enum GamePhase {
     FIRST_ACT_THIRD_PHASE,
     FIRST_ACT_FOURTH_PHASE,
     FIRST_ACT_FIFTH_PHASE,
-    FIRST_ACT_END
+    // FIRST_ACT_END
 } GamePhase;
+#define FIRST_ACT_END FIRST_ACT_FIFTH_PHASE  //! TEMPORARY
 
 // Color enumeration (using a small integer type)
 typedef enum Color {
@@ -189,6 +190,6 @@ typedef enum Color {
     // Extend as needed
 } Color;
 
-static const int ScorePerPhase[] = {0, 25, 75, 210, 630, 1870, 0};
+static const int ScorePerPhase[] = {0, 25, 75, 210, 630, 0, 0};  //! TEMPORARY (1870 removed)
 
 #endif

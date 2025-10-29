@@ -197,10 +197,9 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
         kill_all_projectiles(data->screen);
         char filepath[50];
         GamePhase phase = get_player_phase(data->p);
-        if (phase != FIRST_ACT_END)
-            snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(data->p), phase);
-        else {
-            snprintf(filepath, sizeof(filepath), "assets/cinematics/wip.dodjo");
+        // snprintf(filepath, sizeof(filepath), "assets/cinematics/wip.dodjo");
+        snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(data->p), phase);
+        if (phase == FIRST_ACT_END) {
             LOG_INFO("Game completed in %u seconds and %u microseconds", get_time_played().tv_sec, get_time_played().tv_usec);
             increment_statistic(STAT_GAME_COMPLETIONS, 1);
             set_achievement_progress(ACH_DAWN_BREAKER, 1);
@@ -226,6 +225,8 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
                 get_statistic(STAT_ENEMIES_KILLED) >= 500) {
                 set_achievement_progress(ACH_HERO_OF_NADAROTH, 1);
             }
+            pause_game();
+            lock_inputs();
         }
         play_cinematic(data->screen, filepath, 1000000);
         if (get_player_mental_health(data->p) == 0) {
