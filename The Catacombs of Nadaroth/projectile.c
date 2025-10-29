@@ -13,7 +13,6 @@
 #define MAX_PROJECTILES 128
 
 int last_hotbar_index = 0;
-static int game_started = 0;
 static unsigned int projectile_rng_seed = 0;
 
 typedef struct {
@@ -39,7 +38,7 @@ typedef struct Projectile {
     int frame, rate;                 // Animation frame and rate
     int range;                       // Maximum range (-1 for unlimited)
     int distance_traveled;           // Distance traveled so far
-    char design;                     // Design character
+    unsigned int design;             // Design character
     bool infinity;                   // Is the projectile infinite?
     bool home;                       // Is the projectile homing?
     bool active;                     // Is the projectile active?
@@ -120,7 +119,7 @@ void update_projectiles(Render_Buffer* r) {
         if (c == L' ') {
             if (p->home)
                 p->home = false;
-            wprintf(L"\033[%d;%dH%c", p->y, p->x * speed, p->design);
+            wprintf(L"\033[%d;%dH%lc", p->y, p->x * speed, p->design);
         }
     }
 
@@ -209,7 +208,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
                 increment_statistic(STAT_GAME_COMPLETION_AS_BRAWLER, 1);
             else if (get_player_design(data->p) == PLAYER_DESIGN_SHIELD)
                 increment_statistic(STAT_GAME_COMPLETION_AS_SHIELD, 1);
-            if (get_statistic(STAT_TIME_PLAYED) - game_started <= 600) {
+            if (get_statistic(STAT_TIME_PLAYED) - get_game_started() <= 600) {
                 increment_statistic(STAT_SPEED_RUNS, 1);
                 set_achievement_progress(ACH_SPEED_RUNNER, 1);
             }
@@ -232,7 +231,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
     free(data);
 }
 
-void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, char design, int range, bool infinity, ProjectileCallback callback, projectile_data* callback_data) {
+void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsigned int design, int range, bool infinity, ProjectileCallback callback, projectile_data* callback_data) {
     pthread_mutex_lock(&projectile_mutex);
     int speed = 2;
     for (int i = 0; i < MAX_PROJECTILES; i++) {
@@ -284,7 +283,7 @@ void enemy_attack_projectile(Render_Buffer* r, player* p, item* brain) {
         -get_player_y(p) + 19,
         get_item_display(brain),
         ((enemy*)get_item_spec(brain))->speed,
-        '+',
+        10022,  // OR 9672
         -1,
         ((enemy*)get_item_spec(brain))->infinity,
         enemy_attack_callback,
@@ -331,7 +330,7 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
         target_y,
         get_player_design(p),
         get_player_arrow_speed(p),
-        '*',
+        8226,
         get_player_range(p),
         has_infinity(p),
         projectile_callback,
@@ -402,7 +401,7 @@ void init_projectile_system(Render_Buffer* r, player* p, int seed) {
     InitThreadArgs* input_args = malloc(sizeof(InitThreadArgs));
     input_args->r = r;
     input_args->p = p;
-    game_started = get_statistic(STAT_TIME_PLAYED);
+    set_game_started(get_statistic(STAT_TIME_PLAYED));
 
     projectile_rng_seed = seed * 31 + 1;  // Derive a different seed from main seed
 

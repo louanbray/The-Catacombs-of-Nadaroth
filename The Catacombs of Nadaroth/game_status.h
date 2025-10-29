@@ -12,5 +12,7 @@ void resume_game(void);
 void set_debug_mode(int mode);
 int is_debug_mode(void);
 int need_reset(void);
+void set_game_started(unsigned int started);
+unsigned int get_game_started(void);
 
 #endif

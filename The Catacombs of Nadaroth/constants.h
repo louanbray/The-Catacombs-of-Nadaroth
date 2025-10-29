@@ -68,8 +68,9 @@ TODO LIST:
 - Saving Games, opening and sharing                                                                                               [DEV/RENDER] (LOW)    {DONE}
 - Update Entity / Chunk editor                                                                                                    [DEV] (LOW)           {DONE}
 ? - Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
-* - Pause menu with options (Resume, Save, Load, Quit, Stats, Ach)                                                                [RENDER/DEV] (LOW)
-* - Change time_played timer precision to microseconds + fix timer reset when loading a save                                      [DEV] (MEDIUM)
+* - Pause menu with options (Resume, Save, Load, Quit, Stats, Ach, Help)                                                          [RENDER/DEV] (LOW)
+- Change time_played timer precision to microseconds + fix timer reset when loading a save                                        [DEV] (MEDIUM)        {DONE}
+* - Separate STAT_TIME_PLAYED and time_in_game (pause doesn't count) -> can restore exact time elapsed                            [DEV] (LOW)
 */
 
 /// @brief Gate position/type

@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include "achievements.h"
 #include "assets_manager.h"
@@ -282,17 +283,28 @@ int main(int argc, char* argv[]) {
     update_screen(screen);
 
     increment_statistic(STAT_GAME_STARTED, 1);
-    time_t start_time = time(NULL);
+
+    struct timeval start_time, current_time;
+    gettimeofday(&start_time, NULL);
+    double accumulated_time = 0.0;
 
     // ------------------- Main game loop -------------------
     for (;;) {
-        time_t current_time = time(NULL);
-        if (GAME_PAUSED || need_reset()) start_time = current_time;
-        int elapsed_seconds = (int)(current_time - start_time);
-        if (elapsed_seconds != 0) {
-            survivor_countdown(elapsed_seconds);
-            increment_statistic(STAT_TIME_PLAYED, elapsed_seconds);
+        gettimeofday(&current_time, NULL);
+
+        if (GAME_PAUSED || need_reset())
             start_time = current_time;
+        else {
+            double elapsed = (current_time.tv_sec - start_time.tv_sec) + (current_time.tv_usec - start_time.tv_usec) / 1000000.0;
+            accumulated_time += elapsed;
+            start_time = current_time;
+
+            if (accumulated_time >= 1.0) {
+                int full_seconds = (int)accumulated_time;
+                survivor_countdown(full_seconds);
+                increment_statistic(STAT_TIME_PLAYED, full_seconds);
+                accumulated_time -= full_seconds;
+            }
         }
 
         if (check_ctrl_c()) {

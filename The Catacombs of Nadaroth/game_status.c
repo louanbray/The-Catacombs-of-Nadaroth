@@ -7,6 +7,7 @@ pthread_cond_t pause_cond = PTHREAD_COND_INITIALIZER;
 int GAME_PAUSED = 0;
 static int DEBUG_MODE = 0;
 static int RESET_NEEDED = 0;
+static unsigned int GAME_STARTED = 0;
 
 void pause_game(void) {
     pthread_mutex_lock(&pause_mutex);
@@ -39,4 +40,13 @@ int need_reset(void) {
         return 1;
     }
     return 0;
+}
+
+void set_game_started(unsigned int started) {
+    GAME_STARTED = started;
+    LOG_INFO("Game started set to: %d", GAME_STARTED);
+}
+
+unsigned int get_game_started(void) {
+    return GAME_STARTED;
 }
