@@ -48,6 +48,7 @@ typedef struct Projectile {
 } Projectile;
 
 Projectile projectiles[MAX_PROJECTILES];
+
 pthread_mutex_t projectile_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 pthread_mutex_t entity_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -414,4 +415,13 @@ void init_projectile_system(Render_Buffer* r, player* p, int seed) {
         exit(EXIT_FAILURE);
     }
     pthread_detach(thread_id);
+}
+
+void simulate_projectile_hit(int damage, player* p, Render_Buffer* screen) {
+    projectile_data* p_data = malloc(sizeof(projectile_data));
+    p_data->damage = damage;
+    p_data->p = p;
+    p_data->screen = screen;
+
+    enemy_attack_callback(get_player_x(p), get_player_y(p), p_data);
 }

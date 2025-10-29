@@ -196,4 +196,5 @@ void home_menu(Render_Buffer* r, player* p);
 void setup_render_buffer(Render_Buffer* r);
 void finalize_render_buffer(Render_Buffer* r);
 void read_text_into_render(Render_Buffer* r, FILE* file);
+void pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h);
 #endif

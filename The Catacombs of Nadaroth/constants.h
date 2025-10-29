@@ -53,9 +53,9 @@
 
 /*
 TODO LIST:
-* - Pause menu with options (Resume, Save, Load, Quit, Stats, Ach, Help)                                                          [RENDER/DEV] (LOW)
 * - Add Perfectionist achievement mechanic                                                                                        [DEV] (LOW)
-* - Predetermined actions for seed and saving seed                                                                                [DEV] (LOW)
+//- Predetermined actions for seed and saving seed                                                                                [DEV] (LOW)
+- Pause menu with options (Resume, Save, Load, Quit, Stats, Ach, Help)                                                            [RENDER/DEV] (MEDIUM) {DONE}
 - Make any key event stored in an input manager object so that you can check at any moment if a key is pressed                    [DEV] (HIGH)          {DONE}
 - Update the screen render to make a part of the screen reserved to items descriptions and narration                              [RENDER] (HIGH)       {DONE}
 - Enemy->Player Interaction                                                                                                       [DEV] (HIGH)          {DONE}
@@ -184,9 +184,11 @@ typedef enum Color {
     COLOR_YELLOW,
     COLOR_CYAN_BOLD,
     COLOR_GREEN,
+    COLOR_CYAN,
+    COLOR_MAGENTA,
     // Extend as needed
 } Color;
 
-static const int ScorePerPhase[] = {0, 25, 75, 210, 630, 0, 0};
+static const int ScorePerPhase[] = {0, 25, 75, 210, 630, 1870, 0};
 
 #endif

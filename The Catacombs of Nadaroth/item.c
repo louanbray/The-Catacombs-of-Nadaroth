@@ -8,6 +8,7 @@ typedef struct item {
     void* spec;
     entity* entity_link;
     UsableItem usable_item;
+    Color color;
 } item;
 
 /// @brief Create item using given parameters
@@ -27,6 +28,7 @@ item* create_item(int x, int y, ItemType type, int display, UsableItem usable_it
     i->spec = NULL;
     i->entity_link = NULL;
     i->usable_item = usable_item;
+    i->color = COLOR_DEFAULT;
     return i;
 }
 
@@ -73,6 +75,10 @@ UsableItem get_item_usable_type(item* i) {
     return i->usable_item;
 }
 
+Color get_item_color(item* i) {
+    return i->color;
+}
+
 bool is_item_hidden(item* i) {
     return i->hidden;
 }
@@ -107,6 +113,10 @@ void set_item_spec(item* i, void* spec) {
 
 void set_item_usable_type(item* i, UsableItem usable_item) {
     i->usable_item = usable_item;
+}
+
+void set_item_color(item* i, Color color) {
+    i->color = color;
 }
 
 void free_item(item* i) {

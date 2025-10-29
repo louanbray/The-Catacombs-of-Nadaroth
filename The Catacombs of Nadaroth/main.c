@@ -310,66 +310,91 @@ int main(int argc, char* argv[]) {
 
         if (check_ctrl_c()) {
             LOG_INFO("CTRL+C detected, initiating graceful shutdown...");
+            pause_game();
+            lock_inputs();
+            kill_all_projectiles(screen);
             break;
         }
 
-        if (USE_KEY('H') || USE_KEY('h')) {
-            display_interface(screen, "assets/interfaces/structures/help.dodjo");
-        } else if (USE_KEY('E') || USE_KEY('e')) {
+        if (is_debug_mode() && (USE_KEY('P') || USE_KEY('p'))) {
+            if (GAME_PAUSED) {
+                resume_game();
+            } else {
+                pause_game();
+            }
+        }
+        if (GAME_PAUSED) continue;
+
+        if (USE_KEY('E') || USE_KEY('e')) {
             display_item_description(screen, get_selected_item(h));
+        } else if (!is_debug_mode() && (USE_KEY('P') || USE_KEY('p') || USE_KEY(' '))) {
+            pause_menu(screen, p, m, h);
+        } else if (USE_KEY('H') || USE_KEY('h')) {
+            display_interface(screen, "assets/interfaces/structures/help.dodjo");
+        } else if (USE_KEY('A') || USE_KEY('a')) {
+            display_achievements(screen);
+        } else if (USE_KEY('T') || USE_KEY('t')) {
+            display_statistics(screen);
+        } else if (USE_KEY('N') || USE_KEY('n')) {
+            pause_game();
+            lock_inputs();
+            if (save_game("assets/data/save.dat", p, m, h)) {
+                LOG_INFO("Game saved successfully!");
+            } else {
+                LOG_ERROR("Failed to save game");
+            }
+            resume_game();
+            unlock_inputs();
+        } else if (USE_KEY('B') || USE_KEY('b')) {
+            pause_game();
+            lock_inputs();
+            if (load_game("assets/data/save.dat", p, m, h)) {
+                render(screen, m);
+                update_screen(screen);
+                if (is_debug_mode()) kill_all_projectiles(screen);  //? To prevent cheating in normal mode
+                LOG_INFO("Game loaded successfully!");
+            } else {
+                LOG_ERROR("Failed to load game");
+            }
+            resume_game();
+            unlock_inputs();
         }
 
         if (is_debug_mode()) {
             if (USE_KEY('I') || USE_KEY('i')) {
                 set_player_can_die(!can_player_die());
                 LOG_INFO("Player can_die set to %d", can_player_die());
-            }
-            if (USE_KEY('P') || USE_KEY('p')) {
-                if (GAME_PAUSED) {
-                    resume_game();
-                    unlock_inputs();
-                } else {
-                    pause_game();
-                    lock_inputs();
-                }
-            }
-            if (USE_KEY('R') || USE_KEY('r')) {
+            } else if (USE_KEY('R') || USE_KEY('r')) {
                 kill_all_projectiles(screen);
-            }
-            if (USE_KEY('N') || USE_KEY('n')) {
-                pause_game();
-                lock_inputs();
-                if (save_game("assets/data/save.dat", p, m, h)) {
-                    LOG_INFO("Game saved successfully!");
-                } else {
-                    LOG_ERROR("Failed to save game");
-                }
-                resume_game();
-                unlock_inputs();
-            }
-            if (USE_KEY('B') || USE_KEY('b')) {
-                pause_game();
-                lock_inputs();
-                if (load_game("assets/data/save.dat", p, m, h)) {
-                    render(screen, m);
-                    update_screen(screen);
-                    LOG_INFO("Game loaded successfully!");
-                } else {
-                    LOG_ERROR("Failed to load game");
-                }
-                resume_game();
-                unlock_inputs();
-            }
-            if (USE_KEY('U') || USE_KEY('u')) {
+            } else if (USE_KEY('U') || USE_KEY('u')) {
                 render(screen, m);
                 update_screen(screen);
                 LOG_INFO("Screen re-rendered");
-            }
-
-            if (USE_KEY('A') || USE_KEY('a')) {
-                display_achievements(screen);
-            } else if (USE_KEY('T') || USE_KEY('t')) {
-                display_statistics(screen);
+            } else if (USE_KEY('M') || USE_KEY('m')) {
+                modify_player_mental_health(p, 1);
+                render_mental_health(screen, p);
+                update_screen(screen);
+                LOG_INFO("Player mental health increased by 1");
+            } else if (USE_KEY('L') || USE_KEY('l')) {
+                modify_player_mental_health(p, -1);
+                render_mental_health(screen, p);
+                update_screen(screen);
+                LOG_INFO("Player mental health decreased by 1");
+            } else if (USE_KEY('K') || USE_KEY('k')) {
+                simulate_projectile_hit(get_player_health(p), p, screen);
+                render_health(screen, p);
+                update_screen(screen);
+                LOG_INFO("Player damaged to death");
+            } else if (USE_KEY('C') || USE_KEY('c')) {
+                heal_player(p, get_player_max_health(p));
+                render_health(screen, p);
+                update_screen(screen);
+                LOG_INFO("Player health restored to max");
+            } else if (USE_KEY('F') || USE_KEY('f')) {
+                set_player_score(p, ScorePerPhase[get_player_phase(p)]);
+                render_score(screen, p);
+                update_screen(screen);
+                LOG_INFO("Player score set to phase score");
             }
         }
     }

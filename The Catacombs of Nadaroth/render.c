@@ -12,6 +12,8 @@
 #include "logger.h"
 #include "map.h"
 #include "player.h"
+#include "projectile.h"
+#include "save_manager.h"
 #include "statistics.h"
 
 typedef struct Cell {
@@ -39,10 +41,14 @@ const char* ansi_from_color(int color) {
             return "\033[31m";
         case COLOR_CYAN_BOLD:
             return "\033[36;1m";
+        case COLOR_CYAN:
+            return "\033[36m";
         case COLOR_YELLOW:
             return "\033[33m";
         case COLOR_MAGENTA_BOLD:
             return "\033[35;1m";
+        case COLOR_MAGENTA:
+            return "\033[35m";
         case COLOR_GREEN:
             return "\033[32m";
         case COLOR_DEFAULT:
@@ -277,7 +283,7 @@ void render_chunk(Render_Buffer* r, chunk* c) {
         item* it = get_dyn(d, i);
         if (it == NULL) continue;
         // Render each item (using its own display character)
-        render_char(b, get_item_x(it), get_item_y(it), get_item_display(it));
+        render_char_colored(b, get_item_x(it), get_item_y(it), get_item_display(it), get_item_color(it));
     }
 
     // Write chunk coordinates onto the board.
@@ -367,10 +373,11 @@ void render_hotbar(Render_Buffer* r, hotbar* h) {
         item* slot_item = get_hotbar(h, i);
         if (slot_item == NULL) {
             r->bd[3][display].ch = L' ';
+            r->bd[3][display].color = COLOR_DEFAULT;
         } else {
             r->bd[3][display].ch = get_item_display(slot_item);
+            r->bd[3][display].color = get_item_color(slot_item);
         }
-        r->bd[3][display].color = COLOR_DEFAULT;
 
         // Draw a marker above the selected slot.
         if (get_selected_slot(h) == i)
@@ -503,7 +510,7 @@ void finalize_render_buffer(Render_Buffer* r) {
     free(r->bd);
     r->bd = r->dump;
     update_screen(r);
-    unlock_inputs();
+    if (GAME_PAUSED == 1) unlock_inputs();
     resume_game();
 }
 
@@ -521,6 +528,10 @@ void read_text_into_render(Render_Buffer* r, FILE* file) {
     wchar_t buffer[RENDER_WIDTH - 1];
     int i = 0;
     while (fgetws(buffer, RENDER_WIDTH - 1, file) != NULL && i < RENDER_HEIGHT - 2) {
+        if (buffer[0] == L'#') {
+            i++;
+            continue;
+        }
         process_text_line(buffer, RENDER_WIDTH);
         write_wstr(r->bd, RENDER_HEIGHT - i - 2, 1, buffer, wcslen(buffer), COLOR_DEFAULT);
         i++;
@@ -647,13 +658,14 @@ void display_interface(Render_Buffer* r, const char* filename) {
 
     setup_render_buffer(r);
 
+    clear_screen(r->bd);
     render_string(r, -10, -18, " PRESS [SPACE] TO EXIT", 23);
     read_text_into_render(r, file);
     fclose(file);
 
     update_screen(r);
 
-    while (!USE_KEY('H') && !USE_KEY('h') && !USE_KEY('\n') && !USE_KEY(' '));
+    while (!USE_KEY('\n') && !USE_KEY(' '));
 
     finalize_render_buffer(r);
 }
@@ -712,6 +724,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
         }
         if (USE_KEY(' ')) break;
     }
+    USE_KEY(' ');
     finalize_render_buffer(r);
     fclose(file);
 }
@@ -784,6 +797,63 @@ void home_menu(Render_Buffer* r, player* p) {
         set_player_color(p, color);
     }
 }
+
+void pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
+    FILE* file = fopen("assets/interfaces/structures/pause_menu.dodjo", "r");
+    if (!file) {
+        perror("Error opening pause menu file");
+        return;
+    }
+
+    pause_game();  // Dark shenanigans
+    setup_render_buffer(r);
+
+    read_text_into_render(r, file);
+    fclose(file);
+
+    update_screen(r);
+
+    bool no_refresh = false;
+    bool loaded_a_game = false;
+
+    while (!USE_KEY('P') && !USE_KEY('p') && !USE_KEY(' ') && !USE_KEY('\n')) {
+        if (USE_KEY('N') || USE_KEY('n')) {
+            if (save_game("assets/data/save.dat", p, m, h)) {
+                LOG_INFO("Game saved successfully!");
+            } else {
+                LOG_ERROR("Failed to save game");
+            }
+        } else if (USE_KEY('B') || USE_KEY('b')) {
+            if (load_game("assets/data/save.dat", p, m, h)) {
+                loaded_a_game = true;
+                LOG_INFO("Game loaded successfully!");
+            } else {
+                LOG_ERROR("Failed to load game");
+            }
+        } else if (USE_KEY('H') || USE_KEY('h')) {
+            display_interface(r, "assets/interfaces/structures/help.dodjo");
+            no_refresh = true;
+        } else if (USE_KEY('A') || USE_KEY('a')) {
+            display_achievements(r);
+            no_refresh = true;
+        } else if (USE_KEY('T') || USE_KEY('t')) {
+            display_statistics(r);
+            no_refresh = true;
+        }
+    }
+
+    if (!no_refresh)
+        finalize_render_buffer(r);
+    if (no_refresh || loaded_a_game) {
+        render(r, m);
+        update_screen(r);
+        resume_game();
+    }
+
+    unlock_inputs();
+    resume_game();
+}
+
 // Mark rows as changed and update the screen.
 void update_line(Render_Buffer* r, int row) {
     mark_changed_rows(r);

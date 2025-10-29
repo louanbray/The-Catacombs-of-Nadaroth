@@ -81,6 +81,8 @@ int get_item_index(item* item);
 
 UsableItem get_item_usable_type(item* i);
 
+Color get_item_color(item* i);
+
 /// @brief Is item hidden (true if yes)
 /// @param item item
 /// @return bool is_hidden?
@@ -122,6 +124,8 @@ void set_item_x(item* item, int pos_x);
 void set_item_y(item* item, int pos_y);
 
 void set_item_usable_type(item* i, UsableItem usable_item);
+
+void set_item_color(item* i, Color color);
 
 /// @brief Free item
 /// @param item item

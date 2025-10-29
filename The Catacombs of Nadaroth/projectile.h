@@ -16,4 +16,6 @@ void kill_all_projectiles(Render_Buffer* screen);
 
 void bow_check_flag();
 
+void simulate_projectile_hit(int damage, player* p, Render_Buffer* screen);
+
 #endif

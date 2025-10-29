@@ -12,7 +12,7 @@ static struct timeval TIME_PLAYED = {0, 0};
 
 void pause_game(void) {
     pthread_mutex_lock(&pause_mutex);
-    GAME_PAUSED = 1;
+    GAME_PAUSED += 1;
     RESET_NEEDED = 1;
     LOG_INFO("Game paused");
     pthread_mutex_unlock(&pause_mutex);
@@ -20,7 +20,8 @@ void pause_game(void) {
 
 void resume_game(void) {
     pthread_mutex_lock(&pause_mutex);
-    GAME_PAUSED = 0;
+    GAME_PAUSED -= 1;
+    if (GAME_PAUSED < 0) GAME_PAUSED = 0;
     LOG_INFO("Game resumed");
     pthread_mutex_unlock(&pause_mutex);
     pthread_cond_signal(&pause_cond);

@@ -6,6 +6,21 @@
 dynarray** loot_manager = NULL;
 const int loot_table_count = 4;
 
+Color get_color_for_rarity(int rarity_index) {
+    switch (rarity_index) {
+        case 0:
+            return COLOR_RED;
+        case 1:
+            return COLOR_CYAN;
+        case 2:
+            return COLOR_YELLOW;
+        case 3:
+            return COLOR_MAGENTA;
+        default:
+            return COLOR_DEFAULT;
+    }
+}
+
 void create_loot_tables() {
     loot_manager = malloc(sizeof(dynarray*) * loot_table_count);
     for (int i = 0; i < loot_table_count; i++) {
@@ -17,8 +32,9 @@ void add_loot_to_loot_table(int display, UsableItem usable_type, int table_index
     if (table_index < 0 || table_index >= loot_table_count) {
         return;
     }
-
-    append(loot_manager[table_index], generate_item(0, 0, PICKABLE, display, usable_type, -1));
+    item* loot_item = generate_item(0, 0, PICKABLE, display, usable_type, -1);
+    set_item_color(loot_item, get_color_for_rarity(table_index));
+    append(loot_manager[table_index], loot_item);
 }
 
 item* generate_loot(lootable* loot) {
@@ -30,6 +46,7 @@ item* generate_loot(lootable* loot) {
     int random_index = rand() % length;
     item* loot_item = get_dyn(loot_manager[index], random_index);
     item* new_loot = generate_item(0, 0, PICKABLE, get_item_display(loot_item), get_item_usable_type(loot_item), -1);
+    set_item_color(new_loot, get_item_color(loot_item));
 
     return new_loot;
 }

@@ -54,6 +54,18 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                     elt->attack_delay = entityFile->specs.specs[5];
                     elt->attack_interval = entityFile->specs.specs[6];
                     specialize(brain, false, false, elt);
+                    Color color = COLOR_DEFAULT;
+                    if (entry->entity_type == ENEMY_BRONZE_1 || entry->entity_type == ENEMY_BRONZE_2) {
+                        color = COLOR_RED;
+                    } else if (entry->entity_type == ENEMY_SILVER_1 || entry->entity_type == ENEMY_SILVER_2) {
+                        color = COLOR_CYAN;
+                    } else if (entry->entity_type == ENEMY_GOLD_1 || entry->entity_type == ENEMY_GOLD_2) {
+                        color = COLOR_YELLOW;
+                    } else if (entry->entity_type == ENEMY_NADINO_1 || entry->entity_type == ENEMY_NADINO_2) {
+                        color = COLOR_MAGENTA;
+                    }
+
+                    set_item_color(brain, color);
                     append(get_chunk_enemies(c), brain);
                     break;
                 }
@@ -82,6 +94,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                             part->display,
                             NOT_USABLE_ITEM,
                             len_dyn(d));
+                        set_item_color(it, get_item_color(brain));
                         add_entity_part(e, it);
                         link_entity(it, e);
                         append(d, it);
