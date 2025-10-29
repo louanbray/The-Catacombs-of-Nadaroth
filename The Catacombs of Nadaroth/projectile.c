@@ -203,17 +203,21 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
             snprintf(filepath, sizeof(filepath), "assets/cinematics/wip.dodjo");
             LOG_INFO("Game completed in %u seconds and %u microseconds", get_time_played().tv_sec, get_time_played().tv_usec);
             increment_statistic(STAT_GAME_COMPLETIONS, 1);
-            if (get_player_design(data->p) == PLAYER_DESIGN_BALL)
-                increment_statistic(STAT_GAME_COMPLETION_AS_BALL, 1);
-            else if (get_player_design(data->p) == PLAYER_DESIGN_CAMO)
-                increment_statistic(STAT_GAME_COMPLETION_AS_CAMO, 1);
-            else if (get_player_design(data->p) == PLAYER_DESIGN_BRAWLER)
-                increment_statistic(STAT_GAME_COMPLETION_AS_BRAWLER, 1);
-            else if (get_player_design(data->p) == PLAYER_DESIGN_SHIELD)
-                increment_statistic(STAT_GAME_COMPLETION_AS_SHIELD, 1);
-            if (get_time_played().tv_sec < 600) {
-                increment_statistic(STAT_SPEED_RUNS, 1);
-                set_achievement_progress(ACH_SPEED_RUNNER, 1);
+            set_achievement_progress(ACH_DAWN_BREAKER, 1);
+            if (get_player_mental_health(data->p) == 4) {
+                set_achievement_progress(ACH_UNSHAKEN, 1);
+                if (get_player_design(data->p) == PLAYER_DESIGN_BALL)
+                    increment_statistic(STAT_GAME_COMPLETION_AS_BALL, 1);
+                else if (get_player_design(data->p) == PLAYER_DESIGN_CAMO)
+                    increment_statistic(STAT_GAME_COMPLETION_AS_CAMO, 1);
+                else if (get_player_design(data->p) == PLAYER_DESIGN_BRAWLER)
+                    increment_statistic(STAT_GAME_COMPLETION_AS_BRAWLER, 1);
+                else if (get_player_design(data->p) == PLAYER_DESIGN_SHIELD)
+                    increment_statistic(STAT_GAME_COMPLETION_AS_SHIELD, 1);
+                if (get_time_played().tv_sec < 600) {
+                    increment_statistic(STAT_SPEED_RUNS, 1);
+                    set_achievement_progress(ACH_SPEED_RUNNER, 1);
+                }
             }
             if (get_statistic(STAT_GAME_COMPLETION_AS_BALL) >= 1 &&
                 get_statistic(STAT_GAME_COMPLETION_AS_CAMO) >= 1 &&

@@ -9,7 +9,8 @@ enum AchievementID {
     ACH_TREASURE_SEEKER,   // OK
     ACH_UNSTOPPABLE,       // OK
     ACH_MASTER_EXPLORER,   // OK
-    ACH_PUZZLE_SOLVER,     // NOK
+    ACH_DAWN_BREAKER,      // OK
+    ACH_UNSHAKEN,          // OK
     ACH_SPEED_RUNNER,      // OK
     ACH_SURVIVOR,          // OK
     ACH_LOOT_COLLECTOR,    // OK

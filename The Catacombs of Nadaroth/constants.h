@@ -53,7 +53,7 @@
 
 /*
 TODO LIST:
-* - Add Perfectionist achievement mechanic                                                                                        [DEV] (LOW)
+* - Add Perfectionist achievement mechanic (Enemies alive;-= when killed;!=+=when !is_chunk_generated())                          [DEV] (LOW)
 //- Predetermined actions for seed and saving seed                                                                                [DEV] (LOW)
 - Pause menu with options (Resume, Save, Load, Quit, Stats, Ach, Help)                                                            [RENDER/DEV] (MEDIUM) {DONE}
 - Make any key event stored in an input manager object so that you can check at any moment if a key is pressed                    [DEV] (HIGH)          {DONE}

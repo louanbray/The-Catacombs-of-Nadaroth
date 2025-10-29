@@ -771,9 +771,9 @@ void display_achievements(Render_Buffer* r) {
         } else
             swprintf(buffer, 150, L"%s: %s (%d/%d)", title, "LOCKED", get_achievement_progress((enum AchievementID)i), get_achievement_max_progress((enum AchievementID)i));
 
-        write_wstr(r->bd, RENDER_HEIGHT - (3 + 2 * i) - 2, 6, buffer, wcslen(buffer), color);
+        write_wstr(r->bd, RENDER_HEIGHT - (2 + 2 * i) - 2, 6, buffer, wcslen(buffer), color);
         swprintf(buffer, 150, L"└─ %s", get_achievement_description((enum AchievementID)i));
-        write_wstr(r->bd, RENDER_HEIGHT - (4 + 2 * i) - 2, 6, buffer, wcslen(buffer), COLOR_DEFAULT);
+        write_wstr(r->bd, RENDER_HEIGHT - (3 + 2 * i) - 2, 6, buffer, wcslen(buffer), COLOR_DEFAULT);
     }
 
     render_string(r, -10, -18, " PRESS [SPACE] TO EXIT", 23);
