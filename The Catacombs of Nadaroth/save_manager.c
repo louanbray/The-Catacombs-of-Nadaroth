@@ -826,10 +826,15 @@ bool save_game(const char* filename, player* p, map* m, hotbar* h) {
     // Write magic number and version
     uint32_t magic = SAVE_MAGIC;
     uint32_t version = SAVE_VERSION;
-    unsigned int game_started = get_game_started();
+    struct timeval game_started = get_game_started();
+    struct timeval time_played = get_time_played();
+
     fwrite(&magic, sizeof(uint32_t), 1, f);
     fwrite(&version, sizeof(uint32_t), 1, f);
-    fwrite(&game_started, sizeof(unsigned int), 1, f);
+    fwrite(&game_started.tv_sec, sizeof(time_t), 1, f);
+    fwrite(&game_started.tv_usec, sizeof(suseconds_t), 1, f);
+    fwrite(&time_played.tv_sec, sizeof(time_t), 1, f);
+    fwrite(&time_played.tv_usec, sizeof(suseconds_t), 1, f);
 
     // Save player data
     if (!save_player_data(f, p)) {
@@ -969,10 +974,23 @@ bool load_game(const char* filename, player* p, map* m, hotbar* h) {
         return false;
     }
 
-    unsigned int game_started;
-    fread(&game_started, sizeof(unsigned int), 1, f);
+    struct timeval game_started;
+    struct timeval time_played;
+    time_t tv_sec;
+    suseconds_t tv_usec;
+
+    fread(&tv_sec, sizeof(time_t), 1, f);
+    fread(&tv_usec, sizeof(suseconds_t), 1, f);
+
+    game_started.tv_sec = tv_sec;
+    game_started.tv_usec = tv_usec;
     set_game_started(game_started);
-    LOG_INFO("Game started restored: %u", game_started);
+
+    fread(&tv_sec, sizeof(time_t), 1, f);
+    fread(&tv_usec, sizeof(suseconds_t), 1, f);
+    time_played.tv_sec = tv_sec;
+    time_played.tv_usec = tv_usec;
+    set_time_played(time_played);
 
     // Load player data
     if (!load_player_data(f, p)) {

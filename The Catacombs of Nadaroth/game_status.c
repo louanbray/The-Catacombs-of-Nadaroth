@@ -7,7 +7,8 @@ pthread_cond_t pause_cond = PTHREAD_COND_INITIALIZER;
 int GAME_PAUSED = 0;
 static int DEBUG_MODE = 0;
 static int RESET_NEEDED = 0;
-static unsigned int GAME_STARTED = 0;
+static struct timeval GAME_STARTED = {0, 0};  // Could be useful who knows (currently unused)
+static struct timeval TIME_PLAYED = {0, 0};
 
 void pause_game(void) {
     pthread_mutex_lock(&pause_mutex);
@@ -42,11 +43,29 @@ int need_reset(void) {
     return 0;
 }
 
-void set_game_started(unsigned int started) {
+void set_game_started(struct timeval started) {
     GAME_STARTED = started;
-    LOG_INFO("Game started set to: %d", GAME_STARTED);
+    LOG_INFO("Game started set to: %u seconds and %u microseconds", (unsigned int)started.tv_sec, (unsigned int)started.tv_usec);
 }
 
-unsigned int get_game_started(void) {
+void add_time_played(struct timeval delta) {
+    TIME_PLAYED.tv_sec += delta.tv_sec;
+    TIME_PLAYED.tv_usec += delta.tv_usec;
+    if (TIME_PLAYED.tv_usec >= 1000000) {
+        TIME_PLAYED.tv_sec += TIME_PLAYED.tv_usec / 1000000;
+        TIME_PLAYED.tv_usec = TIME_PLAYED.tv_usec % 1000000;
+    }
+}
+
+void set_time_played(struct timeval time_played) {
+    TIME_PLAYED = time_played;
+    LOG_INFO("Time played set to: %u seconds and %u microseconds", (unsigned int)time_played.tv_sec, (unsigned int)time_played.tv_usec);
+}
+
+struct timeval get_game_started(void) {
     return GAME_STARTED;
+}
+
+struct timeval get_time_played(void) {
+    return TIME_PLAYED;
 }

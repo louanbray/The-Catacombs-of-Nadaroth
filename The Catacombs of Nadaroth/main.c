@@ -296,6 +296,7 @@ int main(int argc, char* argv[]) {
             start_time = current_time;
         else {
             double elapsed = (current_time.tv_sec - start_time.tv_sec) + (current_time.tv_usec - start_time.tv_usec) / 1000000.0;
+            add_time_played((struct timeval){.tv_sec = (long)elapsed, .tv_usec = (long)((elapsed - (long)elapsed) * 1000000)});
             accumulated_time += elapsed;
             start_time = current_time;
 

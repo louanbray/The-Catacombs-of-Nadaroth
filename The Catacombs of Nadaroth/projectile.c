@@ -6,6 +6,7 @@
 #include "entity.h"
 #include "game_status.h"
 #include "input_manager.h"
+#include "logger.h"
 #include "player.h"
 #include "render.h"
 #include "statistics.h"
@@ -199,6 +200,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
             snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(data->p), phase);
         else {
             snprintf(filepath, sizeof(filepath), "assets/cinematics/wip.dodjo");
+            LOG_INFO("Game completed in %u seconds and %u microseconds", get_time_played().tv_sec, get_time_played().tv_usec);
             increment_statistic(STAT_GAME_COMPLETIONS, 1);
             if (get_player_design(data->p) == PLAYER_DESIGN_BALL)
                 increment_statistic(STAT_GAME_COMPLETION_AS_BALL, 1);
@@ -208,7 +210,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
                 increment_statistic(STAT_GAME_COMPLETION_AS_BRAWLER, 1);
             else if (get_player_design(data->p) == PLAYER_DESIGN_SHIELD)
                 increment_statistic(STAT_GAME_COMPLETION_AS_SHIELD, 1);
-            if (get_statistic(STAT_TIME_PLAYED) - get_game_started() <= 600) {
+            if (get_time_played().tv_sec < 600) {
                 increment_statistic(STAT_SPEED_RUNS, 1);
                 set_achievement_progress(ACH_SPEED_RUNNER, 1);
             }
@@ -401,7 +403,9 @@ void init_projectile_system(Render_Buffer* r, player* p, int seed) {
     InitThreadArgs* input_args = malloc(sizeof(InitThreadArgs));
     input_args->r = r;
     input_args->p = p;
-    set_game_started(get_statistic(STAT_TIME_PLAYED));
+    struct timeval started;
+    gettimeofday(&started, NULL);
+    set_game_started(started);
 
     projectile_rng_seed = seed * 31 + 1;  // Derive a different seed from main seed
 

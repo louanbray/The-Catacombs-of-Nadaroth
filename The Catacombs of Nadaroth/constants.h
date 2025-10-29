@@ -53,24 +53,25 @@
 
 /*
 TODO LIST:
+* - Pause menu with options (Resume, Save, Load, Quit, Stats, Ach, Help)                                                          [RENDER/DEV] (LOW)
+* - Add Perfectionist achievement mechanic                                                                                        [DEV] (LOW)
 - Make any key event stored in an input manager object so that you can check at any moment if a key is pressed                    [DEV] (HIGH)          {DONE}
 - Update the screen render to make a part of the screen reserved to items descriptions and narration                              [RENDER] (HIGH)       {DONE}
 - Enemy->Player Interaction                                                                                                       [DEV] (HIGH)          {DONE}
 - Enemy PATHFINDING huh ? //// CHANGING GAME DESIGN, DO NOT IMPLEMENT                                                             [DEV] (HIGH->NONE)    {DONE}
 - Implement the mechanics below / missing items                                                                                   [DEV] (MEDIUM)        {DONE}
 - Work on the designs of the items and chunks                                                                                     [RENDER] (MEDIUM)     {DONE}
-? - Implement status menu                                                                                                         [RENDER/DEV] (LOW)
-? - Work on menus (!!Username!!, stat attribution aso...)                                                                         [RENDER/DEV] (LOW)
 - Add cinematics                                                                                                                  [RENDER] (LOW)        {DONE}
 - [Rework render concept to add mental health effect (limited vision)] -> Better lore                                             [RENDER/DEV] (LOW)    {DONE}
-- Add stats and achievements objects                                                                                              [DEV] (LOW)           {DONE \Perfectionist}
+- Add stats and achievements objects                                                                                              [DEV] (LOW)           {DONE}
 - Have a way to render achievements and stats on the screen                                                                       [RENDER] (LOW)        {DONE}
 - Saving Games, opening and sharing                                                                                               [DEV/RENDER] (LOW)    {DONE}
 - Update Entity / Chunk editor                                                                                                    [DEV] (LOW)           {DONE}
-? - Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
-* - Pause menu with options (Resume, Save, Load, Quit, Stats, Ach, Help)                                                          [RENDER/DEV] (LOW)
 - Change time_played timer precision to microseconds + fix timer reset when loading a save                                        [DEV] (MEDIUM)        {DONE}
-* - Separate STAT_TIME_PLAYED and time_in_game (pause doesn't count) -> can restore exact time elapsed                            [DEV] (LOW)
+- Separate STAT_TIME_PLAYED and time_in_game (pause doesn't count) -> can restore exact time elapsed                              [DEV] (LOW)           {DONE}
+? - Implement status menu                                                                                                         [RENDER/DEV] (LOW)
+? - Work on menus (!!Username!!, stat attribution aso...)                                                                         [RENDER/DEV] (LOW)
+? - Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
 */
 
 /// @brief Gate position/type
