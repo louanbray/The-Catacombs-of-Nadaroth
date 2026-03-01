@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
 
             if (accumulated_time >= 1.0) {
                 int full_seconds = (int)accumulated_time;
-                survivor_countdown(full_seconds);
+                survivor_countdown(p, full_seconds);
                 increment_statistic(STAT_TIME_PLAYED, full_seconds);
                 accumulated_time -= full_seconds;
             }

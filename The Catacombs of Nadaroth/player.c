@@ -9,18 +9,7 @@
 #include "projectile.h"
 #include "statistics.h"
 
-static int START_HEALTH = 2;
-static int START_MAX_HEALTH = 5;
-static int ADDITIONAL_HEALTH = 0;
-static int ADDITIONAL_MAX_HEALTH = 0;
-static float ADDITIONAL_DAMAGE = 0.0;
-static int ADDITIONAL_ARROW_SPEED = 0;
-static int RANGE = -1;
-static bool ACCURACY_MODE = false;
-static int AGGRO_RANGE = -1;
 static int CAN_DIE = true;
-
-static int TIME_SURVIVOR_IN_CHUNK = -1;
 
 typedef struct player {
     map* map;
@@ -35,6 +24,12 @@ typedef struct player {
     int score, deaths;
     GamePhase phase;
     char* name;
+    int start_health, start_max_health;
+    float additional_damage;
+    int additional_arrow_speed;
+    bool accuracy_mode;
+    int aggro_range;
+    int time_survivor_in_chunk;
 } player;
 
 /// @brief Set player pos to chunk center
@@ -58,12 +53,14 @@ player* create_player(map* m) {
     p->current_chunk = get_spawn(m);
     p->score = 0;
     p->deaths = 0;
-    p->health = START_HEALTH;
+    p->start_health = 2;
+    p->start_max_health = 5;
+    p->health = p->start_health;
     p->mental_health = 4;
-    p->max_health = START_MAX_HEALTH;
+    p->max_health = p->start_max_health;
     p->damage = 1;
     p->arrow_speed = 6;
-    p->range = RANGE;
+    p->range = -1;
     p->infinity = false;
     p->hotbar = NULL;
     p->design = PLAYER_DESIGN_BALL;
@@ -71,6 +68,11 @@ player* create_player(map* m) {
     p->map = m;
     p->phase = INTRODUCTION;
     p->color = COLOR_GREEN;
+    p->additional_damage = 0.0f;
+    p->additional_arrow_speed = 0;
+    p->accuracy_mode = false;
+    p->aggro_range = -1;
+    p->time_survivor_in_chunk = -1;
     center_player(p);
     set_map_player(m, p);
     return p;
@@ -82,7 +84,7 @@ void player_death(player* p) {
     p->current_chunk = spawn_chunk;
     p->x = get_chunk_spawn_x(spawn_chunk);
     p->y = get_chunk_spawn_y(spawn_chunk);
-    p->health = START_HEALTH;
+    p->health = p->start_health;
     p->px = p->x;
     p->py = p->y;
     if (p->score >= ScorePerPhase[p->phase] || p->phase == INTRODUCTION) {
@@ -159,7 +161,7 @@ int get_player_max_health(player* p) {
 }
 
 int get_player_damage(player* p) {
-    return p->damage + (int)(p->damage * ADDITIONAL_DAMAGE);
+    return p->damage + (int)(p->damage * p->additional_damage);
 }
 
 int get_player_range(player* p) {
@@ -167,7 +169,7 @@ int get_player_range(player* p) {
 }
 
 bool has_infinity(player* p) {
-    return p->infinity && (!ACCURACY_MODE);
+    return p->infinity && (!p->accuracy_mode);
 }
 
 int get_player_score(player* p) {
@@ -175,7 +177,7 @@ int get_player_score(player* p) {
 }
 
 int get_player_arrow_speed(player* p) {
-    return p->arrow_speed - ADDITIONAL_ARROW_SPEED > 0 ? p->arrow_speed - ADDITIONAL_ARROW_SPEED : 1;
+    return p->arrow_speed - p->additional_arrow_speed > 0 ? p->arrow_speed - p->additional_arrow_speed : 1;
 }
 
 int get_player_deaths(player* p) {
@@ -240,11 +242,11 @@ void add_player_score(player* p, int score) {
     p->score += score;
 }
 
-void set_player_max_health(player* p, unsigned int health) {
+void set_player_max_health(player* p, int health) {
     p->max_health = health;
 }
 
-void set_player_damage(player* p, unsigned int damage) {
+void set_player_damage(player* p, int damage) {
     p->damage = damage;
 }
 
@@ -288,11 +290,11 @@ void move_player_chunk(player* p, Direction dir) {
     p->current_chunk = get_chunk_from(p->map, p->current_chunk, dir);
     if (is_new_chunk()) add_total_enemies(p);
     if (is_new_chunk() && p->health == 1) {
-        TIME_SURVIVOR_IN_CHUNK = 10;
+        p->time_survivor_in_chunk = 10;
         LOG_INFO("Survivor achievement countdown started.");
     } else {
         set_achievement_progress(ACH_SURVIVOR, 0);
-        TIME_SURVIVOR_IN_CHUNK = -1;
+        p->time_survivor_in_chunk = -1;
     }
     center_player(p);
     reset_new_chunk_flag();
@@ -304,7 +306,7 @@ bool damage_player(player* p, int damage) {
         set_achievement_progress(ACH_FIRST_BLOOD, 1);
         set_achievement_progress(ACH_UNSTOPPABLE, 0);
         set_achievement_progress(ACH_SURVIVOR, 0);
-        TIME_SURVIVOR_IN_CHUNK = -1;
+        p->time_survivor_in_chunk = -1;
     }
     if (p->health - damage <= 0) {
         set_achievement_progress(ACH_MASTER_EXPLORER, 0);
@@ -318,7 +320,7 @@ bool damage_player(player* p, int damage) {
 void heal_player(player* p, int heal) {
     if (heal > 0) {
         set_achievement_progress(ACH_SURVIVOR, 0);
-        TIME_SURVIVOR_IN_CHUNK = -1;
+        p->time_survivor_in_chunk = -1;
     }
     if (p->health + heal > p->max_health) {
         p->health = p->max_health;
@@ -328,35 +330,36 @@ void heal_player(player* p, int heal) {
 }
 
 void set_player_class(player* p, int class) {
+    int additional_health = 0;
+    int additional_max_health = 0;
     if (class == 0)
         p->design = PLAYER_DESIGN_BALL;
     else if (class == 1) {
         p->design = PLAYER_DESIGN_CAMO;
-        ADDITIONAL_DAMAGE = 0.25;
-        ADDITIONAL_HEALTH = -1;
-        ADDITIONAL_MAX_HEALTH = -2;
-        ADDITIONAL_ARROW_SPEED = 2;
-        ACCURACY_MODE = true;
-        AGGRO_RANGE = 15;
+        p->additional_damage = 0.25f;
+        additional_health = -1;
+        additional_max_health = -2;
+        p->additional_arrow_speed = 2;
+        p->accuracy_mode = true;
+        p->aggro_range = 15;
     } else if (class == 2) {
         p->design = PLAYER_DESIGN_BRAWLER;
-        ADDITIONAL_DAMAGE = 0.5;
-        ADDITIONAL_HEALTH = 2;
-        ADDITIONAL_MAX_HEALTH = 3;
-        ADDITIONAL_ARROW_SPEED = -2;
-        RANGE = 10;
+        p->additional_damage = 0.5f;
+        additional_health = 2;
+        additional_max_health = 3;
+        p->additional_arrow_speed = -2;
+        p->range = 10;
     } else if (class == 3) {
         p->design = PLAYER_DESIGN_SHIELD;
-        ADDITIONAL_DAMAGE = -0.25;
-        ADDITIONAL_HEALTH = 3;
-        ADDITIONAL_MAX_HEALTH = 5;
-        ADDITIONAL_ARROW_SPEED = -1;
+        p->additional_damage = -0.25f;
+        additional_health = 3;
+        additional_max_health = 5;
+        p->additional_arrow_speed = -1;
     }
-    START_HEALTH += ADDITIONAL_HEALTH;
-    START_MAX_HEALTH += ADDITIONAL_MAX_HEALTH;
-    p->health = START_HEALTH;
-    p->max_health = START_MAX_HEALTH;
-    p->range = RANGE;
+    p->start_health += additional_health;
+    p->start_max_health += additional_max_health;
+    p->health = p->start_health;
+    p->max_health = p->start_max_health;
 }
 
 int get_player_class(player* p) {
@@ -384,8 +387,8 @@ int distance_to_player_sq(player* p, int x, int y) {
 }
 
 bool is_player_aggroed(player* p, int x, int y) {
-    if (AGGRO_RANGE == -1) return true;
-    return distance_to_player_sq(p, x, y) <= AGGRO_RANGE * AGGRO_RANGE;
+    if (p->aggro_range == -1) return true;
+    return distance_to_player_sq(p, x, y) <= p->aggro_range * p->aggro_range;
 }
 
 void set_player_can_die(bool can_die) {
@@ -396,11 +399,11 @@ bool can_player_die() {
     return CAN_DIE;
 }
 
-void survivor_countdown(int seconds) {
-    if (TIME_SURVIVOR_IN_CHUNK == -1) return;
-    TIME_SURVIVOR_IN_CHUNK -= seconds;
-    if (TIME_SURVIVOR_IN_CHUNK <= 0) {
+void survivor_countdown(player* p, int seconds) {
+    if (p->time_survivor_in_chunk == -1) return;
+    p->time_survivor_in_chunk -= seconds;
+    if (p->time_survivor_in_chunk <= 0) {
         add_achievement_progress(ACH_SURVIVOR, 1);
-        TIME_SURVIVOR_IN_CHUNK = -1;
+        p->time_survivor_in_chunk = -1;
     }
 }

@@ -112,7 +112,7 @@ int get_player_damage(player* player);
 /// @brief Set player damage
 /// @param player player
 /// @param damage damage
-void set_player_damage(player* player, unsigned int damage);
+void set_player_damage(player* player, int damage);
 
 /// @brief Link a hotbar to the player
 /// @param player player
@@ -145,7 +145,7 @@ void heal_player(player* player, int heal);
 /// @brief Change the player max health
 /// @param player player
 /// @param health new health
-void set_player_max_health(player* player, unsigned int health);
+void set_player_max_health(player* player, int health);
 
 /// @brief Destroy the player closest chunk
 /// @param p player
@@ -315,7 +315,7 @@ bool can_player_die();
 
 int get_player_class(player* p);
 
-void survivor_countdown(int seconds);
+void survivor_countdown(player* p, int seconds);
 
 /**
  * @brief Increments the player's game phase to the next phase
