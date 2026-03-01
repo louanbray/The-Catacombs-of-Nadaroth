@@ -46,7 +46,7 @@ int need_reset(void) {
 
 void set_game_started(struct timeval started) {
     GAME_STARTED = started;
-    LOG_INFO("Game started set to: %u seconds and %u microseconds", (unsigned int)started.tv_sec, (unsigned int)started.tv_usec);
+    LOG_INFO("Game started set to: %ld seconds and %ld microseconds", (long)started.tv_sec, (long)started.tv_usec);
 }
 
 void add_time_played(struct timeval delta) {
@@ -60,7 +60,7 @@ void add_time_played(struct timeval delta) {
 
 void set_time_played(struct timeval time_played) {
     TIME_PLAYED = time_played;
-    LOG_INFO("Time played set to: %u seconds and %u microseconds", (unsigned int)time_played.tv_sec, (unsigned int)time_played.tv_usec);
+    LOG_INFO("Time played set to: %ld seconds and %ld microseconds", (long)time_played.tv_sec, (long)time_played.tv_usec);
 }
 
 struct timeval get_game_started(void) {

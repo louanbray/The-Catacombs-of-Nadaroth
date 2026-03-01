@@ -338,11 +338,17 @@ void heal_player(player* p, int heal) {
 }
 
 void set_player_class(player* p, int class) {
+    p->additional_damage = 0.0f;
+    p->additional_arrow_speed = 0;
+    p->accuracy_mode = false;
+    p->aggro_range = -1;
+    p->range = -1;
     int additional_health = 0;
     int additional_max_health = 0;
-    if (class == 0)
+
+    if (class == 0) {
         p->design = PLAYER_DESIGN_BALL;
-    else if (class == 1) {
+    } else if (class == 1) {
         p->design = PLAYER_DESIGN_CAMO;
         p->additional_damage = 0.25f;
         additional_health = -1;
@@ -363,9 +369,11 @@ void set_player_class(player* p, int class) {
         additional_health = 3;
         additional_max_health = 5;
         p->additional_arrow_speed = -1;
+    } else {
+        p->design = PLAYER_DESIGN_BALL;  // classe inconnue → fallback Ball
     }
-    p->start_health += additional_health;
-    p->start_max_health += additional_max_health;
+    p->start_health = 2 + additional_health;
+    p->start_max_health = 5 + additional_max_health;
     p->health = p->start_health;
     p->max_health = p->start_max_health;
 }

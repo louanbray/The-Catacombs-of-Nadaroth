@@ -16,7 +16,7 @@
 #include "map.h"
 #include "player.h"
 
-#define SAVE_VERSION 4
+#define SAVE_VERSION 5
 #define SAVE_MAGIC 0x4E414430  // "NAD0" in hex
 
 // Temporary storage for player's chunk coordinates during load
@@ -39,7 +39,6 @@ static bool save_player_data(FILE* f, player* p) {
     int arrow_speed = get_player_raw_arrow_speed(p);
     int range = get_player_range(p);
     bool infinity = has_infinity(p);
-    int design = get_player_design(p);
     int score = get_player_score(p);
     int deaths = get_player_deaths(p);
     Color color = get_player_color(p);
@@ -62,7 +61,6 @@ static bool save_player_data(FILE* f, player* p) {
     fwrite(&arrow_speed, sizeof(int), 1, f);
     fwrite(&range, sizeof(int), 1, f);
     fwrite(&infinity, sizeof(bool), 1, f);
-    fwrite(&design, sizeof(int), 1, f);
     fwrite(&score, sizeof(int), 1, f);
     fwrite(&deaths, sizeof(int), 1, f);
     fwrite(&color, sizeof(int), 1, f);
@@ -80,7 +78,7 @@ static bool load_player_data(FILE* f, player* p) {
 
     int x, y, px, py, health, max_health, mental_health, damage, arrow_speed, range;
     bool infinity;
-    int design, score, deaths, color, phase, class;
+    int score, deaths, color, phase, class;
     int chunk_x, chunk_y;
 
     fread(&x, sizeof(int), 1, f);
@@ -94,7 +92,6 @@ static bool load_player_data(FILE* f, player* p) {
     fread(&arrow_speed, sizeof(int), 1, f);
     fread(&range, sizeof(int), 1, f);
     fread(&infinity, sizeof(bool), 1, f);
-    fread(&design, sizeof(int), 1, f);
     fread(&score, sizeof(int), 1, f);
     fread(&deaths, sizeof(int), 1, f);
     fread(&color, sizeof(int), 1, f);
@@ -119,7 +116,6 @@ static bool load_player_data(FILE* f, player* p) {
     set_player_arrow_speed(p, arrow_speed);
     set_player_range(p, range);
     set_player_infinity(p, infinity);
-    set_player_design(p, design);
     set_player_score(p, score);
     set_player_color(p, (Color)color);
     set_player_phase(p, (GamePhase)phase);
