@@ -160,6 +160,10 @@ int get_player_max_health(player* p) {
     return p->max_health;
 }
 
+int get_player_base_damage(player* p) {
+    return p->damage;
+}
+
 int get_player_damage(player* p) {
     return p->damage + (int)(p->damage * p->additional_damage);
 }
@@ -174,6 +178,10 @@ bool has_infinity(player* p) {
 
 int get_player_score(player* p) {
     return p->score;
+}
+
+int get_player_raw_arrow_speed(player* p) {
+    return p->arrow_speed;
 }
 
 int get_player_arrow_speed(player* p) {

@@ -107,7 +107,9 @@ int get_player_max_health(player* player);
 /// @brief Returns player damage
 /// @param player player
 /// @return damage
+int get_player_base_damage(player* player);
 int get_player_damage(player* player);
+int get_player_raw_arrow_speed(player* player);
 
 /// @brief Set player damage
 /// @param player player

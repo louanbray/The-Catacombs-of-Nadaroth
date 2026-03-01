@@ -35,8 +35,8 @@ static bool save_player_data(FILE* f, player* p) {
     int health = get_player_health(p);
     int max_health = get_player_max_health(p);
     int mental_health = get_player_mental_health(p);
-    int damage = get_player_damage(p);
-    int arrow_speed = get_player_arrow_speed(p);
+    int damage = get_player_base_damage(p);
+    int arrow_speed = get_player_raw_arrow_speed(p);
     int range = get_player_range(p);
     bool infinity = has_infinity(p);
     int design = get_player_design(p);
@@ -44,6 +44,7 @@ static bool save_player_data(FILE* f, player* p) {
     int deaths = get_player_deaths(p);
     Color color = get_player_color(p);
     GamePhase phase = get_player_phase(p);
+    int class = get_player_class(p);
 
     // Save current chunk coordinates
     chunk* current = get_player_chunk(p);
@@ -66,6 +67,7 @@ static bool save_player_data(FILE* f, player* p) {
     fwrite(&deaths, sizeof(int), 1, f);
     fwrite(&color, sizeof(int), 1, f);
     fwrite(&phase, sizeof(int), 1, f);
+    fwrite(&class, sizeof(int), 1, f);
     fwrite(&chunk_x, sizeof(int), 1, f);
     fwrite(&chunk_y, sizeof(int), 1, f);
 
@@ -78,7 +80,7 @@ static bool load_player_data(FILE* f, player* p) {
 
     int x, y, px, py, health, max_health, mental_health, damage, arrow_speed, range;
     bool infinity;
-    int design, score, deaths, color, phase;
+    int design, score, deaths, color, phase, class;
     int chunk_x, chunk_y;
 
     fread(&x, sizeof(int), 1, f);
@@ -97,6 +99,7 @@ static bool load_player_data(FILE* f, player* p) {
     fread(&deaths, sizeof(int), 1, f);
     fread(&color, sizeof(int), 1, f);
     fread(&phase, sizeof(int), 1, f);
+    fread(&class, sizeof(int), 1, f);
     fread(&chunk_x, sizeof(int), 1, f);
     fread(&chunk_y, sizeof(int), 1, f);
 
@@ -105,6 +108,7 @@ static bool load_player_data(FILE* f, player* p) {
     g_player_chunk_y = chunk_y;
 
     // Apply loaded data using setter functions
+    set_player_class(p, class);
     set_player_x(p, x);
     set_player_y(p, y);
     set_player_px(p, px);

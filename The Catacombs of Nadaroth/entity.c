@@ -108,7 +108,10 @@ bool can_entity_move(entity* e, Direction dir) {
 
 #pragma omp parallel for shared(can_move)
     for (int i = 0; i < len; i++) {
-        if (!can_move) continue;
+        bool local_can = true;
+#pragma omp atomic read
+        local_can = can_move;
+        if (!local_can) continue;
 
         item* it = get_dyn(d, i);
         if (it != NULL) {

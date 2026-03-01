@@ -16,7 +16,7 @@ typedef struct item {
 /// @param y pos y
 /// @param type Type
 /// @return item
-item* create_item(int x, int y, ItemType type, int display, UsableItem usable_item, int index) {
+item* generate_item(int x, int y, ItemType type, int display, UsableItem usable_item, int index) {
     item* i = malloc(sizeof(item));
     i->x = x;
     i->y = y;
@@ -36,11 +36,6 @@ void specialize(item* i, bool used, bool hidden, void* spec) {
     i->spec = spec;
     i->used = used;
     i->hidden = hidden;
-}
-
-item* generate_item(int x, int y, ItemType type, int display, UsableItem usable_item, int index) {
-    item* i = create_item(x, y, type, display, usable_item, index);
-    return i;
 }
 
 bool is_in_box(int x, int y) {
