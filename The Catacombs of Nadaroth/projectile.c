@@ -57,6 +57,7 @@ pthread_mutex_t projectile_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t entity_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void kill_all_projectiles(Render_Buffer* r) {
+    pthread_mutex_lock(&projectile_mutex);
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         Projectile* p = &projectiles[i];
         if (p->active) {
@@ -68,6 +69,7 @@ void kill_all_projectiles(Render_Buffer* r) {
         }
         p->active = false;
     }
+    pthread_mutex_unlock(&projectile_mutex);
 }
 
 // Bresenham's Line Algorithm

@@ -14,7 +14,7 @@ typedef struct dynarray {
 /// @param n1 number to compare
 /// @param n2 number to compare
 /// @return max value
-int max(int n1, int n2) {
+static int max(int n1, int n2) {
     return n1 > n2 ? n1 : n2;
 }
 
@@ -42,13 +42,7 @@ dynarray* create_dyn() {
 /// @param newlen New length
 void resize_dyn(dynarray* t, int newlen) {
     assert(newlen > 0);
-    element* elt = (element*)malloc(sizeof(element) * newlen);
-    int len = t->len;
-    for (int i = 0; i < len; i++) {
-        elt[i] = t->elt[i];
-    }
-    free(t->elt);
-    t->elt = elt;
+    t->elt = realloc(t->elt, sizeof(element) * newlen);
     t->memlen = newlen;
 }
 
