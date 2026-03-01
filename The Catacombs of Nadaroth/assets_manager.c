@@ -283,24 +283,30 @@ UsableItemAssetFile* get_usable_item_file(UsableItem type) {
 }
 
 void destroy_asset_manager() {
+    if (!asset_manager) return;
+
     for (int i = 0; i < ENTITY_TYPE_COUNT; i++) {
+        if (!asset_manager->entities[i]) continue;
         free(asset_manager->entities[i]->specs.specs);
         free(asset_manager->entities[i]->parts);
         free(asset_manager->entities[i]);
     }
 
     for (int i = 0; i < CHUNK_TYPE_COUNT; i++) {
+        if (!asset_manager->chunks[i]) continue;
         free(asset_manager->chunks[i]->items);
         free(asset_manager->chunks[i]);
     }
 
     for (int i = 0; i < USABLE_ITEM_COUNT; i++) {
+        if (!asset_manager->usable_items[i]) continue;
         free(asset_manager->usable_items[i]->title);
         free(asset_manager->usable_items[i]->description);
         free(asset_manager->usable_items[i]->specs.specs);
         free(asset_manager->usable_items[i]);
     }
     free(asset_manager);
+    asset_manager = NULL;
 }
 
 void init_assets_system() {

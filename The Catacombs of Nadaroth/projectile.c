@@ -1,5 +1,7 @@
 #include "projectile.h"
 
+#include <limits.h>
+
 #include "achievements.h"
 #include "assets_manager.h"
 #include "constants.h"
@@ -197,7 +199,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
     }
     if (dead) {
         kill_all_projectiles(data->screen);
-        char filepath[260];
+        char filepath[PATH_MAX];
         GamePhase phase = get_player_phase(data->p);
         snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(data->p), phase);
         if (phase == FIRST_ACT_END) {
@@ -232,10 +234,10 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
             pause_game();
             lock_inputs();
         }
-        play_cinematic(data->screen, filepath, 1000000);
-        if (phase == FIRST_ACT_END) play_cinematic(data->screen, "assets/cinematics/wip.dodjo", 1000000);  //! Placeholder for future content
+        play_cinematic(data->screen, filepath, CINEMATIC_FRAME_DELAY);
+        if (phase == FIRST_ACT_END) play_cinematic(data->screen, "assets/cinematics/wip.dodjo", CINEMATIC_FRAME_DELAY);  //! Placeholder for future content
         if (get_player_mental_health(data->p) == 0) {
-            play_cinematic(data->screen, "assets/cinematics/the_end.dodjo", 1000000);
+            play_cinematic(data->screen, "assets/cinematics/the_end.dodjo", CINEMATIC_FRAME_DELAY);
             pause_game();
             lock_inputs();
         }

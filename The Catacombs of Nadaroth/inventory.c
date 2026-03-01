@@ -80,9 +80,9 @@ void pickup(hotbar* h, item* e) {
 void drop(hotbar* h, int index) {
     if (h->items[index] == NULL) return;
 
-    free_item(h->items[index]);
     if (get_item_usable_type(h->items[index]) < BOWS_END) add_achievement_progress(ACH_CRAFTSMAN, -1);
     if (get_item_usable_type(h->items[index]) > FOOD_START) add_achievement_progress(ACH_GOURMET, -1);
+    free_item(h->items[index]);
     h->items[index] = NULL;
 
     if (h->selected == index) {

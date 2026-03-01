@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <sys/time.h>
+#include <time.h>
 
 #include "achievements.h"
 #include "assets_manager.h"
@@ -259,15 +260,13 @@ int main(int argc, char* argv[]) {
     if (pthread_create(&input_thread, NULL, process_input_thread, &input_args) != 0)
         return EXIT_FAILURE;
 
-    pthread_detach(input_thread);
-
     // ------------------- Initial renders -------------------
     update_screen(screen);
 
     // ------------------- Show home menu and help -------------------
     home_menu(screen, p);
     display_interface(screen, "assets/interfaces/structures/help.dodjo");
-    play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 1000000);
+    play_cinematic(screen, "assets/cinematics/oblivion.dodjo", CINEMATIC_FRAME_DELAY);
 
     render(screen, m);
     update_screen(screen);
@@ -313,7 +312,11 @@ int main(int argc, char* argv[]) {
                 pause_game();
             }
         }
-        if (GAME_PAUSED) continue;
+        if (GAME_PAUSED) {
+            struct timespec ts = {.tv_sec = 0, .tv_nsec = 1000000};
+            nanosleep(&ts, NULL);
+            continue;
+        }
 
         if (USE_KEY('E') || USE_KEY('e')) {
             display_item_description(screen, get_selected_item(h));
@@ -387,7 +390,16 @@ int main(int argc, char* argv[]) {
                 LOG_INFO("Player score set to phase score");
             }
         }
+
+        // Cap the loop to ~1000 iterations/sec to avoid burning a CPU core
+        struct timespec ts = {.tv_sec = 0, .tv_nsec = 1000000};
+        nanosleep(&ts, NULL);
     }
+
+    // ------------------- Stop input thread -------------------
+    pthread_cancel(input_thread);
+    pthread_join(input_thread, NULL);
+    LOG_INFO("Input thread stopped");
 
     // ------------------- Cleanup on exit -------------------
     LOG_INFO("Starting cleanup...");
