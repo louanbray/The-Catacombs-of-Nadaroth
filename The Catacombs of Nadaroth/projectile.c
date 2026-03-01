@@ -52,7 +52,7 @@ typedef struct Projectile {
 
 Projectile projectiles[MAX_PROJECTILES];
 
-pthread_mutex_t projectile_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t projectile_mutex;
 
 pthread_mutex_t entity_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -414,6 +414,12 @@ void* projectile_loop(void* args) {
 }
 
 void init_projectile_system(Render_Buffer* r, player* p, int seed) {
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&projectile_mutex, &attr);
+    pthread_mutexattr_destroy(&attr);
+
     pthread_t thread_id;
     InitThreadArgs* input_args = malloc(sizeof(InitThreadArgs));
     input_args->r = r;
