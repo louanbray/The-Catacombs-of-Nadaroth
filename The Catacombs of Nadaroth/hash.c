@@ -80,7 +80,7 @@ bool check_resize(hm* t, list* l) {
         i++;
     }
 
-    return i > t->max_collide;
+    return i >= t->max_collide;
 }
 
 /// @brief Resize the hash map to twice its capacity

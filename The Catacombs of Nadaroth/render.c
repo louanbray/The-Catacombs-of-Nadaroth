@@ -507,7 +507,6 @@ void setup_render_buffer(Render_Buffer* r) {
 
 // Finalizes the render buffer.
 void finalize_render_buffer(Render_Buffer* r) {
-    free(r->bd[0]);
     free(r->bd);
     r->bd = r->dump;
     update_screen(r);

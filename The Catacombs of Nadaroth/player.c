@@ -80,6 +80,7 @@ player* create_player(map* m) {
 
 void player_death(player* p) {
     if (p->phase == FIRST_ACT_END) return;
+    reset_total_enemies();
     chunk* spawn_chunk = get_spawn(get_player_map(p));
     p->current_chunk = spawn_chunk;
     p->x = get_chunk_spawn_x(spawn_chunk);
@@ -94,6 +95,7 @@ void player_death(player* p) {
     }
     p->score = 0;
     p->deaths++;
+    add_total_enemies(p);
 }
 
 int get_player_x(player* p) {

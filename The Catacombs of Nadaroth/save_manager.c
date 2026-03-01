@@ -999,6 +999,8 @@ bool load_game(const char* filename, player* p, map* m, hotbar* h) {
         set_player_chunk(p, get_spawn(m));
     }
 
+    add_total_enemies(p);
+
     LOG_INFO("Game loaded from: %s", filename);
     return true;
 }

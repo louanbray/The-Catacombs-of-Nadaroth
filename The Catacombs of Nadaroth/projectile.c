@@ -15,7 +15,7 @@
 
 #define MAX_PROJECTILES 128
 
-int last_hotbar_index = 0;
+static int last_hotbar_index = 0;
 static unsigned int projectile_rng_seed = 0;
 static int total_enemies = 0;
 
