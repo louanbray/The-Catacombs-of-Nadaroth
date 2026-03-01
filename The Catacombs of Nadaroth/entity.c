@@ -81,7 +81,7 @@ void move_part(chunk* c, item* i, Direction dir) {
     const int dx[] = {0, 2, 0, -2, 0};
     const int dy[] = {0, 0, 1, 0, -1};
 
-    hm* h = c->hashmap;
+    hm* h = get_chunk_furniture_coords(c);
     purge_hm(h, x, y);
 
     x += dx[dir];

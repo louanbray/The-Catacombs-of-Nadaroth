@@ -1,6 +1,7 @@
 #include "map.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "achievements.h"
 #include "statistics.h"
@@ -12,39 +13,6 @@ typedef struct map {
 } map;
 
 static bool IS_NEW_CHUNK = false;
-
-/// @brief Create an empty set of links
-/// @return the link set
-chunk_link create_link() {
-    chunk_link lk = calloc(5, sizeof(chunk*));
-    return lk;
-}
-
-/// @brief Create empty chunk (with a random type)
-/// @param x chunk coord x
-/// @param y chunk coord y
-/// @return created chunk
-chunk* create_chunk(int x, int y) {
-    chunk* ck = malloc(sizeof(chunk));
-    ck->link = create_link();
-    ck->x = x;
-    ck->y = y;
-    ck->type = SPAWN;
-    ck->elements = create_dyn();
-    ck->enemies = create_dyn();
-    ck->hashmap = create_hashmap();
-    return ck;
-}
-
-/// @brief Generate a random decorated chunk
-/// @param x chunk x
-/// @param y chunk y
-/// @return generated chunk
-chunk* generate_chunk(int x, int y) {
-    chunk* c = create_chunk(x, y);
-    decorate(c, x, y);
-    return c;
-}
 
 /// @brief Create a core map bound the the player
 /// @param p player
@@ -105,8 +73,8 @@ chunk* get_chunk(map* m, int x, int y) {
 }
 
 chunk* get_chunk_from(map* m, chunk* c1, Direction dir) {
-    if (c1->link[dir] != NULL) {
-        return c1->link[dir];
+    if (get_chunk_link_at(c1, dir) != NULL) {
+        return get_chunk_link_at(c1, dir);
     }
 
     if (dir != 0) {
@@ -114,24 +82,24 @@ chunk* get_chunk_from(map* m, chunk* c1, Direction dir) {
         const int dy[] = {0, 0, 1, 0, -1};
         int s = dir < 3 ? 2 : -2;
 
-        chunk* ck = get_chunk(m, c1->x + dx[dir], c1->y + dy[dir]);
+        chunk* ck = get_chunk(m, get_chunk_x(c1) + dx[dir], get_chunk_y(c1) + dy[dir]);
 
-        ck->link[dir + s] = c1;
-        c1->link[dir] = ck;
+        set_chunk_link(ck, dir + s, c1);
+        set_chunk_link(c1, dir, ck);
 
         return ck;
     } else {
         int x = rand() % 20 - 10;
         int y = rand() % 20 - 10;
-        if (x == c1->x && y == c1->y) {
+        if (x == get_chunk_x(c1) && y == get_chunk_y(c1)) {
             x += 1;
             y += 1;
         }
 
-        chunk* ck = get_chunk(m, c1->x + x, c1->y + y);
+        chunk* ck = get_chunk(m, get_chunk_x(c1) + x, get_chunk_y(c1) + y);
 
-        ck->link[dir] = c1;
-        c1->link[dir] = ck;
+        set_chunk_link(ck, dir, c1);
+        set_chunk_link(c1, dir, ck);
 
         return ck;
     }
@@ -142,22 +110,18 @@ chunk* get_chunk_from(map* m, chunk* c1, Direction dir) {
 /// @param ck chunk to purge
 void purge_chunk(hm* m, chunk* ck) {
     //? Allow delete spawn ?
-    if (ck->x == 0 && ck->y == 0) return;
+    if (get_chunk_x(ck) == 0 && get_chunk_y(ck) == 0) return;
 
-    purge_hm(m, ck->x, ck->y);
+    purge_hm(m, get_chunk_x(ck), get_chunk_y(ck));
     for (int i = 0; i < 5; i++) {
         int s = i == 0 ? 0 : (i < 3 ? 2 : -2);
-
-        if (ck->link[i] != NULL) {
-            ck->link[i]->link[(i + s)] = NULL;
+        chunk* linked = get_chunk_link_at(ck, i);
+        if (linked != NULL) {
+            set_chunk_link(linked, i + s, NULL);
         }
     }
 
-    free(ck->link);
-    free_dyn(ck->elements);
-    free_dyn_no_item(ck->enemies);
-    free_hm(ck->hashmap);
-    free(ck);
+    destroy_chunk_full(ck);
 }
 
 void destroy_chunk(map* m, chunk* ck) {
@@ -165,13 +129,11 @@ void destroy_chunk(map* m, chunk* ck) {
 }
 
 void print_chunk(chunk* ck) {
-    printf("CHUNK: %p [", ck);
-    printf("x: %d, y: %d, type: %d, element: %p]\n", ck->x, ck->y, ck->type, ck->elements);
-    if (false) {
-        printf("link (%p): [%p, %p, %p, %p, %p]\n\n", ck->link, ck->link[0], ck->link[1], ck->link[2], ck->link[3], ck->link[4]);
-    } else {
-        printf("link: [%p, %p, %p, %p, %p]\n\n", ck->link[0], ck->link[1], ck->link[2], ck->link[3], ck->link[4]);
-    }
+    chunk_link lk = get_chunk_links(ck);
+    printf("CHUNK: %p [x: %d, y: %d, type: %d, element: %p]\n", (void*)ck,
+           get_chunk_x(ck), get_chunk_y(ck), get_chunk_type(ck), (void*)get_chunk_furniture_list(ck));
+    printf("link: [%p, %p, %p, %p, %p]\n\n",
+           (void*)lk[0], (void*)lk[1], (void*)lk[2], (void*)lk[3], (void*)lk[4]);
 }
 
 void print_map(map* m) {
@@ -184,12 +146,7 @@ static void free_chunk_callback(int key_x, int key_y, element_h elem, void* user
     (void)key_x;
     (void)key_y;
     (void)user_data;
-    chunk* ck = (chunk*)elem;
-    free(ck->link);
-    free_dyn(ck->elements);
-    free_dyn_no_item(ck->enemies);
-    free_hm(ck->hashmap);
-    free(ck);
+    destroy_chunk_full((chunk*)elem);
 }
 
 void destroy_map(map* m) {

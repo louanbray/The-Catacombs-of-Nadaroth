@@ -203,7 +203,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
         GamePhase phase = get_player_phase(data->p);
         snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(data->p), phase);
         if (phase == FIRST_ACT_END) {
-            LOG_INFO("Game completed in %u seconds and %u microseconds", get_time_played().tv_sec, get_time_played().tv_usec);
+            LOG_INFO("Game completed in %ld seconds and %ld microseconds", get_time_played().tv_sec, get_time_played().tv_usec);
             increment_statistic(STAT_GAME_COMPLETIONS, 1);
             set_achievement_progress(ACH_DAWN_BREAKER, 1);
             if (get_player_mental_health(data->p) == 4) {

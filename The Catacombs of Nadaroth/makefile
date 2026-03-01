@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -Wpedantic -Wshadow -Wformat=0 -Wcast-align -Wnull-dereference -g3 -O0
+CFLAGS = -Wall -Wextra -Wpedantic -Wshadow -Wcast-align -Wnull-dereference -g3 -O0
 
 # Platform-specific settings
 ifeq ($(OS),Windows_NT)

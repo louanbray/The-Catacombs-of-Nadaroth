@@ -16,7 +16,7 @@
 #include "map.h"
 #include "player.h"
 
-#define SAVE_VERSION 3
+#define SAVE_VERSION 4
 #define SAVE_MAGIC 0x4E414430  // "NAD0" in hex
 
 // Temporary storage for player's chunk coordinates during load
@@ -236,6 +236,7 @@ static bool save_item_data(FILE* f, item* it) {
     bool used = is_item_used(it);
     int usable_type = get_item_usable_type(it);
     bool has_entity = is_an_entity(it);
+    int color = (int)get_item_color(it);
 
     fwrite(&x, sizeof(int), 1, f);
     fwrite(&y, sizeof(int), 1, f);
@@ -245,6 +246,7 @@ static bool save_item_data(FILE* f, item* it) {
     fwrite(&used, sizeof(bool), 1, f);
     fwrite(&usable_type, sizeof(int), 1, f);
     fwrite(&has_entity, sizeof(bool), 1, f);
+    fwrite(&color, sizeof(int), 1, f);
 
     // Save specs based on item type
     if (type == ENEMY) {
@@ -304,8 +306,12 @@ static item* load_item_data(FILE* f, chunk* c, dynarray* items_array) {
     fread(&usable_type, sizeof(int), 1, f);
     fread(&has_entity, sizeof(bool), 1, f);  // Read but ignore - kept for compatibility
 
+    int color;
+    fread(&color, sizeof(int), 1, f);
+
     // Create the item
     item* it = generate_item(x, y, (ItemType)type, display, (UsableItem)usable_type, len_dyn(items_array));
+    set_item_color(it, (Color)color);
 
     // Load specs based on item type
     if (type == ENEMY) {
@@ -631,47 +637,13 @@ static bool load_map_data(FILE* f, map* m) {
         // Get or create the chunk
         chunk* ck = get_hm(chunks_map, x, y);
         if (ck == NULL) {
-            // Create chunk manually since it doesn't exist
-            ck = malloc(sizeof(chunk));
-            ck->link = calloc(5, sizeof(chunk*));
-            ck->x = x;
-            ck->y = y;
-            ck->spawn_x = spawn_x;
-            ck->spawn_y = spawn_y;
-            ck->type = type;
-            ck->elements = create_dyn();
-            ck->enemies = create_dyn();
-            ck->hashmap = create_hashmap();
+            // Create chunk from deserialized data
+            ck = create_chunk_raw(x, y, spawn_x, spawn_y, type);
             set_hm(chunks_map, x, y, ck);
         } else {
             // Update existing chunk - clear its contents first!
             LOG_INFO("Clearing existing chunk (%d, %d) before loading", x, y);
-
-            // Free old items
-            int old_item_count = len_dyn(ck->elements);
-            for (int k = 0; k < old_item_count; k++) {
-                item* old_it = get_dyn(ck->elements, k);
-                if (old_it != NULL) {
-                    free_item(old_it);
-                }
-            }
-            free_dyn_no_item(ck->elements);
-
-            // Free old enemies (but not the items, they're already in elements)
-            free_dyn_no_item(ck->enemies);
-
-            // Free old hashmap
-            free_hm(ck->hashmap);
-
-            // Recreate empty structures
-            ck->elements = create_dyn();
-            ck->enemies = create_dyn();
-            ck->hashmap = create_hashmap();
-
-            // Update metadata
-            ck->spawn_x = spawn_x;
-            ck->spawn_y = spawn_y;
-            ck->type = type;
+            reset_chunk_internals(ck, spawn_x, spawn_y, type);
         }
 
         // Load items (entity parts are NOT saved here, they're in the enemies section)
@@ -683,16 +655,16 @@ static bool load_map_data(FILE* f, map* m) {
             fread(&item_exists, sizeof(bool), 1, f);
 
             if (item_exists) {
-                item* it = load_item_data(f, ck, ck->elements);
+                item* it = load_item_data(f, ck, get_chunk_furniture_list(ck));
                 if (it) {
-                    append(ck->elements, it);
-                    set_hm(ck->hashmap, get_item_x(it), get_item_y(it), it);
+                    chunk_append_element(ck, it);
+                    chunk_register_item(ck, it);
                 } else {
                     LOG_ERROR("Failed to load item %d in chunk (%d, %d)", j, x, y);
-                    append(ck->elements, NULL);
+                    chunk_append_element(ck, NULL);
                 }
             } else {
-                append(ck->elements, NULL);
+                chunk_append_element(ck, NULL);
             }
         }
 
@@ -706,7 +678,7 @@ static bool load_map_data(FILE* f, map* m) {
 
             if (enemy_exists) {
                 // Load enemy brain
-                item* brain = load_item_data(f, ck, ck->enemies);
+                item* brain = load_item_data(f, ck, get_chunk_enemies(ck));
 
                 if (brain) {
                     // Load entity parts count
@@ -730,7 +702,7 @@ static bool load_map_data(FILE* f, map* m) {
                         if (get_item_type(brain) == ENEMY) {
                             enemy* e = (enemy*)get_item_spec(brain);
                             if (e) {
-                                e->from_id = len_dyn(ck->enemies);
+                                e->from_id = len_dyn(get_chunk_enemies(ck));
                             }
                         }
 
@@ -744,12 +716,12 @@ static bool load_map_data(FILE* f, map* m) {
                                 fread(&part_exists, sizeof(bool), 1, f);
 
                                 if (part_exists) {
-                                    item* part = load_item_data(f, ck, ck->elements);
+                                    item* part = load_item_data(f, ck, get_chunk_furniture_list(ck));
                                     if (part) {
                                         add_entity_part(ent, part);
                                         link_entity(part, ent);
-                                        append(ck->elements, part);
-                                        set_hm(ck->hashmap, get_item_x(part), get_item_y(part), part);
+                                        chunk_append_element(ck, part);
+                                        chunk_register_item(ck, part);
                                     }
                                 }
                             }
@@ -758,7 +730,7 @@ static bool load_map_data(FILE* f, map* m) {
                         // Add brain to enemies array ONLY if it's an ENEMY type
                         // LOOTABLE brains are NOT stored in enemies, only accessible via entity_link
                         if (get_item_type(brain) == ENEMY) {
-                            append(ck->enemies, brain);
+                            chunk_append_enemy(ck, brain);
                         }
                     } else {
                         // Skip the parts data even if we don't create the entity
@@ -767,7 +739,7 @@ static bool load_map_data(FILE* f, map* m) {
                             fread(&part_exists, sizeof(bool), 1, f);
                             if (part_exists) {
                                 // Just read and discard the part data
-                                load_item_data(f, ck, ck->elements);
+                                load_item_data(f, ck, get_chunk_furniture_list(ck));
                             }
                         }
                         // Free the brain since we won't use it
@@ -775,7 +747,7 @@ static bool load_map_data(FILE* f, map* m) {
                     }
                 }
             } else {
-                append(ck->enemies, NULL);
+                chunk_append_enemy(ck, NULL);
             }
         }
     }
@@ -785,7 +757,6 @@ static bool load_map_data(FILE* f, map* m) {
         chunk* ck = get_hm(chunks_map, link_infos[i].chunk_x, link_infos[i].chunk_y);
         if (!ck) continue;
 
-        chunk_link links = get_chunk_links(ck);
         for (int j = 0; j < 5; j++) {
             int link_x = link_infos[i].link_coords[j][0];
             int link_y = link_infos[i].link_coords[j][1];
@@ -794,14 +765,14 @@ static bool load_map_data(FILE* f, map* m) {
                 // Find the linked chunk
                 chunk* linked_chunk = get_hm(chunks_map, link_x, link_y);
                 if (linked_chunk) {
-                    links[j] = linked_chunk;
+                    set_chunk_link(ck, j, linked_chunk);
                 } else {
                     LOG_WARN("Chunk (%d, %d) link[%d] points to non-existent chunk (%d, %d)",
                              link_infos[i].chunk_x, link_infos[i].chunk_y, j, link_x, link_y);
-                    links[j] = NULL;
+                    set_chunk_link(ck, j, NULL);
                 }
             } else {
-                links[j] = NULL;
+                set_chunk_link(ck, j, NULL);
             }
         }
     }
