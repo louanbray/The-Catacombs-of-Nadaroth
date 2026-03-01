@@ -20,6 +20,10 @@ typedef struct player player;
 /// @return player
 player* create_player(map* map);
 
+/// @brief Destroy a player and free its resources (does not free map or hotbar)
+/// @param player player
+void destroy_player(player* player);
+
 /// @brief Returns player coord x in chunk
 /// @param player player
 /// @return x

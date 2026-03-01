@@ -197,7 +197,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
     }
     if (dead) {
         kill_all_projectiles(data->screen);
-        char filepath[50];
+        char filepath[260];
         GamePhase phase = get_player_phase(data->p);
         snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(data->p), phase);
         if (phase == FIRST_ACT_END) {

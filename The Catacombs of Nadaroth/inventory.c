@@ -103,3 +103,13 @@ void select_slot(hotbar* h, int index) {
 int get_hotbar_entries(hotbar* h) {
     return h->entries;
 }
+
+void destroy_hotbar(hotbar* h) {
+    if (h == NULL) return;
+    for (int i = 0; i < HOTBAR_SIZE; i++) {
+        if (h->items[i] != NULL)
+            free_item(h->items[i]);
+    }
+    free(h->items);
+    free(h);
+}

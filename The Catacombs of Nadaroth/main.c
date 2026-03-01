@@ -212,16 +212,6 @@ void scroll_callback(Render_Buffer* screen, player* p, int x, int y, int directi
     update_screen(screen);
 }
 
-typedef struct InputThreadArgs {
-    player* p;
-    Render_Buffer* screen;
-    void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y);
-    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p);
-    void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction);
-    void (*arrow_key_callback)(Render_Buffer* screen, player* p, int arrow_key);
-    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c);
-} InputThreadArgs;
-
 void* process_input_thread(void* arg) {
     InputThreadArgs* args = (InputThreadArgs*)arg;
     process_input(args->p, args->screen, args->mouse_left_event_callback, args->mouse_right_event_callback, args->mouse_scroll_callback, args->arrow_key_callback, args->printable_char_callback);
@@ -231,12 +221,12 @@ void* process_input_thread(void* arg) {
 /// @brief Where it all begins
 /// @return I dream of a 0
 int main(int argc, char* argv[]) {
+    SEED = time(NULL);
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-seed") == 0 && i + 1 < argc) {
             SEED = atoi(argv[i + 1]);
             break;
-        } else
-            SEED = time(NULL);
+        }
     }
     init_game_system();
 
@@ -409,6 +399,10 @@ int main(int argc, char* argv[]) {
 
     // audio_close();
     destroy_interactions_system();
+    destroy_asset_manager();
+    destroy_hotbar(h);
+    destroy_player(p);
+    destroy_map(m);
 
     LOG_INFO("Game session ended normally");
     close_logger();

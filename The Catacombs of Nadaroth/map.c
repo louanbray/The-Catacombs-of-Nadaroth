@@ -178,3 +178,23 @@ void print_map(map* m) {
     print_hm(m->hashmap);
     print_chunk(m->spawn);
 }
+
+/// @brief Callback used by destroy_map to free each chunk's internals
+static void free_chunk_callback(int key_x, int key_y, element_h elem, void* user_data) {
+    (void)key_x;
+    (void)key_y;
+    (void)user_data;
+    chunk* ck = (chunk*)elem;
+    free(ck->link);
+    free_dyn(ck->elements);
+    free_dyn_no_item(ck->enemies);
+    free_hm(ck->hashmap);
+    free(ck);
+}
+
+void destroy_map(map* m) {
+    if (m == NULL) return;
+    for_each_hm(m->hashmap, free_chunk_callback, NULL);
+    free_hm(m->hashmap);
+    free(m);
+}

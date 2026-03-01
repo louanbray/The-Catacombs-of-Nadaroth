@@ -11,6 +11,10 @@ typedef struct hotbar hotbar;
 /// @return hotbar
 hotbar* create_hotbar();
 
+/// @brief Destroy a hotbar and free all its items
+/// @param hotbar hotbar
+void destroy_hotbar(hotbar* hotbar);
+
 /// @brief Set hotbar[index] to e
 /// @param hotbar hotbar
 /// @param index index

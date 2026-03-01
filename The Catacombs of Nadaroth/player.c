@@ -46,6 +46,13 @@ void center_player(player* p) {
     p->py = p->y;
 }
 
+void destroy_player(player* p) {
+    if (p == NULL) return;
+    if (p->name != NULL)
+        free(p->name);
+    free(p);
+}
+
 player* create_player(map* m) {
     player* p = malloc(sizeof(player));
     p->current_chunk = get_spawn(m);
