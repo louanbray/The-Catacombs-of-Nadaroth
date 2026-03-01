@@ -36,7 +36,7 @@ void for_each_entity_part(entity* e, void (*f)(item*)) {
 }
 
 void destroy_entity(entity* e) {
-    free_dyn(e->parts);
+    free_dyn_no_item(e->parts);  // parts already freed by remove_entity_from_chunk
     free_item(e->brain);
     free(e);
 }

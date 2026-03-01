@@ -445,3 +445,7 @@ void add_total_enemies(player* p) {
     int count = len_dyn(d);
     total_enemies += count;
 }
+
+void reset_total_enemies() {
+    total_enemies = 0;
+}

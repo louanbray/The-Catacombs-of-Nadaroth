@@ -15,6 +15,7 @@
 #include "logger.h"
 #include "map.h"
 #include "player.h"
+#include "projectile.h"
 
 #define SAVE_VERSION 5
 #define SAVE_MAGIC 0x4E414430  // "NAD0" in hex
@@ -121,12 +122,7 @@ static bool load_player_data(FILE* f, player* p) {
     set_player_phase(p, (GamePhase)phase);
     set_player_deaths(p, deaths);
 
-    // Health needs special handling
-    if (health < get_player_health(p)) {
-        damage_player(p, get_player_health(p) - health);
-    } else if (health > get_player_health(p)) {
-        heal_player(p, health - get_player_health(p));
-    }
+    set_player_health_raw(p, health);
 
     return true;
 }
@@ -884,6 +880,8 @@ bool save_game(const char* filename, player* p, map* m, hotbar* h) {
 
 bool load_game(const char* filename, player* p, map* m, hotbar* h) {
     if (!filename || !p || !m || !h) return false;
+
+    reset_total_enemies();
 
     // First, decompress the file to a temporary file
     gzFile src = gzopen(filename, "rb");

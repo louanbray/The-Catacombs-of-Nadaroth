@@ -144,6 +144,10 @@ bool damage_player(player* player, int damage);
 /// @param damage heal (>=0) else use heal
 void heal_player(player* player, int heal);
 
+/// @brief Set the player's health directly, without triggering achievements or side-effects
+/// @note For use during save/load restoration only
+void set_player_health_raw(player* p, int health);
+
 /// @brief Change the player max health
 /// @param player player
 /// @param health new health

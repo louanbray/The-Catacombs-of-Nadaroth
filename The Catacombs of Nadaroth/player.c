@@ -296,8 +296,9 @@ int move_player(player* p, Direction dir) {
 
 void move_player_chunk(player* p, Direction dir) {
     p->current_chunk = get_chunk_from(p->map, p->current_chunk, dir);
-    if (is_new_chunk()) add_total_enemies(p);
-    if (is_new_chunk() && p->health == 1) {
+    bool new_chunk = is_new_chunk();
+    if (new_chunk) add_total_enemies(p);
+    if (new_chunk && p->health == 1) {
         p->time_survivor_in_chunk = 10;
         LOG_INFO("Survivor achievement countdown started.");
     } else {
@@ -335,6 +336,10 @@ void heal_player(player* p, int heal) {
         return;
     }
     p->health += heal;
+}
+
+void set_player_health_raw(player* p, int health) {
+    p->health = health;
 }
 
 void set_player_class(player* p, int class) {

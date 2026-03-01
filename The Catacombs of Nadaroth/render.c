@@ -169,7 +169,7 @@ Render_Buffer* create_screen() {
     board pv = create_board();
     blank_screen(pv);
 
-    board dump = create_board();
+    board dump = NULL;
 
     r->bd = b;
     r->pv = pv;
