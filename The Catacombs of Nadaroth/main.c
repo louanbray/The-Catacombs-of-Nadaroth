@@ -357,6 +357,10 @@ int main(int argc, char* argv[]) {
             if (USE_KEY('I') || USE_KEY('i')) {
                 set_player_can_die(!can_player_die());
                 LOG_INFO("Player can_die set to %d", can_player_die());
+                if (!can_player_die())
+                    disable_sound_effect(AUDIO_PLAYER_HURT);
+                else
+                    enable_sound_effect(AUDIO_PLAYER_HURT);
             } else if (USE_KEY('R') || USE_KEY('r')) {
                 kill_all_projectiles(screen);
             } else if (USE_KEY('U') || USE_KEY('u')) {
@@ -409,7 +413,7 @@ int main(int argc, char* argv[]) {
     save_statistics();
     LOG_INFO("Game state saved");
 
-    // audio_close();
+    audio_close();
     destroy_interactions_system();
     destroy_asset_manager();
     destroy_hotbar(h);

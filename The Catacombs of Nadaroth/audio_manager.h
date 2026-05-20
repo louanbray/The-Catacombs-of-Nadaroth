@@ -40,6 +40,9 @@ void play_bgm(const char* filename, int loop);
  */
 void play_sound_effect_by_id(AudioID audio_id);
 
+void enable_sound_effect(AudioID audio_id);
+void disable_sound_effect(AudioID audio_id);
+
 /**
  * Stop any currently playing background music.
  */

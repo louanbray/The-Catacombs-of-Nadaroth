@@ -12,6 +12,8 @@ static Mix_Music* current_music = NULL;
 
 static Mix_Chunk* sound_effects[AUDIO_COUNT] = {0};
 
+static int disabled_effects[AUDIO_COUNT] = {0};
+
 void play_bgm(const char* filename, int loop) {
     if (current_music != NULL) {
         Mix_HaltMusic();
@@ -38,7 +40,7 @@ void load_track(const char* filename, AudioID audio_id) {
 }
 
 void play_sound_effect_by_id(AudioID audio_id) {
-    if (audio_id < 0 || audio_id >= AUDIO_COUNT) return;
+    if (audio_id < 0 || audio_id >= AUDIO_COUNT || disabled_effects[audio_id]) return;
     Mix_Chunk* effect = sound_effects[audio_id];
     if (!effect) return;
 
@@ -60,6 +62,14 @@ void play_sound_effect_by_id(AudioID audio_id) {
             fprintf(stderr, "Failed to play sound effect %d even after overriding a channel: %s\n", audio_id, Mix_GetError());
         }
     }
+}
+
+void disable_sound_effect(AudioID audio_id) {
+    disabled_effects[audio_id] = 1;
+}
+
+void enable_sound_effect(AudioID audio_id) {
+    disabled_effects[audio_id] = 0;
 }
 
 void stop_audio() {
