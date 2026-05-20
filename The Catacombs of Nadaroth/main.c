@@ -247,8 +247,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // if (init_audio() != 0) exit(EXIT_FAILURE);
-    // play_bgm("assets/audio/background.mp3", 1);
+    if (init_audio() != 0) exit(EXIT_FAILURE);
+    play_bgm("assets/audio/background.mp3", 1);
 
     // ------------------- Create core game objects -------------------
     Render_Buffer* screen = create_screen();

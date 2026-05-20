@@ -99,6 +99,10 @@ int init_audio() {
 
     load_track("assets/audio/footstep1.wav", AUDIO_FOOTSTEP1);
     load_track("assets/audio/footstep2.wav", AUDIO_FOOTSTEP2);
+    load_track("assets/audio/achievement.wav", AUDIO_ACHIEVEMENT_UNLOCKED);
+    load_track("assets/audio/kill.wav", AUDIO_ENEMY_KILLED);
+    load_track("assets/audio/player_hurt.wav", AUDIO_PLAYER_HURT);
+    load_track("assets/audio/pickup_item.wav", AUDIO_PICKUP_ITEM);
 
     return 0;
 }

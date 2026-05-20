@@ -761,12 +761,15 @@ void display_achievements(Render_Buffer* r) {
     clear_screen(r->pv);
     setup_render_buffer(r);
 
+    int completed_achievements = 0;
+
     for (int i = 0; i < ACHIEVEMENT_COUNT; i++) {
         wchar_t buffer[150];
         const char* title = get_achievement_name((enum AchievementID)i);
         int color = COLOR_RED;
         if (is_achievement_unlocked((enum AchievementID)i)) {
             swprintf(buffer, 150, L"%s: %s", title, "UNLOCKED");
+            completed_achievements++;
             color = COLOR_GREEN;
         } else
             swprintf(buffer, 150, L"%s: %s (%d/%d)", title, "LOCKED", get_achievement_progress((enum AchievementID)i), get_achievement_max_progress((enum AchievementID)i));
@@ -775,9 +778,10 @@ void display_achievements(Render_Buffer* r) {
         swprintf(buffer, 150, L"└─ %s", get_achievement_description((enum AchievementID)i));
         write_wstr(r->bd, RENDER_HEIGHT - (3 + 2 * i) - 2, 6, buffer, wcslen(buffer), COLOR_DEFAULT);
     }
-
+    char buffer[50];
     render_string(r, -10, -18, " PRESS [SPACE] TO EXIT", 23);
-    render_string(r, -6, 16, "* ACHIEVEMENTS *", 17);
+    sprintf(buffer, "* ACHIEVEMENTS (%d/%d) *", completed_achievements, ACHIEVEMENT_COUNT);
+    render_string(r, 2 - strlen(buffer) / 2, 16, buffer, strlen(buffer));
 
     update_screen(r);
 

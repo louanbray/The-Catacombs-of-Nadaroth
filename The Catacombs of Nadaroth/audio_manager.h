@@ -2,8 +2,16 @@
 #define AUDIO_MANAGER_H
 
 typedef enum AudioID {
+    // ---- Player ----
     AUDIO_FOOTSTEP1,
     AUDIO_FOOTSTEP2,
+    AUDIO_PLAYER_HURT,
+    AUDIO_PICKUP_ITEM,
+    // ---- Menu ----
+    AUDIO_ACHIEVEMENT_UNLOCKED,
+    // ---- Entities ----
+    AUDIO_ENEMY_KILLED,
+    // ---- Toujours laisser à la fin ----
     AUDIO_COUNT
 } AudioID;
 

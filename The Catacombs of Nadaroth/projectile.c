@@ -2,6 +2,7 @@
 
 #include "achievements.h"
 #include "assets_manager.h"
+#include "audio_manager.h"
 #include "constants.h"
 #include "entity.h"
 #include "game_status.h"
@@ -170,6 +171,7 @@ void projectile_callback(int x, int y, projectile_data* data) {
                     remove_item(get_player_chunk(data->p), it);
                     render_char(get_board(data->screen), x, y, ' ');
                 }*/
+                play_sound_effect_by_id(AUDIO_ENEMY_KILLED);
             }
 
             pthread_mutex_unlock(&entity_mutex);
@@ -188,6 +190,7 @@ void projectile_callback(int x, int y, projectile_data* data) {
 void enemy_attack_callback(int x, int y, projectile_data* data) {
     bool dead = false;
     if (x == get_player_x(data->p) && y == get_player_y(data->p)) {
+        play_sound_effect_by_id(AUDIO_PLAYER_HURT);
         if (damage_player(data->p, data->damage)) {
             player_death(data->p);
             render_from_player(data->screen, data->p);

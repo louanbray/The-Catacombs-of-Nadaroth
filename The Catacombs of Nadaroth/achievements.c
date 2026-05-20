@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "audio_manager.h"
 #include "constants.h"
 #include "logger.h"
 
@@ -79,6 +80,7 @@ void add_achievement_progress(enum AchievementID id, int progress) {
     if (new_progress != achievements[id]->progress) {
         achievements[id]->progress = new_progress;
         LOG_INFO("Achievement %s progress increased to %d/%d", achievements[id]->name, new_progress, achievements[id]->max_progress);
+        if (new_progress == achievements[id]->max_progress) play_sound_effect_by_id(AUDIO_ACHIEVEMENT_UNLOCKED);
         save_achievements();
     }
 }

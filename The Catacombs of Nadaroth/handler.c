@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "achievements.h"
+#include "audio_manager.h"
 #include "entity.h"
 #include "generation.h"
 #include "loot_manager.h"
@@ -40,6 +41,7 @@ int pickup_lootable_from_chunk(player* p, item* i) {
     increment_statistic(STAT_CHEST_OPENED, 1);
     set_achievement_progress(ACH_TREASURE_SEEKER, 1);
     set_achievement_progress(ACH_LOOT_COLLECTOR, get_statistic(STAT_CHEST_OPENED));
+    play_sound_effect_by_id(AUDIO_PICKUP_ITEM);
 
     return PICKED_UP_ENTITY;
 }
