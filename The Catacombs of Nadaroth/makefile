@@ -6,6 +6,7 @@ CFLAGS = -Wall -Wextra -Wpedantic -Wshadow -Wcast-align -Wnull-dereference -g3 -
 ifeq ($(OS),Windows_NT)
 	EXECUTABLE = outDebug.exe
 	RELEASE_EXECUTABLE = outRelease.exe
+    CFLAGS += -DWIN32 -D_WIN32
 	LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread -lz
 	OPENMP = -fopenmp
 	RM = rm -f

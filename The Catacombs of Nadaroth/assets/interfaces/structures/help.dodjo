@@ -4,10 +4,10 @@
 ~
   CONTROLS : ~
 ~
-    [Z - UP ARROW] : UP~
-    [Q - LEFT ARROW] : LEFT~
-    [S - DOWN ARROW] : DOWN~
-    [D - RIGHT ARROW] : RIGHT~
+    [Z] : UP~
+    [Q] : LEFT~
+    [S] : DOWN~
+    [D] : RIGHT~
 ~
     [LEFT CLICK] : USE WEAPON~
     [RIGHT CLICK] : USE CONSUMABLE ITEM~

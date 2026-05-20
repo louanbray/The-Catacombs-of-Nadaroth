@@ -6,8 +6,6 @@
 #define MAX_BUFFER_SIZE 1024
 #define CTRL_C 0x03  // CTRL+C character code
 
-static bool arrow_states[4] = {false, false, false, false};
-static bool arrows_pressed_last_frame[4] = {false, false, false, false};
 static bool key_states[MAX_KEYS] = {false};
 static bool key_pressed_last_frame[MAX_KEYS] = {false};
 static bool unlock = true;
@@ -244,14 +242,6 @@ void release_key(unsigned char key) {
     key_pressed_last_frame[key] = false;
 }
 
-bool get_arrow_state(unsigned char key) {
-    return arrows_pressed_last_frame[key];
-}
-
-void release_arrow(unsigned char key) {
-    arrows_pressed_last_frame[key] = false;
-}
-
 void lock_inputs() {
     unlock = false;
 }
@@ -264,7 +254,6 @@ void process_input(player* p, Render_Buffer* screen,
                    void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y),
                    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p),
                    void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction),
-                   void (*arrow_key_callback)(Render_Buffer* screen, player* p, int arrow_key),
                    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c)) {
     char buffer[128];
     char input_buffer[MAX_BUFFER_SIZE];
@@ -341,12 +330,7 @@ void process_input(player* p, Render_Buffer* screen,
                     break;  // Wait for more data
                 }
             } else if (is_arrow_key(input_buffer + processed, input_buffer_length - processed)) {
-                if (unlock)
-                    arrow_key_callback(screen, p, (input_buffer + processed)[2]);
-
-                arrow_states[(input_buffer + processed)[2] - 'A'] = true;
-
-                processed += 3;  // Arrow keys are 3 bytes
+                processed += 3;
             } else if (input_buffer[processed] == CTRL_C) {
                 // CTRL+C detected in raw mode
                 ctrl_c_pressed = true;
@@ -369,11 +353,9 @@ void process_input(player* p, Render_Buffer* screen,
 
         // Store the current state before resetting key_states
         memcpy(key_pressed_last_frame, key_states, sizeof(key_states));
-        memcpy(arrows_pressed_last_frame, arrow_states, sizeof(arrow_states));
 
         // Reset key states for next loop iteration
         memset(key_states, 0, sizeof(key_states));
-        memset(arrow_states, 0, sizeof(arrow_states));
 
         // Move unprocessed data to the beginning of the buffer
         if (processed < input_buffer_length) {

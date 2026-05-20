@@ -3,6 +3,10 @@
 #include <sys/time.h>
 #include <time.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "achievements.h"
 #include "assets_manager.h"
 #include "audio_manager.h"
@@ -60,29 +64,104 @@ void move(Render_Buffer* screen, player* p, int dir) {
     }
 }
 
-/// @brief Handle the player movement with the arrow keys
-/// @param screen screen
-/// @param p player
-/// @param key_code keycode
-void arrow_move(Render_Buffer* screen, player* p, int key_code) {
-    switch (key_code) {
-        case KEY_ARROW_UP:
-            move(screen, p, NORTH);
-            break;
-        case KEY_ARROW_DOWN:
-            move(screen, p, SOUTH);
-            break;
-        case KEY_ARROW_RIGHT:
-            move(screen, p, EAST);
-            break;
-        case KEY_ARROW_LEFT:
-            move(screen, p, WEST);
-            break;
-        default:
-            return;
-    }
-    update_screen(screen);
+#ifdef _WIN32
+static const unsigned long long HOLD_REPEAT_DELAY_MS = 40ULL;
+static const unsigned long long HOLD_REPEAT_INTERVAL_MS = 40ULL;
+
+static bool is_virtual_key_down(int virtual_key) {
+    return (GetAsyncKeyState(virtual_key) & 0x8000) != 0;
 }
+
+enum HeldMoveMask {
+    MOVE_NONE = 0,
+    MOVE_NORTH = 1 << 0,
+    MOVE_SOUTH = 1 << 1,
+    MOVE_WEST = 1 << 2,
+    MOVE_EAST = 1 << 3,
+};
+
+static unsigned int get_held_move_mask() {
+    bool up = is_virtual_key_down('Z');
+    bool down = is_virtual_key_down('S');
+    bool left = is_virtual_key_down('Q');
+    bool right = is_virtual_key_down('D');
+
+    if (up && down) {
+        up = false;
+        down = false;
+    }
+    if (left && right) {
+        left = false;
+        right = false;
+    }
+
+    return (up ? MOVE_NORTH : MOVE_NONE) | (down ? MOVE_SOUTH : MOVE_NONE) |
+           (left ? MOVE_WEST : MOVE_NONE) | (right ? MOVE_EAST : MOVE_NONE);
+}
+
+static bool apply_move_mask(Render_Buffer* screen, player* p, unsigned int mask) {
+    bool moved = false;
+
+    if (mask & MOVE_NORTH) {
+        move(screen, p, NORTH);
+        moved = true;
+    }
+    if (mask & MOVE_SOUTH) {
+        move(screen, p, SOUTH);
+        moved = true;
+    }
+    if (mask & MOVE_WEST) {
+        move(screen, p, WEST);
+        moved = true;
+    }
+    if (mask & MOVE_EAST) {
+        move(screen, p, EAST);
+        moved = true;
+    }
+
+    return moved;
+}
+
+static void process_held_movement(Render_Buffer* screen, player* p) {
+    static unsigned int last_mask = MOVE_NONE;
+    static unsigned long long next_move_time = 0;
+    static unsigned long long repeat_start_time = 0;
+
+    unsigned int mask = get_held_move_mask();
+    unsigned long long now = GetTickCount64();
+
+    if (mask == MOVE_NONE) {
+        last_mask = MOVE_NONE;
+        next_move_time = 0;
+        repeat_start_time = 0;
+        return;
+    }
+
+    if (mask != last_mask) {
+        if (apply_move_mask(screen, p, mask)) {
+            update_screen(screen);
+        }
+        last_mask = mask;
+        repeat_start_time = now + HOLD_REPEAT_DELAY_MS;
+        next_move_time = repeat_start_time;
+        return;
+    }
+
+    if (now < repeat_start_time) {
+        return;
+    }
+
+    if (now >= next_move_time) {
+        if (apply_move_mask(screen, p, mask)) {
+            update_screen(screen);
+        }
+        next_move_time += HOLD_REPEAT_INTERVAL_MS;
+        if (next_move_time < now) {
+            next_move_time = now + HOLD_REPEAT_INTERVAL_MS;
+        }
+    }
+}
+#endif
 
 /// @brief Handle the user keyboard entries
 /// @param entry entry
@@ -91,6 +170,17 @@ void arrow_move(Render_Buffer* screen, player* p, int key_code) {
 void compute_entry(Render_Buffer* screen, player* p, int entry) {
     hotbar* hb = get_player_hotbar(p);
     switch (entry) {
+#ifdef _WIN32
+        case KEY_Z_LOW:
+        case KEY_Z_HIGH:
+        case KEY_S_LOW:
+        case KEY_S_HIGH:
+        case KEY_Q_LOW:
+        case KEY_Q_HIGH:
+        case KEY_D_LOW:
+        case KEY_D_HIGH:
+            return;
+#else
         case KEY_Z_LOW:
         case KEY_Z_HIGH:
             move(screen, p, NORTH);
@@ -107,6 +197,7 @@ void compute_entry(Render_Buffer* screen, player* p, int entry) {
         case KEY_D_HIGH:
             move(screen, p, EAST);
             break;
+#endif
 
         case KEY_1:
         case KEY_2:
@@ -215,7 +306,7 @@ void scroll_callback(Render_Buffer* screen, player* p, int x, int y, int directi
 
 void* process_input_thread(void* arg) {
     InputThreadArgs* args = (InputThreadArgs*)arg;
-    process_input(args->p, args->screen, args->mouse_left_event_callback, args->mouse_right_event_callback, args->mouse_scroll_callback, args->arrow_key_callback, args->printable_char_callback);
+    process_input(args->p, args->screen, args->mouse_left_event_callback, args->mouse_right_event_callback, args->mouse_scroll_callback, args->printable_char_callback);
     return NULL;
 }
 
@@ -255,7 +346,7 @@ int main(int argc, char* argv[]) {
 
     // ------------------- Start input processing thread -------------------
     pthread_t input_thread;
-    InputThreadArgs input_args = {p, screen, fire_projectile, interact, scroll_callback, arrow_move, compute_entry};
+    InputThreadArgs input_args = {p, screen, fire_projectile, interact, scroll_callback, compute_entry};
 
     if (pthread_create(&input_thread, NULL, process_input_thread, &input_args) != 0)
         return EXIT_FAILURE;
@@ -394,6 +485,12 @@ int main(int argc, char* argv[]) {
                 LOG_INFO("Player score set to phase score");
             }
         }
+
+#ifdef _WIN32
+        if (!GAME_PAUSED) {
+            process_held_movement(screen, p);
+        }
+#endif
 
         // Cap the loop to ~1000 iterations/sec to avoid burning a CPU core
         struct timespec ts = {.tv_sec = 0, .tv_nsec = 1000000};
