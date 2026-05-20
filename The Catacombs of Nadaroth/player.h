@@ -20,6 +20,10 @@ typedef struct player player;
 /// @return player
 player* create_player(map* map);
 
+/// @brief Destroy a player and free its resources (does not free map or hotbar)
+/// @param player player
+void destroy_player(player* player);
+
 /// @brief Returns player coord x in chunk
 /// @param player player
 /// @return x
@@ -103,12 +107,14 @@ int get_player_max_health(player* player);
 /// @brief Returns player damage
 /// @param player player
 /// @return damage
+int get_player_base_damage(player* player);
 int get_player_damage(player* player);
+int get_player_raw_arrow_speed(player* player);
 
 /// @brief Set player damage
 /// @param player player
 /// @param damage damage
-void set_player_damage(player* player, unsigned int damage);
+void set_player_damage(player* player, int damage);
 
 /// @brief Link a hotbar to the player
 /// @param player player
@@ -138,10 +144,14 @@ bool damage_player(player* player, int damage);
 /// @param damage heal (>=0) else use heal
 void heal_player(player* player, int heal);
 
+/// @brief Set the player's health directly, without triggering achievements or side-effects
+/// @note For use during save/load restoration only
+void set_player_health_raw(player* p, int health);
+
 /// @brief Change the player max health
 /// @param player player
 /// @param health new health
-void set_player_max_health(player* player, unsigned int health);
+void set_player_max_health(player* player, int health);
 
 /// @brief Destroy the player closest chunk
 /// @param p player
@@ -311,7 +321,7 @@ bool can_player_die();
 
 int get_player_class(player* p);
 
-void survivor_countdown(int seconds);
+void survivor_countdown(player* p, int seconds);
 
 /**
  * @brief Increments the player's game phase to the next phase

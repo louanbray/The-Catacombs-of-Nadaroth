@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <sys/time.h>
+#include <time.h>
 
 #include "achievements.h"
 #include "assets_manager.h"
@@ -212,16 +213,6 @@ void scroll_callback(Render_Buffer* screen, player* p, int x, int y, int directi
     update_screen(screen);
 }
 
-typedef struct InputThreadArgs {
-    player* p;
-    Render_Buffer* screen;
-    void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y);
-    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p);
-    void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction);
-    void (*arrow_key_callback)(Render_Buffer* screen, player* p, int arrow_key);
-    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c);
-} InputThreadArgs;
-
 void* process_input_thread(void* arg) {
     InputThreadArgs* args = (InputThreadArgs*)arg;
     process_input(args->p, args->screen, args->mouse_left_event_callback, args->mouse_right_event_callback, args->mouse_scroll_callback, args->arrow_key_callback, args->printable_char_callback);
@@ -231,12 +222,12 @@ void* process_input_thread(void* arg) {
 /// @brief Where it all begins
 /// @return I dream of a 0
 int main(int argc, char* argv[]) {
+    SEED = time(NULL);
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-seed") == 0 && i + 1 < argc) {
             SEED = atoi(argv[i + 1]);
             break;
-        } else
-            SEED = time(NULL);
+        }
     }
     init_game_system();
 
@@ -269,15 +260,13 @@ int main(int argc, char* argv[]) {
     if (pthread_create(&input_thread, NULL, process_input_thread, &input_args) != 0)
         return EXIT_FAILURE;
 
-    pthread_detach(input_thread);
-
     // ------------------- Initial renders -------------------
     update_screen(screen);
 
     // ------------------- Show home menu and help -------------------
     home_menu(screen, p);
     display_interface(screen, "assets/interfaces/structures/help.dodjo");
-    play_cinematic(screen, "assets/cinematics/oblivion.dodjo", 1000000);
+    play_cinematic(screen, "assets/cinematics/oblivion.dodjo", CINEMATIC_FRAME_DELAY);
 
     render(screen, m);
     update_screen(screen);
@@ -302,7 +291,7 @@ int main(int argc, char* argv[]) {
 
             if (accumulated_time >= 1.0) {
                 int full_seconds = (int)accumulated_time;
-                survivor_countdown(full_seconds);
+                survivor_countdown(p, full_seconds);
                 increment_statistic(STAT_TIME_PLAYED, full_seconds);
                 accumulated_time -= full_seconds;
             }
@@ -323,7 +312,11 @@ int main(int argc, char* argv[]) {
                 pause_game();
             }
         }
-        if (GAME_PAUSED) continue;
+        if (GAME_PAUSED) {
+            struct timespec ts = {.tv_sec = 0, .tv_nsec = 1000000};
+            nanosleep(&ts, NULL);
+            continue;
+        }
 
         if (USE_KEY('E') || USE_KEY('e')) {
             display_item_description(screen, get_selected_item(h));
@@ -397,7 +390,16 @@ int main(int argc, char* argv[]) {
                 LOG_INFO("Player score set to phase score");
             }
         }
+
+        // Cap the loop to ~1000 iterations/sec to avoid burning a CPU core
+        struct timespec ts = {.tv_sec = 0, .tv_nsec = 1000000};
+        nanosleep(&ts, NULL);
     }
+
+    // ------------------- Stop input thread -------------------
+    pthread_cancel(input_thread);
+    pthread_join(input_thread, NULL);
+    LOG_INFO("Input thread stopped");
 
     // ------------------- Cleanup on exit -------------------
     LOG_INFO("Starting cleanup...");
@@ -409,6 +411,10 @@ int main(int argc, char* argv[]) {
 
     // audio_close();
     destroy_interactions_system();
+    destroy_asset_manager();
+    destroy_hotbar(h);
+    destroy_player(p);
+    destroy_map(m);
 
     LOG_INFO("Game session ended normally");
     close_logger();

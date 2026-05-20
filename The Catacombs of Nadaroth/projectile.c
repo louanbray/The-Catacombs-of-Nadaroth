@@ -1,5 +1,7 @@
 #include "projectile.h"
 
+#include <limits.h>
+
 #include "achievements.h"
 #include "assets_manager.h"
 #include "audio_manager.h"
@@ -14,7 +16,7 @@
 
 #define MAX_PROJECTILES 128
 
-int last_hotbar_index = 0;
+static int last_hotbar_index = 0;
 static unsigned int projectile_rng_seed = 0;
 static int total_enemies = 0;
 
@@ -51,11 +53,12 @@ typedef struct Projectile {
 
 Projectile projectiles[MAX_PROJECTILES];
 
-pthread_mutex_t projectile_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t projectile_mutex;
 
 pthread_mutex_t entity_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void kill_all_projectiles(Render_Buffer* r) {
+    pthread_mutex_lock(&projectile_mutex);
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         Projectile* p = &projectiles[i];
         if (p->active) {
@@ -67,6 +70,7 @@ void kill_all_projectiles(Render_Buffer* r) {
         }
         p->active = false;
     }
+    pthread_mutex_unlock(&projectile_mutex);
 }
 
 // Bresenham's Line Algorithm
@@ -200,11 +204,11 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
     }
     if (dead) {
         kill_all_projectiles(data->screen);
-        char filepath[50];
+        char filepath[PATH_MAX];
         GamePhase phase = get_player_phase(data->p);
         snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(data->p), phase);
         if (phase == FIRST_ACT_END) {
-            LOG_INFO("Game completed in %u seconds and %u microseconds", get_time_played().tv_sec, get_time_played().tv_usec);
+            LOG_INFO("Game completed in %ld seconds and %ld microseconds", get_time_played().tv_sec, get_time_played().tv_usec);
             increment_statistic(STAT_GAME_COMPLETIONS, 1);
             set_achievement_progress(ACH_DAWN_BREAKER, 1);
             if (get_player_mental_health(data->p) == 4) {
@@ -235,10 +239,10 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
             pause_game();
             lock_inputs();
         }
-        play_cinematic(data->screen, filepath, 1000000);
-        if (phase == FIRST_ACT_END) play_cinematic(data->screen, "assets/cinematics/wip.dodjo", 1000000);  //! Placeholder for future content
+        play_cinematic(data->screen, filepath, CINEMATIC_FRAME_DELAY);
+        if (phase == FIRST_ACT_END) play_cinematic(data->screen, "assets/cinematics/wip.dodjo", CINEMATIC_FRAME_DELAY);  //! Placeholder for future content
         if (get_player_mental_health(data->p) == 0) {
-            play_cinematic(data->screen, "assets/cinematics/the_end.dodjo", 1000000);
+            play_cinematic(data->screen, "assets/cinematics/the_end.dodjo", CINEMATIC_FRAME_DELAY);
             pause_game();
             lock_inputs();
         }
@@ -413,6 +417,12 @@ void* projectile_loop(void* args) {
 }
 
 void init_projectile_system(Render_Buffer* r, player* p, int seed) {
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&projectile_mutex, &attr);
+    pthread_mutexattr_destroy(&attr);
+
     pthread_t thread_id;
     InitThreadArgs* input_args = malloc(sizeof(InitThreadArgs));
     input_args->r = r;
@@ -445,4 +455,8 @@ void add_total_enemies(player* p) {
     dynarray* d = get_chunk_enemies(c);
     int count = len_dyn(d);
     total_enemies += count;
+}
+
+void reset_total_enemies() {
+    total_enemies = 0;
 }

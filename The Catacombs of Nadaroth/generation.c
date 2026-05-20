@@ -1,6 +1,25 @@
 #include "generation.h"
 
+#include <stdlib.h>
+
 #include "game_status.h"
+#include "item.h"
+
+/// @brief Private chunk structure definition
+typedef struct chunk {
+    chunk_link link;
+    int x, spawn_x;
+    int y, spawn_y;
+    ChunkType type;
+    dynarray* elements;
+    dynarray* enemies;
+    hm* hashmap;
+} chunk;
+
+/// @brief Create an empty set of 5 chunk links
+static chunk_link create_link() {
+    return calloc(5, sizeof(chunk*));
+}
 
 dynarray* get_chunk_furniture_list(chunk* ck) {
     return ck->elements;
@@ -40,6 +59,93 @@ ChunkType get_chunk_type(chunk* ck) {
 
 chunk_link get_chunk_links(chunk* ck) {
     return ck->link;
+}
+
+chunk* get_chunk_link_at(chunk* ck, int dir) {
+    return ck->link[dir];
+}
+
+void set_chunk_link(chunk* ck, int dir, chunk* target) {
+    ck->link[dir] = target;
+}
+
+void chunk_append_element(chunk* ck, item* it) {
+    append(ck->elements, it);
+}
+
+void chunk_register_item(chunk* ck, item* it) {
+    set_hm(ck->hashmap, get_item_x(it), get_item_y(it), it);
+}
+
+void chunk_append_enemy(chunk* ck, item* it) {
+    append(ck->enemies, it);
+}
+
+int chunk_element_count(chunk* ck) {
+    return len_dyn(ck->elements);
+}
+
+item* chunk_get_element(chunk* ck, int i) {
+    return (item*)get_dyn(ck->elements, i);
+}
+
+chunk* create_chunk(int x, int y) {
+    chunk* ck = malloc(sizeof(chunk));
+    ck->link = create_link();
+    ck->x = x;
+    ck->y = y;
+    ck->type = SPAWN;
+    ck->spawn_x = 1;
+    ck->spawn_y = 0;
+    ck->elements = create_dyn();
+    ck->enemies = create_dyn();
+    ck->hashmap = create_hashmap();
+    return ck;
+}
+
+chunk* generate_chunk(int x, int y) {
+    chunk* c = create_chunk(x, y);
+    decorate(c, x, y);
+    return c;
+}
+
+chunk* create_chunk_raw(int x, int y, int spawn_x, int spawn_y, ChunkType type) {
+    chunk* ck = malloc(sizeof(chunk));
+    ck->link = create_link();
+    ck->x = x;
+    ck->y = y;
+    ck->spawn_x = spawn_x;
+    ck->spawn_y = spawn_y;
+    ck->type = type;
+    ck->elements = create_dyn();
+    ck->enemies = create_dyn();
+    ck->hashmap = create_hashmap();
+    return ck;
+}
+
+void reset_chunk_internals(chunk* ck, int spawn_x, int spawn_y, ChunkType type) {
+    int count = len_dyn(ck->elements);
+    for (int i = 0; i < count; i++) {
+        item* it = (item*)get_dyn(ck->elements, i);
+        if (it != NULL) free_item(it);
+    }
+    free_dyn_no_item(ck->elements);
+    free_dyn_no_item(ck->enemies);
+    free_hm(ck->hashmap);
+    ck->elements = create_dyn();
+    ck->enemies = create_dyn();
+    ck->hashmap = create_hashmap();
+    ck->spawn_x = spawn_x;
+    ck->spawn_y = spawn_y;
+    ck->type = type;
+}
+
+void destroy_chunk_full(chunk* ck) {
+    free(ck->link);
+    free_dyn(ck->elements);
+    free_dyn_no_item(ck->enemies);
+    free_hm(ck->hashmap);
+    free(ck);
 }
 
 /// @brief Copy the content of the items dynarray to put it into the hashmap

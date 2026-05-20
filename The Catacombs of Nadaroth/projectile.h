@@ -19,5 +19,6 @@ void bow_check_flag();
 void simulate_projectile_hit(int damage, player* p, Render_Buffer* screen);
 
 void add_total_enemies(player* p);
+void reset_total_enemies();
 
 #endif

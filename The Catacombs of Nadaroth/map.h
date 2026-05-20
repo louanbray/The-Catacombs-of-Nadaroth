@@ -67,4 +67,8 @@ void print_chunk(chunk* chunk);
 /// @param map map
 void print_map(map* map);
 
+/// @brief Destroy the map and free all chunks and internal resources
+/// @param map map
+void destroy_map(map* map);
+
 #endif

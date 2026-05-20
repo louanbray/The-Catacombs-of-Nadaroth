@@ -36,7 +36,7 @@ void for_each_entity_part(entity* e, void (*f)(item*)) {
 }
 
 void destroy_entity(entity* e) {
-    free_dyn(e->parts);
+    free_dyn_no_item(e->parts);  // parts already freed by remove_entity_from_chunk
     free_item(e->brain);
     free(e);
 }
@@ -81,7 +81,7 @@ void move_part(chunk* c, item* i, Direction dir) {
     const int dx[] = {0, 2, 0, -2, 0};
     const int dy[] = {0, 0, 1, 0, -1};
 
-    hm* h = c->hashmap;
+    hm* h = get_chunk_furniture_coords(c);
     purge_hm(h, x, y);
 
     x += dx[dir];
@@ -108,7 +108,10 @@ bool can_entity_move(entity* e, Direction dir) {
 
 #pragma omp parallel for shared(can_move)
     for (int i = 0; i < len; i++) {
-        if (!can_move) continue;
+        bool local_can = true;
+#pragma omp atomic read
+        local_can = can_move;
+        if (!local_can) continue;
 
         item* it = get_dyn(d, i);
         if (it != NULL) {

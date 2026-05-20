@@ -21,6 +21,16 @@
 typedef struct Render_Buffer Render_Buffer;
 typedef struct player player;
 
+typedef struct InputThreadArgs {
+    player* p;
+    Render_Buffer* screen;
+    void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y);
+    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p);
+    void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction);
+    void (*arrow_key_callback)(Render_Buffer* screen, player* p, int arrow_key);
+    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c);
+} InputThreadArgs;
+
 /**
  * @brief Initializes the terminal settings for the application.
  *

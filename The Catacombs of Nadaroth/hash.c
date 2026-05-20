@@ -80,7 +80,7 @@ bool check_resize(hm* t, list* l) {
         i++;
     }
 
-    return i > t->max_collide;
+    return i >= t->max_collide;
 }
 
 /// @brief Resize the hash map to twice its capacity
@@ -116,6 +116,15 @@ void resize_hm(hm* t) {
 
 void set_hm(hm* t, int x, int y, element_h e) {
     int index = hash(t->length, x, y);
+
+    list* existing = t->hash_map[index];
+    while (existing != NULL) {
+        if (existing->x == x && existing->y == y) {
+            existing->ck = e;
+            return;
+        }
+        existing = existing->next;
+    }
 
     list* l = (list*)malloc(sizeof(list));
 
