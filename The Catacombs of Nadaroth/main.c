@@ -403,6 +403,13 @@ int main(int argc, char* argv[]) {
                 pause_game();
             }
         }
+
+#ifdef _WIN32
+        if (!GAME_PAUSED || is_debug_mode()) {
+            process_held_movement(screen, p);
+        }
+#endif
+
         if (GAME_PAUSED) {
             struct timespec ts = {.tv_sec = 0, .tv_nsec = 1000000};
             nanosleep(&ts, NULL);
@@ -432,7 +439,10 @@ int main(int argc, char* argv[]) {
         } else if (USE_KEY('B') || USE_KEY('b')) {
             pause_game();
             lock_inputs();
-            if (load_game("assets/data/save.dat", p, m, h)) {
+            stop_projectile_system();
+            bool loaded = load_game("assets/data/save.dat", p, m, h);
+            restart_projectile_system(screen, p, SEED);
+            if (loaded) {
                 render(screen, m);
                 update_screen(screen);
                 if (is_debug_mode()) kill_all_projectiles(screen);  //? To prevent cheating in normal mode
@@ -452,6 +462,8 @@ int main(int argc, char* argv[]) {
                     disable_sound_effect(AUDIO_PLAYER_HURT);
                 else
                     enable_sound_effect(AUDIO_PLAYER_HURT);
+            } else if (USE_KEY(' ')) {
+                pause_menu(screen, p, m, h);
             } else if (USE_KEY('R') || USE_KEY('r')) {
                 kill_all_projectiles(screen);
             } else if (USE_KEY('U') || USE_KEY('u')) {
@@ -486,12 +498,6 @@ int main(int argc, char* argv[]) {
             }
         }
 
-#ifdef _WIN32
-        if (!GAME_PAUSED) {
-            process_held_movement(screen, p);
-        }
-#endif
-
         // Cap the loop to ~1000 iterations/sec to avoid burning a CPU core
         struct timespec ts = {.tv_sec = 0, .tv_nsec = 1000000};
         nanosleep(&ts, NULL);
@@ -504,6 +510,8 @@ int main(int argc, char* argv[]) {
 
     // ------------------- Cleanup on exit -------------------
     LOG_INFO("Starting cleanup...");
+
+    stop_projectile_system();
 
     // Save game state
     save_achievements();

@@ -13,10 +13,8 @@
 #include <unistd.h>
 #include <wchar.h>
 
-#define KEY_PRESSED(key) (get_key_state((unsigned char)(key)))                                                        //! [/!\ RESETS ONLY AFTER OTHER KEY EVENT]
-#define USE_KEY(key) (get_key_state((unsigned char)(key)) ? (release_key((unsigned char)(key)), true) : false)        //! ['EAT' THE KEY, SIMULATE A RELEASE]
-#define ARROW_PRESSED(key) (get_arrow_state((unsigned char)(key)))                                                    //! [/!\ RESETS ONLY AFTER OTHER KEY EVENT]
-#define USE_ARROW(key) (get_arrow_state((unsigned char)(key)) ? (release_arrow((unsigned char)(key)), true) : false)  //! ['EAT' THE KEY, SIMULATE A RELEASE]
+#define KEY_PRESSED(key) (get_key_state((unsigned char)(key)))                                                  //! [/!\ RESETS ONLY AFTER OTHER KEY EVENT]
+#define USE_KEY(key) (get_key_state((unsigned char)(key)) ? (release_key((unsigned char)(key)), true) : false)  //! ['EAT' THE KEY, SIMULATE A RELEASE]
 
 typedef struct Render_Buffer Render_Buffer;
 typedef struct player player;

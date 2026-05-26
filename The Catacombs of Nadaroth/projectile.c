@@ -55,6 +55,11 @@ Projectile projectiles[MAX_PROJECTILES];
 
 pthread_mutex_t projectile_mutex;
 
+static pthread_t projectile_thread;
+static bool projectile_thread_running = false;
+static bool projectile_thread_stop = false;
+static bool projectile_mutex_ready = false;
+
 pthread_mutex_t entity_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void kill_all_projectiles(Render_Buffer* r) {
@@ -369,11 +374,18 @@ void* projectile_loop(void* args) {
     struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666667};  // 60 FPS
 
     while (1) {
+        if (projectile_thread_stop) {
+            break;
+        }
         pthread_mutex_lock(&pause_mutex);
-        while (GAME_PAUSED) {
+        while (GAME_PAUSED && !projectile_thread_stop) {
             pthread_cond_wait(&pause_cond, &pause_mutex);
         }
         pthread_mutex_unlock(&pause_mutex);
+
+        if (projectile_thread_stop) {
+            break;
+        }
 
         chunk* c = get_player_chunk(p);
         dynarray* d = get_chunk_enemies(c);
@@ -416,29 +428,59 @@ void* projectile_loop(void* args) {
     return NULL;
 }
 
-void init_projectile_system(Render_Buffer* r, player* p, int seed) {
-    pthread_mutexattr_t attr;
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&projectile_mutex, &attr);
-    pthread_mutexattr_destroy(&attr);
+static void start_projectile_thread(Render_Buffer* r, player* p, int seed, bool reset_state) {
+    if (!projectile_mutex_ready) {
+        pthread_mutexattr_t attr;
+        pthread_mutexattr_init(&attr);
+        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+        pthread_mutex_init(&projectile_mutex, &attr);
+        pthread_mutexattr_destroy(&attr);
+        projectile_mutex_ready = true;
+    }
 
-    pthread_t thread_id;
     InitThreadArgs* input_args = malloc(sizeof(InitThreadArgs));
     input_args->r = r;
     input_args->p = p;
-    struct timeval started;
-    gettimeofday(&started, NULL);
-    set_game_started(started);
+    projectile_rng_seed = seed * 31 + 1;
 
-    add_total_enemies(p);
-    projectile_rng_seed = seed * 31 + 1;  // Derive a different seed from main seed
+    if (reset_state) {
+        struct timeval started;
+        gettimeofday(&started, NULL);
+        set_game_started(started);
+        add_total_enemies(p);
+    }
 
-    if (pthread_create(&thread_id, NULL, projectile_loop, input_args) != 0) {
+    if (pthread_create(&projectile_thread, NULL, projectile_loop, input_args) != 0) {
         fprintf(stderr, "Failed to create projectile thread\n");
         exit(EXIT_FAILURE);
     }
-    pthread_detach(thread_id);
+    projectile_thread_running = true;
+}
+
+void init_projectile_system(Render_Buffer* r, player* p, int seed) {
+    projectile_thread_stop = false;
+    start_projectile_thread(r, p, seed, true);
+}
+
+void stop_projectile_system(void) {
+    if (!projectile_thread_running) {
+        return;
+    }
+
+    projectile_thread_stop = true;
+    pthread_cond_broadcast(&pause_cond);
+    pthread_join(projectile_thread, NULL);
+    projectile_thread_running = false;
+    projectile_thread_stop = false;
+}
+
+void restart_projectile_system(Render_Buffer* r, player* p, int seed) {
+    if (projectile_thread_running) {
+        stop_projectile_system();
+    }
+
+    projectile_thread_stop = false;
+    start_projectile_thread(r, p, seed, false);
 }
 
 void simulate_projectile_hit(int damage, player* p, Render_Buffer* screen) {
