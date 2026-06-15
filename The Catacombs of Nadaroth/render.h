@@ -83,6 +83,10 @@ void render_item_title(Render_Buffer* screen, void* it);
 /// @param chunk Pointer to the chunk to display.
 void render_chunk(Render_Buffer* screen, chunk* chunk);
 
+/// @brief Updates the board to display the timer.
+/// @param screen Pointer to the Render_Buffer
+void render_timer(Render_Buffer* r);
+
 /// @brief Renders the player on the board (clearing the previous position if needed).
 /// @param screen Pointer to the Render_Buffer.
 /// @param player Pointer to the player.

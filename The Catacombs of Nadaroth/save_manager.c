@@ -155,6 +155,7 @@ static bool save_hotbar_data(FILE* f, hotbar* h) {
             bool item_hidden = is_item_hidden(it);
             bool item_used = is_item_used(it);
             int item_usable_type = get_item_usable_type(it);
+            int item_color = (int)get_item_color(it);
 
             fwrite(&item_x, sizeof(int), 1, f);
             fwrite(&item_y, sizeof(int), 1, f);
@@ -163,6 +164,7 @@ static bool save_hotbar_data(FILE* f, hotbar* h) {
             fwrite(&item_hidden, sizeof(bool), 1, f);
             fwrite(&item_used, sizeof(bool), 1, f);
             fwrite(&item_usable_type, sizeof(int), 1, f);
+            fwrite(&item_color, sizeof(int), 1, f);
         }
     }
 
@@ -188,7 +190,7 @@ static bool load_hotbar_data(FILE* f, hotbar* h) {
         fread(&has_item, sizeof(bool), 1, f);
 
         if (has_item) {
-            int item_x, item_y, item_type, item_display, item_usable_type;
+            int item_x, item_y, item_type, item_display, item_usable_type, item_color;
             bool item_hidden, item_used;
 
             fread(&item_x, sizeof(int), 1, f);
@@ -198,12 +200,13 @@ static bool load_hotbar_data(FILE* f, hotbar* h) {
             fread(&item_hidden, sizeof(bool), 1, f);
             fread(&item_used, sizeof(bool), 1, f);
             fread(&item_usable_type, sizeof(int), 1, f);
-
+            fread(&item_color, sizeof(int), 1, f);
             // Recreate item
             item* it = generate_item(item_x, item_y, (ItemType)item_type, item_display, (UsableItem)item_usable_type, i);
             if (it) {
                 set_item_hidden(it, item_hidden);
                 set_item_used(it, item_used);
+                set_item_color(it, (Color)item_color);
                 set_hotbar(h, i, it);
             }
         }

@@ -384,6 +384,7 @@ int main(int argc, char* argv[]) {
                 int full_seconds = (int)accumulated_time;
                 survivor_countdown(p, full_seconds);
                 increment_statistic(STAT_TIME_PLAYED, full_seconds);
+                render_timer(screen);
                 accumulated_time -= full_seconds;
             }
         }

@@ -7,6 +7,7 @@ pthread_cond_t pause_cond = PTHREAD_COND_INITIALIZER;
 int GAME_PAUSED = 0;
 static int DEBUG_MODE = 0;
 static int RESET_NEEDED = 0;
+static Difficulty DIFFICULTY = 0;
 static struct timeval GAME_STARTED = {0, 0};  // Could be useful who knows (currently unused)
 static struct timeval TIME_PLAYED = {0, 0};
 
@@ -34,6 +35,15 @@ void set_debug_mode(int mode) {
 
 int is_debug_mode(void) {
     return DEBUG_MODE;
+}
+
+void set_difficulty(Difficulty difficulty) {
+    DIFFICULTY = difficulty;
+    LOG_INFO("Difficulty set to: %d", DIFFICULTY);
+}
+
+Difficulty get_difficulty() {
+    return DIFFICULTY;
 }
 
 int need_reset(void) {

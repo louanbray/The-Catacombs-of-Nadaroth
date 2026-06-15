@@ -8,6 +8,11 @@ extern pthread_mutex_t pause_mutex;
 extern pthread_cond_t pause_cond;
 extern int GAME_PAUSED;
 
+typedef enum Difficulty {
+    DIFFICULTY_EASY,
+    DIFFICULTY_HARD,
+} Difficulty;
+
 void pause_game(void);
 void resume_game(void);
 void set_debug_mode(int mode);
@@ -18,5 +23,7 @@ struct timeval get_game_started(void);
 struct timeval get_time_played(void);
 void add_time_played(struct timeval delta);
 void set_time_played(struct timeval time_played);
+void set_difficulty(Difficulty difficulty);
+Difficulty get_difficulty();
 
 #endif

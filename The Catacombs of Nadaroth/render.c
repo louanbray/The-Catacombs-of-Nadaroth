@@ -30,6 +30,10 @@ typedef struct Render_Buffer {
     int* rc;     // row changed flags
 } Render_Buffer;
 
+#define INFO_ROW_BOTTOM 1
+#define INFO_ROW_MID 2
+#define INFO_ROW_TOP 3
+
 //
 // NEW HELPER FUNCTIONS
 //
@@ -82,6 +86,12 @@ void write_str(board b, int y, int x, const char* str, int len, int color) {
     wchar_t wbuffer[RENDER_WIDTH];
     mbstowcs(wbuffer, str, RENDER_WIDTH);
     write_wstr(b, y, x, wbuffer, len, color);
+}
+
+int len_int(int n) {
+    char str[20];
+    sprintf(str, "%d", n);
+    return strlen(str);
 }
 
 //
@@ -150,8 +160,8 @@ void default_screen(board b) {
     for (int j = (RENDER_WIDTH + 1) / 2 - 10; j < (RENDER_WIDTH + 1) / 2 + 10; j++)
         if (j % 2 == 0) b[3][j].ch = 9145;
 
-    write_wstr(b, 3, 2, L"HEALTH: ", 9, COLOR_DEFAULT);
-    write_wstr(b, 1, 2, L"SCORE: ", 8, COLOR_DEFAULT);
+    write_wstr(b, INFO_ROW_TOP, 2, L"HEALTH: ", 9, COLOR_DEFAULT);
+    write_wstr(b, INFO_ROW_BOTTOM, 2, L"SCORE: ", 8, COLOR_DEFAULT);
 }
 
 // Create the row changed flag array.
@@ -235,9 +245,10 @@ void render_unicode_string(Render_Buffer* screen, int x, int y, wchar_t* s, int 
 
 // Renders the title of an item on the screen by writing it into the board with color.
 void render_item_title(Render_Buffer* screen, void* it) {
+    // clear the already existing characters
     for (int i = 0; i < 20; i++) {
-        screen->bd[1][54 + i].ch = ' ';
-        screen->bd[1][54 + i].color = COLOR_DEFAULT;
+        screen->bd[INFO_ROW_BOTTOM][54 + i].ch = ' ';
+        screen->bd[INFO_ROW_BOTTOM][54 + i].color = COLOR_DEFAULT;
     }
 
     update_line(screen, 1);
@@ -268,9 +279,9 @@ void render_item_title(Render_Buffer* screen, void* it) {
     }
 
     int len = strlen(title);
-    int x = (-len + RENDER_WIDTH) / 2 + 2;
+    int x = (RENDER_WIDTH - len) / 2 + 2;
 
-    write_str(screen->bd, 1, x, title, len, color);
+    write_str(screen->bd, INFO_ROW_BOTTOM, x, title, len, color);
 }
 
 // Renders the chunk contents (furniture items, etc.) into the board.
@@ -287,11 +298,27 @@ void render_chunk(Render_Buffer* r, chunk* c) {
     }
 
     // Write chunk coordinates onto the board.
-    wchar_t tmp[16];
-    swprintf(tmp, 16, L"CHUNK X: %d", get_chunk_x(c));
-    write_wstr(b, 3, 110, tmp, 16, COLOR_DEFAULT);
-    swprintf(tmp, 16, L"CHUNK Y: %d", get_chunk_y(c));
-    write_wstr(b, 1, 110, tmp, 16, COLOR_DEFAULT);
+    int dev = len_int(get_chunk_x(c)) + len_int(get_chunk_y(c));
+    int total_size = 13 + dev;
+    int x_pos = 115 - dev;
+    wchar_t tmp[total_size];
+    swprintf(tmp, total_size, L"CHUNK X/Y: %d/%d", get_chunk_x(c), get_chunk_y(c));
+    write_wstr(b, INFO_ROW_TOP, x_pos, tmp, total_size, COLOR_DEFAULT);
+}
+
+void render_timer(Render_Buffer* r) {
+    int timer = get_time_played().tv_sec;
+    int hours = timer / 3600;
+    timer -= hours * 3600;
+    int minutes = timer / 60;
+    timer -= minutes * 60;
+    int dev = len_int(hours) + len_int(minutes) + len_int(timer);
+    int total_size = 18 + dev;
+    int x_pos = 110 - dev;
+    wchar_t tmp[total_size];
+    swprintf(tmp, total_size, L"      TIME: %dh %dm %ds", hours, minutes, timer);
+    write_wstr(r->bd, INFO_ROW_MID, x_pos, tmp, total_size, COLOR_DEFAULT);
+    update_line(r, INFO_ROW_MID);
 }
 
 // Renders the player onto the board.
@@ -308,9 +335,9 @@ void render_score(Render_Buffer* r, player* p) {
     int display = 9;
 
     for (int i = 0; i < len; i++) {
-        r->bd[1][display].ch = score_str[i];
-        r->bd[1][display].color = COLOR_DEFAULT;
-        display += 1;
+        r->bd[INFO_ROW_BOTTOM][display].ch = score_str[i];
+        r->bd[INFO_ROW_BOTTOM][display].color = COLOR_DEFAULT;
+        display++;
     }
 
     char score_text[10];
@@ -318,9 +345,9 @@ void render_score(Render_Buffer* r, player* p) {
     int score_text_len = strlen(score_text);
 
     for (int i = 0; i < score_text_len; i++) {
-        r->bd[1][display].ch = score_text[i];
-        r->bd[1][display].color = COLOR_DEFAULT;
-        display += 1;
+        r->bd[INFO_ROW_BOTTOM][display].ch = score_text[i];
+        r->bd[INFO_ROW_BOTTOM][display].color = COLOR_DEFAULT;
+        display++;
     }
 }
 
@@ -331,32 +358,32 @@ void render_health(Render_Buffer* r, player* p) {
     int max_health = get_player_max_health(p);
     for (int i = 0; i < max_health; i++) {
         if (i < health) {
-            r->bd[3][display].ch = 9829;
+            r->bd[INFO_ROW_TOP][display].ch = 9829;
         } else {
-            r->bd[3][display].ch = 9825;
+            r->bd[INFO_ROW_TOP][display].ch = 9825;
         }
-        r->bd[3][display].color = COLOR_DEFAULT;
-        display += 2;
+        r->bd[INFO_ROW_TOP][display].color = COLOR_DEFAULT;
+        display += 2;  // Spacing for hearts
     }
 }
 
 void render_mental_health(Render_Buffer* r, player* p) {
     int display = 17;
     if (get_player_deaths(p) == 0) {
-        write_wstr(r->bd, 2, 2, L"------ ------: --------", 24, COLOR_DEFAULT);
+        write_wstr(r->bd, INFO_ROW_MID, 2, L"------ ------: --------", 24, COLOR_DEFAULT);
     } else {
-        write_wstr(r->bd, 2, 2, L"MENTAL HEALTH: ", 16, COLOR_DEFAULT);
+        write_wstr(r->bd, INFO_ROW_MID, 2, L"MENTAL HEALTH: ", 16, COLOR_DEFAULT);
         int mental_health = get_player_mental_health(p);
         for (int i = 1; i <= 5; i++) {
             if (i <= mental_health) {
-                r->bd[2][display].ch = 9608;
-                r->bd[2][display + 1].ch = 9608;
+                r->bd[INFO_ROW_MID][display].ch = 9608;
+                r->bd[INFO_ROW_MID][display + 1].ch = 9608;
             } else {
-                r->bd[2][display].ch = ' ';
-                r->bd[2][display + 1].ch = ' ';
+                r->bd[INFO_ROW_MID][display].ch = ' ';
+                r->bd[INFO_ROW_MID][display + 1].ch = ' ';
             }
-            r->bd[2][display].color = 1 + mental_health;
-            r->bd[2][display + 1].color = 1 + mental_health;
+            r->bd[INFO_ROW_MID][display].color = 1 + mental_health;
+            r->bd[INFO_ROW_MID][display + 1].color = 1 + mental_health;
             display += 2;
         }
     }
@@ -372,19 +399,19 @@ void render_hotbar(Render_Buffer* r, hotbar* h) {
     for (int i = 0; i < ms; i++) {
         item* slot_item = get_hotbar(h, i);
         if (slot_item == NULL) {
-            r->bd[3][display].ch = L' ';
-            r->bd[3][display].color = COLOR_DEFAULT;
+            r->bd[INFO_ROW_TOP][display].ch = L' ';
+            r->bd[INFO_ROW_TOP][display].color = COLOR_DEFAULT;
         } else {
-            r->bd[3][display].ch = get_item_display(slot_item);
-            r->bd[3][display].color = get_item_color(slot_item);
+            r->bd[INFO_ROW_TOP][display].ch = get_item_display(slot_item);
+            r->bd[INFO_ROW_TOP][display].color = get_item_color(slot_item);
         }
 
         // Draw a marker above the selected slot.
         if (get_selected_slot(h) == i)
-            r->bd[2][display].ch = 9651;
+            r->bd[INFO_ROW_MID][display].ch = 9651;
         else
-            r->bd[2][display].ch = L' ';
-        r->bd[2][display].color = COLOR_DEFAULT;
+            r->bd[INFO_ROW_MID][display].ch = L' ';
+        r->bd[INFO_ROW_MID][display].color = COLOR_DEFAULT;
 
         display += 2;
     }
@@ -406,6 +433,7 @@ void render_from_player(Render_Buffer* r, player* p) {
     render_score(r, p);
     render_health(r, p);
     render_mental_health(r, p);
+    render_timer(r);
 }
 
 //
@@ -774,9 +802,9 @@ void display_achievements(Render_Buffer* r) {
         } else
             swprintf(buffer, 150, L"%s: %s (%d/%d)", title, "LOCKED", get_achievement_progress((enum AchievementID)i), get_achievement_max_progress((enum AchievementID)i));
 
-        write_wstr(r->bd, RENDER_HEIGHT - (2 + 2 * i) - 2, 6, buffer, wcslen(buffer), color);
+        write_wstr(r->bd, RENDER_HEIGHT - 2 * (i + 2), 6, buffer, wcslen(buffer), color);
         swprintf(buffer, 150, L"└─ %s", get_achievement_description((enum AchievementID)i));
-        write_wstr(r->bd, RENDER_HEIGHT - (3 + 2 * i) - 2, 6, buffer, wcslen(buffer), COLOR_DEFAULT);
+        write_wstr(r->bd, RENDER_HEIGHT - 2 * (i + 2) - 1, 6, buffer, wcslen(buffer), COLOR_DEFAULT);
     }
     char buffer[50];
     render_string(r, -10, -18, " PRESS [SPACE] TO EXIT", 23);
@@ -799,6 +827,13 @@ void home_menu(Render_Buffer* r, player* p) {
         set_player_class(p, class);
         LOG_INFO("Player changed design to %d and color to %d", get_player_design(p), color);
         set_player_color(p, color);
+        free(result);
+    }
+    res = 0;
+    result = display_interface_with_interactions(r, "assets/interfaces/structures/difficulty.dodjo", "difficulty", &res);
+    if (result != NULL && res >= 1) {
+        set_difficulty(result[0]);
+        free(result);
     }
 }
 

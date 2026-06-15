@@ -149,6 +149,7 @@ void init_interactions_system() {
     g_set_count = 0;
 
     load_interactions_file("assets/interfaces/interactions/skin.interact.dodjo", "skin");
+    load_interactions_file("assets/interfaces/interactions/difficulty.interact.dodjo", "difficulty");
 }
 
 void destroy_interactions_system() {
