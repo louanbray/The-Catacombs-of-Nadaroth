@@ -14,6 +14,7 @@
 #include "player.h"
 #include "projectile.h"
 #include "save_manager.h"
+#include "settings.h"
 #include "statistics.h"
 
 typedef struct Cell {
@@ -35,7 +36,6 @@ typedef struct Render_Buffer {
 #define INFO_ROW_TOP 3
 
 #define MAX_LINE 512
-#define MAX_ACH_PER_PAGE 16
 
 // For the outline box
 #define JUNCTION_HEIGHT 4
@@ -63,9 +63,24 @@ typedef struct Render_Buffer {
 #define SPACE_TO_EXIT_DISPLAY_Y_POS -18
 
 #define ITEM_DESCRIPTION_Y_OFFSET 6
+
+// Achievements
+#define MAX_ACH_PER_PAGE 16
 #define ACH_X_OFFSET 6
 #define ACH_ARROW_PREV_X 2
 #define ACH_ARROW_NEXT_X (RENDER_WIDTH - 5)
+#define ACH_GUI_TITLE_Y 16
+
+// Settings
+#define MAX_SETTINGS_PER_PAGE 10
+#define SETTINGS_ENTRY_SPACING 3
+#define SETTINGS_X_OFFSET 10
+#define SETTINGS_ARROW_PREV_X 2
+#define SETTINGS_ARROW_NEXT_X (RENDER_WIDTH - 5)
+#define SETTINGS_GUI_TITLE_X -4
+#define SETTINGS_GUI_TITLE_Y 16
+#define SETTINGS_POINTER_X 7
+#define SETTINGS_POINTER_DISPLAY L'▷'
 
 //
 // NEW HELPER FUNCTIONS
@@ -127,6 +142,14 @@ int len_int(int n) {
     char str[20];
     sprintf(str, "%d", n);
     return strlen(str);
+}
+
+int min(int x, int y) {
+    return x < y ? x : y;
+}
+
+int max(int x, int y) {
+    return x > y ? x : y;
 }
 
 //
@@ -878,7 +901,7 @@ void display_achievements(Render_Buffer* r, int page) {
     char buffer[50];
     render_string(r, SPACE_TO_EXIT_DISPLAY_X_POS, SPACE_TO_EXIT_DISPLAY_Y_POS, " PRESS [SPACE] TO EXIT", 23);
     sprintf(buffer, "* ACHIEVEMENTS (%d/%d) *", get_completed_achiemevents(), ACHIEVEMENT_COUNT);
-    render_string(r, 2 - strlen(buffer) / 2, 16, buffer, strlen(buffer));
+    render_string(r, 2 - strlen(buffer) / 2, ACH_GUI_TITLE_Y, buffer, strlen(buffer));
 
     update_screen(r);
 
@@ -899,6 +922,93 @@ void display_achievements(Render_Buffer* r, int page) {
         display_achievements(r, page - 1);
 }
 
+void display_settings(Render_Buffer* r, int page) {
+    int max_page = (SETTINGS_COUNT - 1) / MAX_SETTINGS_PER_PAGE;
+    if (page > max_page || page < 0) return;
+
+    clear_screen(r->pv);
+    setup_render_buffer(r);
+
+    write_wstr(r->bd, RENDER_HEIGHT / 2 + 1, SETTINGS_ARROW_PREV_X, L" ╱", 2, page == 0 ? COLOR_GRAY : COLOR_DEFAULT);
+    write_wstr(r->bd, RENDER_HEIGHT / 2, SETTINGS_ARROW_PREV_X, L" ╲", 2, page == 0 ? COLOR_GRAY : COLOR_DEFAULT);
+
+    write_wstr(r->bd, RENDER_HEIGHT / 2 + 1, SETTINGS_ARROW_NEXT_X, L" ╲", 2, page == max_page ? COLOR_GRAY : COLOR_DEFAULT);
+    write_wstr(r->bd, RENDER_HEIGHT / 2, SETTINGS_ARROW_NEXT_X, L" ╱", 2, page == max_page ? COLOR_GRAY : COLOR_DEFAULT);
+
+    int first_setting_on_screen = page * MAX_SETTINGS_PER_PAGE;
+    int last_setting_on_screen = min(SETTINGS_COUNT, MAX_SETTINGS_PER_PAGE * (page + 1)) - 1;
+
+    wchar_t buffer[RENDER_WIDTH - 1];
+    for (int i = first_setting_on_screen; i <= last_setting_on_screen; i++) {
+        int j = i % MAX_SETTINGS_PER_PAGE;
+        const char* title = get_setting_name((enum SettingID)i);
+        int color = get_setting_color((enum SettingID)i);
+
+        swprintf(buffer, RENDER_WIDTH - 1, L"%hs: [%d/%d]", title, get_setting_value((enum SettingID)i), get_setting_max_value((enum SettingID)i));
+        write_wstr(r->bd, RENDER_HEIGHT - SETTINGS_ENTRY_SPACING * (j + 2), SETTINGS_X_OFFSET, buffer, wcslen(buffer), color);
+        swprintf(buffer, RENDER_WIDTH - 1, L"└─ %hs", get_setting_description((enum SettingID)i));
+        write_wstr(r->bd, RENDER_HEIGHT - SETTINGS_ENTRY_SPACING * (j + 2) - 1, SETTINGS_X_OFFSET, buffer, wcslen(buffer), COLOR_DEFAULT);
+    }
+    render_string(r, SPACE_TO_EXIT_DISPLAY_X_POS, SPACE_TO_EXIT_DISPLAY_Y_POS, " PRESS [SPACE] TO EXIT", 23);
+    render_string(r, SETTINGS_GUI_TITLE_X, SETTINGS_GUI_TITLE_Y, "* SETTINGS *", 13);
+
+    write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 72) / 2 + 2, "Press 'P'/'M' to increment/decrement the value of the selected setting.", 72, COLOR_DEFAULT);
+
+    int selected = first_setting_on_screen;
+
+    r->bd[RENDER_HEIGHT - SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2)][SETTINGS_POINTER_X].ch = SETTINGS_POINTER_DISPLAY;
+    update_screen(r);
+
+    bool left = false, right = false, up = false, down = false;
+    int incr = 0;
+
+    LOG_ERROR("%d - %d - %d", first_setting_on_screen, last_setting_on_screen, selected);
+    while (!USE_KEY('\n') && !USE_KEY(' ') && !left && !right) {
+        if (selected != first_setting_on_screen && (USE_KEY('Z') || USE_KEY('z'))) up = true;
+        if (selected != last_setting_on_screen && (USE_KEY('S') || USE_KEY('s'))) down = true;
+        if (USE_KEY('P') || USE_KEY('p')) incr = 1;
+        if (USE_KEY('M') || USE_KEY('m')) incr = -1;
+        if (page != max_page && (USE_KEY('D') || USE_KEY('d'))) right = true;
+        if (page != 0 && (USE_KEY('Q') || USE_KEY('q'))) left = true;
+        if (up || down) {
+            int y = RENDER_HEIGHT - SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2);
+            r->bd[y][SETTINGS_POINTER_X].ch = L' ';
+            update_line(r, y);
+            if (up)
+                selected = max(selected - 1, first_setting_on_screen);
+            else if (down)
+                selected = min(selected + 1, last_setting_on_screen);
+            up = false;
+            down = false;
+            y = RENDER_HEIGHT - SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2);
+            r->bd[y][SETTINGS_POINTER_X].ch = SETTINGS_POINTER_DISPLAY;
+            update_line(r, y);
+        }
+        if (incr) {
+            if (modify_setting_value((enum SettingID)selected, incr)) {
+                int j = selected % MAX_SETTINGS_PER_PAGE;
+                const char* title = get_setting_name((enum SettingID)selected);
+                int color = get_setting_color((enum SettingID)selected);
+                int y = RENDER_HEIGHT - SETTINGS_ENTRY_SPACING * (j + 2);
+                swprintf(buffer, RENDER_WIDTH - 1, L"%hs: [%d/%d]", title, get_setting_value((enum SettingID)selected), get_setting_max_value((enum SettingID)selected));
+                write_wstr(r->bd, y, SETTINGS_X_OFFSET, buffer, RENDER_WIDTH - 2 - SETTINGS_X_OFFSET, color);
+                update_line(r, y);
+            }
+            incr = 0;
+        }
+    }
+
+    if (left || right)
+        finalize_render_buffer_silent(r);
+    else
+        finalize_render_buffer(r);
+
+    if (right)
+        display_settings(r, page + 1);
+    else if (left)
+        display_settings(r, page - 1);
+}
+
 void home_menu(Render_Buffer* r, player* p) {
     display_interface(r, "assets/interfaces/structures/start_menu.dodjo");
     int res = 0;
@@ -907,6 +1017,8 @@ void home_menu(Render_Buffer* r, player* p) {
         int class = result[0];
         int color = result[1];
         set_player_class(p, class);
+        color = color == COLOR_DEFAULT ? COLOR_YELLOW : color == COLOR_YELLOW ? COLOR_DEFAULT
+                                                                              : color;
         LOG_INFO("Player changed design to %d and color to %d", get_player_design(p), color);
         set_player_color(p, color);
         free(result);
@@ -959,6 +1071,9 @@ void pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
             no_refresh = true;
         } else if (USE_KEY('T') || USE_KEY('t')) {
             display_statistics(r);
+            no_refresh = true;
+        } else if (USE_KEY('S') || USE_KEY('s')) {
+            display_settings(r, 0);
             no_refresh = true;
         }
         struct timespec ts = {.tv_sec = 0, .tv_nsec = 50000000};

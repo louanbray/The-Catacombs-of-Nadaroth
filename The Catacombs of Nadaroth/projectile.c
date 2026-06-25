@@ -17,13 +17,19 @@
 #define MAX_PROJECTILES 128
 
 #define FIRING_RANDOM_OFFSET_MAX 30
+
 #define EASY_MODE_INV_FRAMES 180
+#define HARD_MODE_INV_FRAMES 6
 
 #define NADINO_ENEMY_MIN_SCORE 71
+
+#define PLAYER_PROJECTILE_DESIGN L'○'
+#define ENEMY_PROJECTILE_DESIGN L'●'
 
 static int last_hotbar_index = 0;
 static unsigned int projectile_rng_seed = 0;
 static int total_enemies = 0;
+static int total_player_projectiles = 0;
 
 typedef struct {
     Render_Buffer* r;
@@ -112,7 +118,10 @@ void update_projectiles(Render_Buffer* r) {
 
         if ((c != p->from || !p->home) && (((p->x == p->x1 && p->y == p->y1) && !p->infinity) || c != L' ' || range_exceeded)) {
             p->active = false;
-
+            if (p->design == PLAYER_PROJECTILE_DESIGN) {
+                total_player_projectiles--;
+                total_player_projectiles = total_player_projectiles < 0 ? 0 : total_player_projectiles;
+            }
             if (p->callback) {
                 p->callback(p->x * speed - RECENTER_X, RECENTER_Y - p->y, p->callback_data);
             }
@@ -313,7 +322,7 @@ void enemy_attack_projectile(Render_Buffer* r, player* p, item* brain) {
         -get_player_y(p) + RECENTER_Y,
         get_item_display(brain),
         ((enemy*)get_item_spec(brain))->speed,
-        L'●',  // OR L'◈' OR L'✦'
+        ENEMY_PROJECTILE_DESIGN,  // OR L'◈' OR L'✦'
         -1,
         ((enemy*)get_item_spec(brain))->infinity,
         enemy_attack_callback,
@@ -325,6 +334,7 @@ void bow_check_flag() {
 }
 
 void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
+    if (get_difficulty() == DIFFICULTY_HARD && total_player_projectiles >= 1) return;
     int index = get_selected_slot(get_player_hotbar(p));
     if (index != last_hotbar_index) {
         last_hotbar_index = index;
@@ -353,6 +363,8 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
     p_data->p = p;
     p_data->screen = r;
 
+    total_player_projectiles++;
+
     spawn_projectile(
         x,
         y,
@@ -360,7 +372,7 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
         target_y,
         get_player_design(p),
         get_player_arrow_speed(p),
-        L'○',
+        PLAYER_PROJECTILE_DESIGN,
         get_player_range(p),
         has_infinity(p),
         projectile_callback,
@@ -404,7 +416,7 @@ void* projectile_loop(void* args) {
             enemy_ids = malloc(current_enemy_count * sizeof(int));
 
             for (int i = 0; i < current_enemy_count; i++) {
-                enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % FIRING_RANDOM_OFFSET_MAX + (get_difficulty() == DIFFICULTY_EASY ? EASY_MODE_INV_FRAMES : 0);  // 60-90 frames before starting to attack
+                enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % FIRING_RANDOM_OFFSET_MAX + (get_difficulty() == DIFFICULTY_EASY ? EASY_MODE_INV_FRAMES : HARD_MODE_INV_FRAMES);  // 60-90 frames before starting to attack
                 enemy_ids[i] = i;
             }
         }

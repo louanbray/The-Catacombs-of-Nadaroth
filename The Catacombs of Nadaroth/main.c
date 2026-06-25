@@ -20,6 +20,7 @@
 #include "projectile.h"
 #include "render.h"
 #include "save_manager.h"
+#include "settings.h"
 #include "statistics.h"
 
 static int SEED;
@@ -35,6 +36,7 @@ void init_game_system() {
     init_interactions_system();
     load_achievements();
     load_statistics();
+    load_settings();
     LOG_INFO("Game system initialized with SEED: %d", SEED);
 }
 
@@ -65,8 +67,8 @@ void move(Render_Buffer* screen, player* p, int dir) {
 }
 
 #ifdef _WIN32
-static const unsigned long long HOLD_REPEAT_DELAY_MS = 40ULL;
-static const unsigned long long HOLD_REPEAT_INTERVAL_MS = 40ULL;
+static const unsigned long long HOLD_REPEAT_DELAY_MS = 60ULL;
+static const unsigned long long HOLD_REPEAT_INTERVAL_MS = 60ULL;
 
 static bool is_virtual_key_down(int virtual_key) {
     return (GetAsyncKeyState(virtual_key) & 0x8000) != 0;
@@ -356,8 +358,11 @@ int main(int argc, char* argv[]) {
 
     // ------------------- Show home menu and help -------------------
     home_menu(screen, p);
-    display_interface(screen, "assets/interfaces/structures/help.dodjo");
-    // play_cinematic(screen, "assets/cinematics/oblivion.dodjo", CINEMATIC_FRAME_DELAY);
+
+    if (!get_setting_value(SETTING_SKIP_INTRO)) {
+        display_interface(screen, "assets/interfaces/structures/help.dodjo");
+        play_cinematic(screen, "assets/cinematics/oblivion.dodjo", CINEMATIC_FRAME_DELAY);
+    }
 
     render(screen, m);
     update_screen(screen);

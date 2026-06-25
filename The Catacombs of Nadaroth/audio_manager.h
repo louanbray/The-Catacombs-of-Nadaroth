@@ -9,6 +9,7 @@ typedef enum AudioID {
     AUDIO_PICKUP_ITEM,
     // ---- Menu ----
     AUDIO_ACHIEVEMENT_UNLOCKED,
+    AUDIO_CHANGE_SETTING_VALUE,
     // ---- Entities ----
     AUDIO_ENEMY_KILLED,
     // ---- Toujours laisser à la fin ----
