@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <zlib.h>
+#include <stdint.h>
 
 #include "entity.h"
 #include "game_status.h"

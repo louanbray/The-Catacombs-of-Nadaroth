@@ -193,7 +193,7 @@ void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len, int heavy);
 
 void display_statistics(Render_Buffer* r);
 
-void display_achievements(Render_Buffer* r);
+void display_achievements(Render_Buffer* r, int page);
 
 void home_menu(Render_Buffer* r, player* p);
 

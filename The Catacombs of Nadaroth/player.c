@@ -404,8 +404,8 @@ void destroy_player_cchunk(player* p) {
 }
 
 int distance_to_player_sq(player* p, int x, int y) {
-    int dx = (get_player_x(p) + 65 - x) / 2;
-    int dy = -get_player_y(p) + 19 - y;
+    int dx = (get_player_x(p) + RECENTER_X - x) / 2;
+    int dy = -get_player_y(p) + RECENTER_Y - y;
     return dx * dx + dy * dy;
 }
 

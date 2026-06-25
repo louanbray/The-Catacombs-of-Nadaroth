@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
     CFLAGS += -DWIN32 -D_WIN32
 	LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread -lz
 	OPENMP = -fopenmp
-	RM = rm -f
+	RM = C:/msys64/usr/bin/rm -f
 	MKDIR = mkdir -p $(1)
 # MKDIR = if not exist "$(subst /,\,$(1))" mkdir "$(subst /,\,$(1))"
 	RUN_CMD = .\$(TARGET)

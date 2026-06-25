@@ -357,7 +357,7 @@ int main(int argc, char* argv[]) {
     // ------------------- Show home menu and help -------------------
     home_menu(screen, p);
     display_interface(screen, "assets/interfaces/structures/help.dodjo");
-    play_cinematic(screen, "assets/cinematics/oblivion.dodjo", CINEMATIC_FRAME_DELAY);
+    // play_cinematic(screen, "assets/cinematics/oblivion.dodjo", CINEMATIC_FRAME_DELAY);
 
     render(screen, m);
     update_screen(screen);
@@ -424,7 +424,7 @@ int main(int argc, char* argv[]) {
         } else if (USE_KEY('H') || USE_KEY('h')) {
             display_interface(screen, "assets/interfaces/structures/help.dodjo");
         } else if (USE_KEY('A') || USE_KEY('a')) {
-            display_achievements(screen);
+            display_achievements(screen, 0);
         } else if (USE_KEY('T') || USE_KEY('t')) {
             display_statistics(screen);
         } else if (USE_KEY('N') || USE_KEY('n')) {

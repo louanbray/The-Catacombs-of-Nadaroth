@@ -39,7 +39,7 @@ void specialize(item* i, bool used, bool hidden, void* spec) {
 }
 
 bool is_in_box(int x, int y) {
-    return (y <= 17 && y >= -17) && (x <= 63 && x >= -64);
+    return (y <= PLAYBOX_MAX_OY && y >= PLAYBOX_MIN_OY) && (x <= PLAYBOX_MAX_OX && x >= PLAYBOX_MIN_OX);
 }
 
 int get_item_x(item* i) {

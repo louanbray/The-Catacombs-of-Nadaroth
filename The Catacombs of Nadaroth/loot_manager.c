@@ -55,20 +55,20 @@ void init_loot_tables() {
     create_loot_tables();
 
     // BRONZE LOOT
-    add_loot_to_loot_table(66, BASIC_BOW, BRONZE);
-    add_loot_to_loot_table(79, ONION_RING, BRONZE);
+    add_loot_to_loot_table(L'B', BASIC_BOW, BRONZE);
+    add_loot_to_loot_table(L'O', ONION_RING, BRONZE);
 
     // SILVER LOOT
-    add_loot_to_loot_table(66, ADVANCED_BOW, SILVER);
-    add_loot_to_loot_table(83, STOCKFISH, SILVER);
-    add_loot_to_loot_table(10055, BOMB, SILVER);
+    add_loot_to_loot_table(L'B', ADVANCED_BOW, SILVER);
+    add_loot_to_loot_table(L'S', STOCKFISH, SILVER);
+    add_loot_to_loot_table(L'✧', BOMB, SILVER);
 
     // GOLD LOOT
-    add_loot_to_loot_table(66, SUPER_BOW, GOLD);
-    add_loot_to_loot_table(71, GOLDEN_APPLE, GOLD);
+    add_loot_to_loot_table(L'B', SUPER_BOW, GOLD);
+    add_loot_to_loot_table(L'G', GOLDEN_APPLE, GOLD);
     // add_loot_to_loot_table(68, SCHOOL_DISHES, GOLD);
 
     // NADINO LOOT
     // add_loot_to_loot_table(70, FORGOTTEN_DISH, NADINO);
-    add_loot_to_loot_table(66, NADINO_BOW, NADINO);
+    add_loot_to_loot_table(L'B', NADINO_BOW, NADINO);
 }

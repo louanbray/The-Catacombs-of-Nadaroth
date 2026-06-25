@@ -16,6 +16,11 @@
 
 #define MAX_PROJECTILES 128
 
+#define FIRING_RANDOM_OFFSET_MAX 30
+#define EASY_MODE_INV_FRAMES 180
+
+#define NADINO_ENEMY_MIN_SCORE 71
+
 static int last_hotbar_index = 0;
 static unsigned int projectile_rng_seed = 0;
 static int total_enemies = 0;
@@ -109,7 +114,7 @@ void update_projectiles(Render_Buffer* r) {
             p->active = false;
 
             if (p->callback) {
-                p->callback(p->x * speed - 65, 19 - p->y, p->callback_data);
+                p->callback(p->x * speed - RECENTER_X, RECENTER_Y - p->y, p->callback_data);
             }
 
             continue;
@@ -169,7 +174,7 @@ void projectile_callback(int x, int y, projectile_data* data) {
                 increment_statistic(STAT_ENEMIES_KILLED, 1);
                 add_achievement_progress(ACH_UNSTOPPABLE, 1);
                 set_achievement_progress(ACH_MONSTER_HUNTER, 1);
-                if (e->score > 70) add_achievement_progress(ACH_BOSS_SLAYER, 1);
+                if (e->score >= NADINO_ENEMY_MIN_SCORE) add_achievement_progress(ACH_BOSS_SLAYER, 1);
                 add_player_score(data->p, e->score);
                 set_dyn(get_chunk_enemies(get_player_chunk(data->p)), e->from_id, NULL);
                 total_enemies--;
@@ -216,7 +221,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
             LOG_INFO("Game completed in %ld seconds and %ld microseconds", get_time_played().tv_sec, get_time_played().tv_usec);
             increment_statistic(STAT_GAME_COMPLETIONS, 1);
             set_achievement_progress(ACH_DAWN_BREAKER, 1);
-            if (get_player_mental_health(data->p) == 4) {
+            if (get_player_mental_health(data->p) == MAX_MENTAL_HEALTH) {
                 set_achievement_progress(ACH_UNSHAKEN, 1);
                 if (get_player_design(data->p) == PLAYER_DESIGN_BALL)
                     increment_statistic(STAT_GAME_COMPLETION_AS_BALL, 1);
@@ -226,7 +231,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
                     increment_statistic(STAT_GAME_COMPLETION_AS_BRAWLER, 1);
                 else if (get_player_design(data->p) == PLAYER_DESIGN_SHIELD)
                     increment_statistic(STAT_GAME_COMPLETION_AS_SHIELD, 1);
-                if (get_time_played().tv_sec < 600) {
+                if (get_time_played().tv_sec < 600) {  // 10mn
                     increment_statistic(STAT_SPEED_RUNS, 1);
                     set_achievement_progress(ACH_SPEED_RUNNER, 1);
                 }
@@ -289,8 +294,8 @@ void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsign
 }
 
 void enemy_attack_projectile(Render_Buffer* r, player* p, item* brain) {
-    int x = get_item_x(brain) + 65;
-    int y = -get_item_y(brain) + 19;
+    int x = get_item_x(brain) + RECENTER_X;
+    int y = -get_item_y(brain) + RECENTER_Y;
 
     if (!is_player_aggroed(p, x, y)) return;
 
@@ -304,11 +309,11 @@ void enemy_attack_projectile(Render_Buffer* r, player* p, item* brain) {
     spawn_projectile(
         x,
         y,
-        get_player_x(p) + 65,
-        -get_player_y(p) + 19,
+        get_player_x(p) + RECENTER_X,
+        -get_player_y(p) + RECENTER_Y,
         get_item_display(brain),
         ((enemy*)get_item_spec(brain))->speed,
-        10022,  // OR 9672
+        L'●',  // OR L'◈' OR L'✦'
         -1,
         ((enemy*)get_item_spec(brain))->infinity,
         enemy_attack_callback,
@@ -336,8 +341,8 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
             }
         }
     }
-    int x = get_player_x(p) + 65;
-    int y = -get_player_y(p) + 19;
+    int x = get_player_x(p) + RECENTER_X;
+    int y = -get_player_y(p) + RECENTER_Y;
 
     if (x == target_x && y == target_y) return;
 
@@ -355,7 +360,7 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
         target_y,
         get_player_design(p),
         get_player_arrow_speed(p),
-        8226,
+        L'○',
         get_player_range(p),
         has_infinity(p),
         projectile_callback,
@@ -399,7 +404,7 @@ void* projectile_loop(void* args) {
             enemy_ids = malloc(current_enemy_count * sizeof(int));
 
             for (int i = 0; i < current_enemy_count; i++) {
-                enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % 30 + (get_difficulty() == DIFFICULTY_EASY ? 180 : 0);  // 60-90 frames before starting to attack
+                enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % FIRING_RANDOM_OFFSET_MAX + (get_difficulty() == DIFFICULTY_EASY ? EASY_MODE_INV_FRAMES : 0);  // 60-90 frames before starting to attack
                 enemy_ids[i] = i;
             }
         }

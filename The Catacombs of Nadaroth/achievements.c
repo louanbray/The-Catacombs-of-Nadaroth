@@ -22,6 +22,8 @@ typedef struct achievement {
 
 achievement** achievements = NULL;
 
+static int completed_achievements = 0;
+
 int get_achievement_points(enum AchievementID id) {
     int points = 0;
     if (is_achievement_unlocked(id)) points += achievements[id]->points;
@@ -80,7 +82,10 @@ void add_achievement_progress(enum AchievementID id, int progress) {
     if (new_progress != achievements[id]->progress) {
         achievements[id]->progress = new_progress;
         LOG_INFO("Achievement %s progress increased to %d/%d", achievements[id]->name, new_progress, achievements[id]->max_progress);
-        if (new_progress == achievements[id]->max_progress) play_sound_effect_by_id(AUDIO_ACHIEVEMENT_UNLOCKED);
+        if (new_progress == achievements[id]->max_progress) {
+            play_sound_effect_by_id(AUDIO_ACHIEVEMENT_UNLOCKED);
+            completed_achievements++;
+        }
         save_achievements();
     }
 }
@@ -88,6 +93,10 @@ void add_achievement_progress(enum AchievementID id, int progress) {
 bool is_achievement_unlocked(enum AchievementID id) {
     if (id < 0 || id >= ACHIEVEMENT_COUNT) return false;
     return achievements[id]->progress == achievements[id]->max_progress;
+}
+
+int get_completed_achiemevents() {
+    return completed_achievements;
 }
 
 void load_achievements() {
@@ -121,6 +130,7 @@ void load_achievements() {
         fscanf(player_file, "%d\n", &status);
         if (id >= 0 && id < ACHIEVEMENT_COUNT) {
             achievements[id]->progress = status;
+            if (achievements[id]->progress == achievements[id]->max_progress) completed_achievements++;
         }
         id++;
     }

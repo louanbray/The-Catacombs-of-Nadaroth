@@ -30,6 +30,14 @@
 #define RENDER_WIDTH 129
 #define RENDER_HEIGHT 41
 
+#define RECENTER_X (RENDER_WIDTH / 2 + 1)
+#define RECENTER_Y (RENDER_HEIGHT / 2 - 1)
+
+#define PLAYBOX_MIN_OX -64
+#define PLAYBOX_MAX_OX 63
+#define PLAYBOX_MIN_OY -17
+#define PLAYBOX_MAX_OY 17
+
 /// @brief Utils
 #define CHAR_TO_INT 49
 
@@ -51,6 +59,8 @@
 
 /// @brief Cinematics
 #define CINEMATIC_FRAME_DELAY 1000000
+
+#define MAX_MENTAL_HEALTH 4
 
 //! COPYRIGHT 24/01/2025 20:33, EVERY IDEA HERE IS MINE IF YOU FOUND ANY LEAKED DATA PLEASE INFORM THE DEVELOPPER OF THE GAME
 
@@ -188,6 +198,7 @@ typedef enum Color {
     COLOR_GREEN,
     COLOR_CYAN,
     COLOR_MAGENTA,
+    COLOR_GRAY,
     // Extend as needed
 } Color;
 
