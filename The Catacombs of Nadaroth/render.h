@@ -191,14 +191,66 @@ void draw_pattern_at(Render_Buffer* r, Pos p, const char* pattern, int color_for
  */
 void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len, int heavy);
 
+/**
+ * @brief Displays the statistics GUI
+ *
+ * @param r Pointer to the render buffer
+ */
 void display_statistics(Render_Buffer* r);
 
+/**
+ * @brief Displays the achievements GUI
+ *
+ * @param r Pointer to the render buffer
+ * @param page Page to open the GUI to
+ */
 void display_achievements(Render_Buffer* r, int page);
 
+/**
+ * @brief Displays the settings GUI
+ *
+ * @param r Pointer to the render buffer
+ * @param page Page to open the GUI to
+ */
+void display_settings(Render_Buffer* r, int page);
+
+/**
+ * @brief Displays the start menu, skin and difficulty selection GUIs
+ *
+ * @param r Pointer to the render buffer
+ * @param p Pointer to the player
+ */
 void home_menu(Render_Buffer* r, player* p);
 
-void setup_render_buffer(Render_Buffer* r);
-void finalize_render_buffer(Render_Buffer* r);
-void read_text_into_render(Render_Buffer* r, FILE* file);
+/**
+ * @brief Displays the pause menu GUI
+ *
+ * @param r Pointer to the render buffer
+ * @param p Pointer to the player
+ * @param m Pointer to the player's current map
+ * @param h Pointer to the player's hotbar
+ */
 void pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h);
+
+/**
+ * @brief Make a backup of the current board and create a new blank board (two-stackable) + lock inputs + add pause game layer
+ *
+ * @param r Pointer to the render buffer
+ */
+void setup_render_buffer(Render_Buffer* r);
+
+/**
+ * @brief Restore the saved board and destroys the current one + remove pause game layer + unlock inputs if no more pause layer
+ *
+ * @param r Pointer to the render buffer
+ */
+void finalize_render_buffer(Render_Buffer* r);
+
+/**
+ * @brief Render the given text file in the play box
+ *
+ * @param r Pointer to the render buffer
+ * @param file Pointer to an already opened file
+ */
+void read_text_into_render(Render_Buffer* r, FILE* file);
 #endif

@@ -144,11 +144,11 @@ int len_int(int n) {
     return strlen(str);
 }
 
-int min(int x, int y) {
+static int min(int x, int y) {
     return x < y ? x : y;
 }
 
-int max(int x, int y) {
+static int max(int x, int y) {
     return x > y ? x : y;
 }
 
