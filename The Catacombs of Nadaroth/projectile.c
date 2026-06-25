@@ -414,6 +414,7 @@ void* projectile_loop(void* args) {
             current_chunk = c;
             enemy_attack_timers = malloc(current_enemy_count * sizeof(int));
             enemy_ids = malloc(current_enemy_count * sizeof(int));
+            total_player_projectiles = 0;
 
             for (int i = 0; i < current_enemy_count; i++) {
                 enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % FIRING_RANDOM_OFFSET_MAX + (get_difficulty() == DIFFICULTY_EASY ? EASY_MODE_INV_FRAMES : HARD_MODE_INV_FRAMES);  // 60-90 frames before starting to attack
