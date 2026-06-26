@@ -8,6 +8,6 @@
 /// @param x player next x
 /// @param y player next y
 /// @return true if can move else return false
-int handle(player* player, int x, int y);
+PlayerMovementResult handle(player* player, int x, int y);
 
 #endif

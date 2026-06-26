@@ -99,7 +99,9 @@ typedef struct EntityAssetFile {
  * The type of pickable item it is. (0 = NOT_USABLE_ITEM)
  */
 typedef struct ChunkItem {
-    int x, y, type, display, row_repeat, size, col_repeat, entity_type, usable_item;
+    int x, y, type, display, row_repeat, size, col_repeat;
+    EntityType entity_type;
+    UsableItem usable_item;
 } ChunkItem;
 
 /**

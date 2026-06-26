@@ -32,7 +32,7 @@ void add_loot_to_loot_table(int display, UsableItem usable_type, int table_index
     if (table_index < 0 || table_index >= loot_table_count) {
         return;
     }
-    item* loot_item = generate_item(0, 0, PICKABLE, display, usable_type, -1);
+    item* loot_item = generate_item(0, 0, ITEMTYPE_PICKABLE, display, usable_type, -1);
     set_item_color(loot_item, get_color_for_rarity(table_index));
     append(loot_manager[table_index], loot_item);
 }
@@ -45,7 +45,7 @@ item* generate_loot(lootable* loot) {
     int length = len_dyn(loot_manager[index]);
     int random_index = rand() % length;
     item* loot_item = get_dyn(loot_manager[index], random_index);
-    item* new_loot = generate_item(0, 0, PICKABLE, get_item_display(loot_item), get_item_usable_type(loot_item), -1);
+    item* new_loot = generate_item(0, 0, ITEMTYPE_PICKABLE, get_item_display(loot_item), get_item_usable_type(loot_item), -1);
     set_item_color(new_loot, get_item_color(loot_item));
 
     return new_loot;
@@ -55,20 +55,20 @@ void init_loot_tables() {
     create_loot_tables();
 
     // BRONZE LOOT
-    add_loot_to_loot_table(L'B', BASIC_BOW, BRONZE);
-    add_loot_to_loot_table(L'O', ONION_RING, BRONZE);
+    add_loot_to_loot_table(L'B', USABLE_ITEM_BASIC_BOW, RARITY_BRONZE);
+    add_loot_to_loot_table(L'O', USABLE_ITEM_ONION_RING, RARITY_BRONZE);
 
     // SILVER LOOT
-    add_loot_to_loot_table(L'B', ADVANCED_BOW, SILVER);
-    add_loot_to_loot_table(L'S', STOCKFISH, SILVER);
-    add_loot_to_loot_table(L'✧', BOMB, SILVER);
+    add_loot_to_loot_table(L'B', USABLE_ITEM_ADVANCED_BOW, RARITY_SILVER);
+    add_loot_to_loot_table(L'S', USABLE_ITEM_STOCKFISH, RARITY_SILVER);
+    add_loot_to_loot_table(L'✧', USABLE_ITEM_BOMB, RARITY_SILVER);
 
     // GOLD LOOT
-    add_loot_to_loot_table(L'B', SUPER_BOW, GOLD);
-    add_loot_to_loot_table(L'G', GOLDEN_APPLE, GOLD);
-    // add_loot_to_loot_table(68, SCHOOL_DISHES, GOLD);
+    add_loot_to_loot_table(L'B', USABLE_ITEM_SUPER_BOW, RARITY_GOLD);
+    add_loot_to_loot_table(L'G', USABLE_ITEM_GOLDEN_APPLE, RARITY_GOLD);
+    // add_loot_to_loot_table(68, SCHOOL_DISHES, RARITY_GOLD);
 
     // NADINO LOOT
-    // add_loot_to_loot_table(70, FORGOTTEN_DISH, NADINO);
-    add_loot_to_loot_table(L'B', NADINO_BOW, NADINO);
+    // add_loot_to_loot_table(70, FORGOTTEN_DISH, RARITY_NADINO);
+    add_loot_to_loot_table(L'B', USABLE_ITEM_NADINO_BOW, RARITY_NADINO);
 }

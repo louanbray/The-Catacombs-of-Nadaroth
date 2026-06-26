@@ -125,7 +125,7 @@ void link_hotbar(player* player, hotbar* hotbar);
 /// @param player player
 /// @param dir Direction
 /// @return refresh type
-int move_player(player* player, Direction dir);
+PlayerMovementResult move_player(player* player, Direction dir);
 
 /// @brief Move player to a new chunk following a direction/way
 /// @param player player

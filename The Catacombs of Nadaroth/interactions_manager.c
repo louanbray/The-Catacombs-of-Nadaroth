@@ -53,6 +53,7 @@ static InteractionSet** g_sets = NULL;
 static int g_set_count = 0;
 
 static char g_dir_keys[4] = {'z', 'd', 's', 'q'};
+static char g_mdir_keys[4] = {'Z', 'D', 'S', 'Q'};
 
 // ----- Helpers -----
 static InteractionSet* find_set_by_id(const char* id) {
@@ -63,7 +64,10 @@ static InteractionSet* find_set_by_id(const char* id) {
 }
 
 void set_direction_key(int dir_index, char key) {
-    if (dir_index >= 0 && dir_index < 4) g_dir_keys[dir_index] = key;
+    if (dir_index >= 0 && dir_index < 4) {
+        g_dir_keys[dir_index] = tolower(key);
+        g_mdir_keys[dir_index] = toupper(key);
+    }
 }
 
 // trim helpers
@@ -461,7 +465,7 @@ int* display_interface_with_interactions_main(Render_Buffer* r, const char* visu
         bool any_action = false;
         int action_indices[4] = {0, 0, 0, 0};
         for (int d = 0; d < 4; d++) {
-            if (USE_KEY(g_dir_keys[d])) {
+            if (USE_KEY(g_dir_keys[d]) || USE_KEY(g_mdir_keys[d])) {
                 action_indices[d] = 1;
                 any_action = true;
             }

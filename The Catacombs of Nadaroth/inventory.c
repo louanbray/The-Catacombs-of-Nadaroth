@@ -55,9 +55,9 @@ void pickup(hotbar* h, item* e) {
 
     UsableItemAssetFile* uif = get_usable_item_file(get_item_usable_type(e));
     Rarity class = uif->specs.specs[0];
-    if (class == NADINO) set_achievement_progress(ACH_SECRET_FINDER, 1);
-    if (get_item_usable_type(e) < BOWS_END) add_achievement_progress(ACH_CRAFTSMAN, 1);
-    if (get_item_usable_type(e) > FOOD_START) add_achievement_progress(ACH_GOURMET, 1);
+    if (class == RARITY_NADINO) set_achievement_progress(ACH_SECRET_FINDER, 1);
+    if (get_item_usable_type(e) < USABLE_ITEM_BOWS_END) add_achievement_progress(ACH_CRAFTSMAN, 1);
+    if (get_item_usable_type(e) > USABLE_ITEM_FOOD_START) add_achievement_progress(ACH_GOURMET, 1);
 
     int i = 0;
 
@@ -80,8 +80,8 @@ void pickup(hotbar* h, item* e) {
 void drop(hotbar* h, int index) {
     if (h->items[index] == NULL) return;
 
-    if (get_item_usable_type(h->items[index]) < BOWS_END) add_achievement_progress(ACH_CRAFTSMAN, -1);
-    if (get_item_usable_type(h->items[index]) > FOOD_START) add_achievement_progress(ACH_GOURMET, -1);
+    if (get_item_usable_type(h->items[index]) < USABLE_ITEM_BOWS_END) add_achievement_progress(ACH_CRAFTSMAN, -1);
+    if (get_item_usable_type(h->items[index]) > USABLE_ITEM_FOOD_START) add_achievement_progress(ACH_GOURMET, -1);
     free_item(h->items[index]);
     h->items[index] = NULL;
 

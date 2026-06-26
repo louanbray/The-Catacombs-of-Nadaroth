@@ -94,7 +94,7 @@ chunk* create_chunk(int x, int y) {
     ck->link = create_link();
     ck->x = x;
     ck->y = y;
-    ck->type = SPAWN;
+    ck->type = CHUNK_SPAWN;
     ck->spawn_x = 1;
     ck->spawn_y = 0;
     ck->elements = create_dyn();
@@ -171,7 +171,7 @@ void fill_furniture(chunk* c, ChunkType type) {
 }
 
 void decorate(chunk* c, int x, int y) {
-    int type = is_debug_mode() ? DEBUG : SPAWN;
+    int type = is_debug_mode() ? CHUNK_DEBUG : CHUNK_SPAWN;
     int spawn_x = 1;  //! TO CENTER THE PLAYER
     int spawn_y = 0;
     if (x != 0 || y != 0) type = 2 + (rand() % (CHUNK_TYPE_COUNT - 2));  //? MODIFY TO ADD A LEVEL (% Number of types) +2 to skip SPAWN and DEBUG

@@ -43,7 +43,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
 
             // TODO: IMPLEMENT SPECIALIZE_ENTITY FUNCTION
             switch (entry->type) {
-                case ENEMY: {
+                case ITEMTYPE_ENEMY: {
                     enemy* elt = malloc(sizeof(enemy));
                     elt->hp = entityFile->specs.specs[0];
                     elt->damage = entityFile->specs.specs[1];
@@ -55,13 +55,13 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                     elt->attack_interval = entityFile->specs.specs[6];
                     specialize(brain, false, false, elt);
                     Color color = COLOR_DEFAULT;
-                    if (entry->entity_type == ENEMY_BRONZE_1 || entry->entity_type == ENEMY_BRONZE_2) {
+                    if (entry->entity_type == ENTITY_ENEMY_BRONZE_1 || entry->entity_type == ENTITY_ENEMY_BRONZE_2) {
                         color = COLOR_RED;
-                    } else if (entry->entity_type == ENEMY_SILVER_1 || entry->entity_type == ENEMY_SILVER_2) {
+                    } else if (entry->entity_type == ENTITY_ENEMY_SILVER_1 || entry->entity_type == ENTITY_ENEMY_SILVER_2) {
                         color = COLOR_CYAN;
-                    } else if (entry->entity_type == ENEMY_GOLD_1 || entry->entity_type == ENEMY_GOLD_2) {
+                    } else if (entry->entity_type == ENTITY_ENEMY_GOLD_1 || entry->entity_type == ENTITY_ENEMY_GOLD_2) {
                         color = COLOR_YELLOW;
-                    } else if (entry->entity_type == ENEMY_NADINO_1 || entry->entity_type == ENEMY_NADINO_2) {
+                    } else if (entry->entity_type == ENTITY_ENEMY_NADINO_1 || entry->entity_type == ENTITY_ENEMY_NADINO_2) {
                         color = COLOR_MAGENTA;
                     }
 
@@ -69,7 +69,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                     append(get_chunk_enemies(c), brain);
                     break;
                 }
-                case LOOTABLE: {
+                case ITEMTYPE_LOOTABLE: {
                     lootable* loot = malloc(sizeof(lootable));
                     loot->bronze = entityFile->specs.specs[0];
                     loot->silver = entityFile->specs.specs[1];
@@ -92,7 +92,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                             entry->y + part->y - col,
                             entry->type,
                             part->display,
-                            NOT_USABLE_ITEM,
+                            USABLE_ITEM_NOT_USABLE,
                             len_dyn(d));
                         set_item_color(it, get_item_color(brain));
                         add_entity_part(e, it);

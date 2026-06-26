@@ -24,6 +24,9 @@
 #include "statistics.h"
 
 static int SEED;
+static map* MAP_L;
+static player* PLAYER_L;
+static hotbar* HOTBAR_L;
 
 /// @brief
 /// Initialize global game state and core subsystems.
@@ -46,17 +49,17 @@ void init_game_system() {
 /// @param dir direction
 void move(Render_Buffer* screen, player* p, int dir) {
     switch (move_player(p, dir)) {
-        case MOVED_CHUNK:
+        case MOV_MOVED_CHUNK:
             kill_all_projectiles(screen);
             render_from_player(screen, p);
             break;
-        case CANT_MOVE:
+        case MOV_CANT_MOVE:
             break;
-        case PICKED_UP:
+        case MOV_PICKED_UP:
             render_player(screen, p);
             render_hotbar(screen, get_player_hotbar(p));
             break;
-        case PICKED_UP_ENTITY:
+        case MOV_PICKED_UP_ENTITY:
             render_from_player(screen, p);
             render_hotbar(screen, get_player_hotbar(p));
             break;
@@ -105,19 +108,19 @@ static bool apply_move_mask(Render_Buffer* screen, player* p, unsigned int mask)
     bool moved = false;
 
     if (mask & MOVE_NORTH) {
-        move(screen, p, NORTH);
+        move(screen, p, DIR_NORTH);
         moved = true;
     }
     if (mask & MOVE_SOUTH) {
-        move(screen, p, SOUTH);
+        move(screen, p, DIR_SOUTH);
         moved = true;
     }
     if (mask & MOVE_WEST) {
-        move(screen, p, WEST);
+        move(screen, p, DIR_WEST);
         moved = true;
     }
     if (mask & MOVE_EAST) {
-        move(screen, p, EAST);
+        move(screen, p, DIR_EAST);
         moved = true;
     }
 
@@ -185,19 +188,19 @@ void compute_entry(Render_Buffer* screen, player* p, int entry) {
 #else
         case KEY_Z_LOW:
         case KEY_Z_HIGH:
-            move(screen, p, NORTH);
+            move(screen, p, DIR_NORTH);
             break;
         case KEY_S_LOW:
         case KEY_S_HIGH:
-            move(screen, p, SOUTH);
+            move(screen, p, DIR_SOUTH);
             break;
         case KEY_Q_LOW:
         case KEY_Q_HIGH:
-            move(screen, p, WEST);
+            move(screen, p, DIR_WEST);
             break;
         case KEY_D_LOW:
         case KEY_D_HIGH:
-            move(screen, p, EAST);
+            move(screen, p, DIR_EAST);
             break;
 #endif
 
@@ -233,38 +236,38 @@ void interact(Render_Buffer* screen, player* p) {
     if (it == NULL) return;
 
     UsableItem type = get_item_usable_type(it);
-    if (type == NOT_USABLE_ITEM) return;
+    if (type == USABLE_ITEM_NOT_USABLE) return;
 
     bool destroy = false;
 
     switch (type) {
-        case GOLDEN_APPLE:
+        case USABLE_ITEM_GOLDEN_APPLE:
             destroy = true;
             set_player_max_health(p, get_player_max_health(p) + 1);
             break;
-        case ONION_RING:
+        case USABLE_ITEM_ONION_RING:
             if (get_player_max_health(p) != get_player_health(p)) {
                 destroy = true;
                 heal_player(p, 1);
             }
             break;
-        case STOCKFISH:
+        case USABLE_ITEM_STOCKFISH:
             if (get_player_max_health(p) != get_player_health(p)) {
                 destroy = true;
                 heal_player(p, get_player_max_health(p) - get_player_health(p));
             }
             break;
-        case BOMB:
+        case USABLE_ITEM_BOMB:
             destroy = true;
             destroy_player_cchunk(p);
             break;
-        case SCHOOL_DISHES:
+        case USABLE_ITEM_SCHOOL_DISHES:
             if (get_player_mental_health(p) != 4) {
                 destroy = true;
                 modify_player_mental_health(p, 1);
             }
             break;
-        case FORGOTTEN_DISH:
+        case USABLE_ITEM_FORGOTTEN_DISH:
             if (get_player_mental_health(p) != 4) {
                 destroy = true;
                 set_player_mental_health(p, 4);
@@ -312,6 +315,44 @@ void* process_input_thread(void* arg) {
     return NULL;
 }
 
+static void init_local_elements() {
+    MAP_L = create_map();
+    PLAYER_L = create_player(MAP_L);
+    HOTBAR_L = create_hotbar();
+    link_hotbar(PLAYER_L, HOTBAR_L);
+}
+
+static void clear_local_elements() {
+    destroy_hotbar(HOTBAR_L);
+    destroy_player(PLAYER_L);
+    destroy_map(MAP_L);
+}
+
+void handle_resume(ResumeState state, Render_Buffer* screen) {
+    if (state == RESUME_DEFAULT) return;
+    if (state == RESUME_NEW_GAME) SEED = time(NULL);
+    srand(SEED);
+    lock_inputs();
+    pause_game();
+
+    load_statistics();
+
+    stop_projectile_system();
+
+    clear_local_elements();
+    init_local_elements();
+
+    init_projectile_system(screen, PLAYER_L, SEED);
+
+    set_time_played((struct timeval){0, 0});
+
+    render_from_player(screen, PLAYER_L);
+    update_screen(screen);
+
+    unlock_inputs();
+    resume_game();
+}
+
 /// @brief Where it all begins
 /// @return I dream of a 0
 int main(int argc, char* argv[]) {
@@ -337,18 +378,13 @@ int main(int argc, char* argv[]) {
     // ------------------- Create core game objects -------------------
     Render_Buffer* screen = create_screen();
 
-    map* m = create_map();
+    init_local_elements();
 
-    player* p = create_player(m);
-    hotbar* h = create_hotbar();
-
-    link_hotbar(p, h);
-
-    init_projectile_system(screen, p, SEED);
+    init_projectile_system(screen, PLAYER_L, SEED);
 
     // ------------------- Start input processing thread -------------------
     pthread_t input_thread;
-    InputThreadArgs input_args = {p, screen, fire_projectile, interact, scroll_callback, compute_entry};
+    InputThreadArgs input_args = {PLAYER_L, screen, fire_projectile, interact, scroll_callback, compute_entry};
 
     if (pthread_create(&input_thread, NULL, process_input_thread, &input_args) != 0)
         return EXIT_FAILURE;
@@ -357,14 +393,14 @@ int main(int argc, char* argv[]) {
     update_screen(screen);
 
     // ------------------- Show home menu and help -------------------
-    home_menu(screen, p);
+    home_menu(screen, PLAYER_L);
 
     if (!get_setting_value(SETTING_SKIP_INTRO)) {
         display_interface(screen, "assets/interfaces/structures/help.dodjo");
         play_cinematic(screen, "assets/cinematics/oblivion.dodjo", CINEMATIC_FRAME_DELAY);
     }
 
-    render(screen, m);
+    render(screen, MAP_L);
     update_screen(screen);
 
     increment_statistic(STAT_GAME_STARTED, 1);
@@ -387,7 +423,7 @@ int main(int argc, char* argv[]) {
 
             if (accumulated_time >= 1.0) {
                 int full_seconds = (int)accumulated_time;
-                survivor_countdown(p, full_seconds);
+                survivor_countdown(PLAYER_L, full_seconds);
                 increment_statistic(STAT_TIME_PLAYED, full_seconds);
                 render_timer(screen);
                 accumulated_time -= full_seconds;
@@ -412,7 +448,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef _WIN32
         if (!GAME_PAUSED || is_debug_mode()) {
-            process_held_movement(screen, p);
+            process_held_movement(screen, PLAYER_L);
         }
 #endif
 
@@ -423,9 +459,9 @@ int main(int argc, char* argv[]) {
         }
 
         if (USE_KEY('E') || USE_KEY('e')) {
-            display_item_description(screen, get_selected_item(h));
-        } else if (!is_debug_mode() && (USE_KEY('P') || USE_KEY('p') || USE_KEY(' '))) {
-            pause_menu(screen, p, m, h);
+            display_item_description(screen, get_selected_item(HOTBAR_L));
+        } else if (!is_debug_mode() && USE_KEY(' ')) {
+            handle_resume(pause_menu(screen, PLAYER_L, MAP_L, HOTBAR_L), screen);
         } else if (USE_KEY('H') || USE_KEY('h')) {
             display_interface(screen, "assets/interfaces/structures/help.dodjo");
         } else if (USE_KEY('A') || USE_KEY('a')) {
@@ -435,7 +471,7 @@ int main(int argc, char* argv[]) {
         } else if (USE_KEY('N') || USE_KEY('n')) {
             pause_game();
             lock_inputs();
-            if (save_game("assets/data/save.dat", p, m, h)) {
+            if (save_game("assets/data/save.dat", PLAYER_L, MAP_L, HOTBAR_L)) {
                 LOG_INFO("Game saved successfully!");
             } else {
                 LOG_ERROR("Failed to save game");
@@ -446,10 +482,10 @@ int main(int argc, char* argv[]) {
             pause_game();
             lock_inputs();
             stop_projectile_system();
-            bool loaded = load_game("assets/data/save.dat", p, m, h);
-            restart_projectile_system(screen, p, SEED);
+            bool loaded = load_game("assets/data/save.dat", PLAYER_L, MAP_L, HOTBAR_L);
+            restart_projectile_system(screen, PLAYER_L, SEED);
             if (loaded) {
-                render(screen, m);
+                render(screen, MAP_L);
                 update_screen(screen);
                 if (is_debug_mode()) kill_all_projectiles(screen);  //? To prevent cheating in normal mode
                 LOG_INFO("Game loaded successfully!");
@@ -469,36 +505,36 @@ int main(int argc, char* argv[]) {
                 else
                     enable_sound_effect(AUDIO_PLAYER_HURT);
             } else if (USE_KEY(' ')) {
-                pause_menu(screen, p, m, h);
+                handle_resume(pause_menu(screen, PLAYER_L, MAP_L, HOTBAR_L), screen);
             } else if (USE_KEY('R') || USE_KEY('r')) {
                 kill_all_projectiles(screen);
             } else if (USE_KEY('U') || USE_KEY('u')) {
-                render(screen, m);
+                render(screen, MAP_L);
                 update_screen(screen);
                 LOG_INFO("Screen re-rendered");
             } else if (USE_KEY('M') || USE_KEY('m')) {
-                modify_player_mental_health(p, 1);
-                render_mental_health(screen, p);
+                modify_player_mental_health(PLAYER_L, 1);
+                render_mental_health(screen, PLAYER_L);
                 update_screen(screen);
                 LOG_INFO("Player mental health increased by 1");
             } else if (USE_KEY('L') || USE_KEY('l')) {
-                modify_player_mental_health(p, -1);
-                render_mental_health(screen, p);
+                modify_player_mental_health(PLAYER_L, -1);
+                render_mental_health(screen, PLAYER_L);
                 update_screen(screen);
                 LOG_INFO("Player mental health decreased by 1");
             } else if (USE_KEY('K') || USE_KEY('k')) {
-                simulate_projectile_hit(get_player_health(p), p, screen);
-                render_health(screen, p);
+                simulate_projectile_hit(get_player_health(PLAYER_L), PLAYER_L, screen);
+                render_health(screen, PLAYER_L);
                 update_screen(screen);
                 LOG_INFO("Player damaged to death");
             } else if (USE_KEY('C') || USE_KEY('c')) {
-                heal_player(p, get_player_max_health(p));
-                render_health(screen, p);
+                heal_player(PLAYER_L, get_player_max_health(PLAYER_L));
+                render_health(screen, PLAYER_L);
                 update_screen(screen);
                 LOG_INFO("Player health restored to max");
             } else if (USE_KEY('F') || USE_KEY('f')) {
-                set_player_score(p, ScorePerPhase[get_player_phase(p)]);
-                render_score(screen, p);
+                set_player_score(PLAYER_L, ScorePerPhase[get_player_phase(PLAYER_L)]);
+                render_score(screen, PLAYER_L);
                 update_screen(screen);
                 LOG_INFO("Player score set to phase score");
             }
@@ -527,9 +563,7 @@ int main(int argc, char* argv[]) {
     audio_close();
     destroy_interactions_system();
     destroy_asset_manager();
-    destroy_hotbar(h);
-    destroy_player(p);
-    destroy_map(m);
+    clear_local_elements();
 
     LOG_INFO("Game session ended normally");
     close_logger();

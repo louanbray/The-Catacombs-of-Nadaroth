@@ -1,11 +1,11 @@
 #include "save_manager.h"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <zlib.h>
-#include <stdint.h>
 
 #include "entity.h"
 #include "game_status.h"
@@ -249,7 +249,7 @@ static bool save_item_data(FILE* f, item* it) {
     fwrite(&color, sizeof(int), 1, f);
 
     // Save specs based on item type
-    if (type == ENEMY) {
+    if (type == ITEMTYPE_ENEMY) {
         enemy* e = (enemy*)get_item_spec(it);
         if (e) {
             // Save enemy state (hp is the most important for restoring state)
@@ -268,7 +268,7 @@ static bool save_item_data(FILE* f, item* it) {
                 fwrite(&zero, sizeof(int), 1, f);
             }
         }
-    } else if (type == LOOTABLE) {
+    } else if (type == ITEMTYPE_LOOTABLE) {
         lootable* loot = (lootable*)get_item_spec(it);
         if (loot) {
             fwrite(&loot->bronze, sizeof(int), 1, f);
@@ -314,7 +314,7 @@ static item* load_item_data(FILE* f, chunk* c, dynarray* items_array) {
     set_item_color(it, (Color)color);
 
     // Load specs based on item type
-    if (type == ENEMY) {
+    if (type == ITEMTYPE_ENEMY) {
         enemy* e = malloc(sizeof(enemy));
         fread(&e->hp, sizeof(int), 1, f);
         fread(&e->damage, sizeof(int), 1, f);
@@ -325,7 +325,7 @@ static item* load_item_data(FILE* f, chunk* c, dynarray* items_array) {
         fread(&e->attack_delay, sizeof(int), 1, f);
         fread(&e->attack_interval, sizeof(int), 1, f);
         specialize(it, used, hidden, e);
-    } else if (type == LOOTABLE) {
+    } else if (type == ITEMTYPE_LOOTABLE) {
         lootable* loot = malloc(sizeof(lootable));
         fread(&loot->bronze, sizeof(int), 1, f);
         fread(&loot->silver, sizeof(int), 1, f);
@@ -687,7 +687,7 @@ static bool load_map_data(FILE* f, map* m) {
 
                     // Check if this is a lootable that has been emptied
                     bool should_skip = false;
-                    if (get_item_type(brain) == LOOTABLE) {
+                    if (get_item_type(brain) == ITEMTYPE_LOOTABLE) {
                         lootable* loot = (lootable*)get_item_spec(brain);
                         if (loot && loot->bronze == 0 && loot->silver == 0 &&
                             loot->gold == 0 && loot->nadino == 0) {
@@ -699,7 +699,7 @@ static bool load_map_data(FILE* f, map* m) {
 
                     if (!should_skip) {
                         // For ENEMY, update the from_id to match the index where it will be added
-                        if (get_item_type(brain) == ENEMY) {
+                        if (get_item_type(brain) == ITEMTYPE_ENEMY) {
                             enemy* e = (enemy*)get_item_spec(brain);
                             if (e) {
                                 e->from_id = len_dyn(get_chunk_enemies(ck));
@@ -729,7 +729,7 @@ static bool load_map_data(FILE* f, map* m) {
 
                         // Add brain to enemies array ONLY if it's an ENEMY type
                         // LOOTABLE brains are NOT stored in enemies, only accessible via entity_link
-                        if (get_item_type(brain) == ENEMY) {
+                        if (get_item_type(brain) == ITEMTYPE_ENEMY) {
                             chunk_append_enemy(ck, brain);
                         }
                     } else {

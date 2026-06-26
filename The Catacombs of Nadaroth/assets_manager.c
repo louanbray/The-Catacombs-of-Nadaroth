@@ -317,52 +317,52 @@ void init_assets_system() {
     }
 
     // Load entity files
-    add_entity_file("assets/entities/data/enemy_bronze_1.dodjo", ENEMY_BRONZE_1);
-    add_entity_file("assets/entities/data/enemy_bronze_2.dodjo", ENEMY_BRONZE_2);
-    add_entity_file("assets/entities/data/enemy_silver_1.dodjo", ENEMY_SILVER_1);
-    add_entity_file("assets/entities/data/enemy_silver_2.dodjo", ENEMY_SILVER_2);
-    add_entity_file("assets/entities/data/enemy_gold_1.dodjo", ENEMY_GOLD_1);
-    add_entity_file("assets/entities/data/enemy_gold_2.dodjo", ENEMY_GOLD_2);
-    add_entity_file("assets/entities/data/enemy_nadino_1.dodjo", ENEMY_NADINO_1);
-    add_entity_file("assets/entities/data/enemy_nadino_2.dodjo", ENEMY_NADINO_2);
-    add_entity_file("assets/entities/data/bronze_chest.dodjo", BRONZE_CHEST);
-    add_entity_file("assets/entities/data/silver_chest.dodjo", SILVER_CHEST);
-    add_entity_file("assets/entities/data/gold_chest.dodjo", GOLD_CHEST);
-    add_entity_file("assets/entities/data/nadino_chest.dodjo", NADINO_CHEST);
-    add_entity_file("assets/entities/data/star_gate.dodjo", STAR_GATE);
+    add_entity_file("assets/entities/data/enemy_bronze_1.dodjo", ENTITY_ENEMY_BRONZE_1);
+    add_entity_file("assets/entities/data/enemy_bronze_2.dodjo", ENTITY_ENEMY_BRONZE_2);
+    add_entity_file("assets/entities/data/enemy_silver_1.dodjo", ENTITY_ENEMY_SILVER_1);
+    add_entity_file("assets/entities/data/enemy_silver_2.dodjo", ENTITY_ENEMY_SILVER_2);
+    add_entity_file("assets/entities/data/enemy_gold_1.dodjo", ENTITY_ENEMY_GOLD_1);
+    add_entity_file("assets/entities/data/enemy_gold_2.dodjo", ENTITY_ENEMY_GOLD_2);
+    add_entity_file("assets/entities/data/enemy_nadino_1.dodjo", ENTITY_ENEMY_NADINO_1);
+    add_entity_file("assets/entities/data/enemy_nadino_2.dodjo", ENTITY_ENEMY_NADINO_2);
+    add_entity_file("assets/entities/data/bronze_chest.dodjo", ENTITY_BRONZE_CHEST);
+    add_entity_file("assets/entities/data/silver_chest.dodjo", ENTITY_SILVER_CHEST);
+    add_entity_file("assets/entities/data/gold_chest.dodjo", ENTITY_GOLD_CHEST);
+    add_entity_file("assets/entities/data/nadino_chest.dodjo", ENTITY_NADINO_CHEST);
+    add_entity_file("assets/entities/data/star_gate.dodjo", ENTITY_STAR_GATE);
     // Add more entity files here...
 
     // Load chunk files
-    add_chunk_file("assets/chunks/debug.dodjo", DEBUG);
-    add_chunk_file("assets/chunks/spawn.dodjo", SPAWN);
-    add_chunk_file("assets/chunks/default.dodjo", DEFAULT);
-    add_chunk_file("assets/chunks/default2.dodjo", DEFAULT2);
-    add_chunk_file("assets/chunks/treasure_room_1.dodjo", TREASURE_ROOM);
-    add_chunk_file("assets/chunks/boss_room.dodjo", BOSS_ROOM);
-    add_chunk_file("assets/chunks/waiting_room.dodjo", WAITING_ROOM);
-    add_chunk_file("assets/chunks/random_chunk_easy.dodjo", RANDOM_CHUNK_EASY);
-    add_chunk_file("assets/chunks/random_chunk_medium.dodjo", RANDOM_CHUNK_MEDIUM);
-    add_chunk_file("assets/chunks/random_chunk_hard.dodjo", RANDOM_CHUNK_HARD);
-    add_chunk_file("assets/chunks/random_chunk_nadinhard.dodjo", RANDOM_CHUNK_NADINHARD);
-    add_chunk_file("assets/chunks/escape_room_1.dodjo", ESCAPE_ROOM_1);
-    add_chunk_file("assets/chunks/escape_room_2.dodjo", ESCAPE_ROOM_2);
+    add_chunk_file("assets/chunks/debug.dodjo", CHUNK_DEBUG);
+    add_chunk_file("assets/chunks/spawn.dodjo", CHUNK_SPAWN);
+    add_chunk_file("assets/chunks/default.dodjo", CHUNK_DEFAULT);
+    add_chunk_file("assets/chunks/default2.dodjo", CHUNK_DEFAULT2);
+    add_chunk_file("assets/chunks/treasure_room_1.dodjo", CHUNK_TREASURE_ROOM);
+    add_chunk_file("assets/chunks/boss_room.dodjo", CHUNK_BOSS_ROOM);
+    add_chunk_file("assets/chunks/waiting_room.dodjo", CHUNK_WAITING_ROOM);
+    add_chunk_file("assets/chunks/random_chunk_easy.dodjo", CHUNK_RANDOM_EASY);
+    add_chunk_file("assets/chunks/random_chunk_medium.dodjo", CHUNK_RANDOM_MEDIUM);
+    add_chunk_file("assets/chunks/random_chunk_hard.dodjo", CHUNK_RANDOM_HARD);
+    add_chunk_file("assets/chunks/random_chunk_nadinhard.dodjo", CHUNK_RANDOM_NADINHARD);
+    add_chunk_file("assets/chunks/escape_room_1.dodjo", CHUNK_ESCAPE_ROOM_1);
+    add_chunk_file("assets/chunks/escape_room_2.dodjo", CHUNK_ESCAPE_ROOM_2);
 
     // Add more chunk files here...
 
     // Load usable item files
-    add_usable_item_file("assets/items/data/basic_bow.dodjo", BASIC_BOW);
-    add_usable_item_file("assets/items/data/advanced_bow.dodjo", ADVANCED_BOW);
-    add_usable_item_file("assets/items/data/super_bow.dodjo", SUPER_BOW);
-    add_usable_item_file("assets/items/data/nadino_bow.dodjo", NADINO_BOW);
-    add_usable_item_file("assets/items/data/bronze_key.dodjo", BRONZE_KEY);
-    add_usable_item_file("assets/items/data/silver_key.dodjo", SILVER_KEY);
-    add_usable_item_file("assets/items/data/gold_key.dodjo", GOLD_KEY);
-    add_usable_item_file("assets/items/data/nadino_key.dodjo", NADINO_KEY);
-    add_usable_item_file("assets/items/data/onion_ring.dodjo", ONION_RING);
-    add_usable_item_file("assets/items/data/stockfish.dodjo", STOCKFISH);
-    add_usable_item_file("assets/items/data/school_dishes.dodjo", SCHOOL_DISHES);
-    add_usable_item_file("assets/items/data/golden_apple.dodjo", GOLDEN_APPLE);
-    add_usable_item_file("assets/items/data/bomb.dodjo", BOMB);
-    add_usable_item_file("assets/items/data/forgotten_dish.dodjo", FORGOTTEN_DISH);
+    add_usable_item_file("assets/items/data/basic_bow.dodjo", USABLE_ITEM_BASIC_BOW);
+    add_usable_item_file("assets/items/data/advanced_bow.dodjo", USABLE_ITEM_ADVANCED_BOW);
+    add_usable_item_file("assets/items/data/super_bow.dodjo", USABLE_ITEM_SUPER_BOW);
+    add_usable_item_file("assets/items/data/nadino_bow.dodjo", USABLE_ITEM_NADINO_BOW);
+    add_usable_item_file("assets/items/data/bronze_key.dodjo", USABLE_ITEM_BRONZE_KEY);
+    add_usable_item_file("assets/items/data/silver_key.dodjo", USABLE_ITEM_SILVER_KEY);
+    add_usable_item_file("assets/items/data/gold_key.dodjo", USABLE_ITEM_GOLD_KEY);
+    add_usable_item_file("assets/items/data/nadino_key.dodjo", USABLE_ITEM_NADINO_KEY);
+    add_usable_item_file("assets/items/data/onion_ring.dodjo", USABLE_ITEM_ONION_RING);
+    add_usable_item_file("assets/items/data/stockfish.dodjo", USABLE_ITEM_STOCKFISH);
+    add_usable_item_file("assets/items/data/school_dishes.dodjo", USABLE_ITEM_SCHOOL_DISHES);
+    add_usable_item_file("assets/items/data/golden_apple.dodjo", USABLE_ITEM_GOLDEN_APPLE);
+    add_usable_item_file("assets/items/data/bomb.dodjo", USABLE_ITEM_BOMB);
+    add_usable_item_file("assets/items/data/forgotten_dish.dodjo", USABLE_ITEM_FORGOTTEN_DISH);
     // Add more usable item files here...
 }

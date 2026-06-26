@@ -172,7 +172,7 @@ void projectile_callback(int x, int y, projectile_data* data) {
     }
 
     switch (get_item_type(it)) {
-        case ENEMY: {
+        case ITEMTYPE_ENEMY: {
             enemy* e = get_item_spec(it);
 
             pthread_mutex_lock(&entity_mutex);
@@ -226,7 +226,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
         char filepath[PATH_MAX];
         GamePhase phase = get_player_phase(data->p);
         snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(data->p), phase);
-        if (phase == FIRST_ACT_END) {
+        if (phase == GAMEPHASE_FIRST_ACT_END) {
             LOG_INFO("Game completed in %ld seconds and %ld microseconds", get_time_played().tv_sec, get_time_played().tv_usec);
             increment_statistic(STAT_GAME_COMPLETIONS, 1);
             set_achievement_progress(ACH_DAWN_BREAKER, 1);
@@ -259,7 +259,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
             lock_inputs();
         }
         play_cinematic(data->screen, filepath, CINEMATIC_FRAME_DELAY);
-        if (phase == FIRST_ACT_END) play_cinematic(data->screen, "assets/cinematics/wip.dodjo", CINEMATIC_FRAME_DELAY);  //! Placeholder for future content
+        if (phase == GAMEPHASE_FIRST_ACT_END) play_cinematic(data->screen, "assets/cinematics/wip.dodjo", CINEMATIC_FRAME_DELAY);  //! Placeholder for future content
         if (get_player_mental_health(data->p) == 0) {
             play_cinematic(data->screen, "assets/cinematics/the_end.dodjo", CINEMATIC_FRAME_DELAY);
             pause_game();
@@ -344,7 +344,7 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
         set_player_arrow_speed(p, 6);
         if (it != NULL) {
             UsableItem type = get_item_usable_type(it);
-            if (type == BASIC_BOW || type == ADVANCED_BOW || type == SUPER_BOW || type == NADINO_BOW) {
+            if (type == USABLE_ITEM_BASIC_BOW || type == USABLE_ITEM_ADVANCED_BOW || type == USABLE_ITEM_SUPER_BOW || type == USABLE_ITEM_NADINO_BOW) {
                 set_player_damage(p, get_usable_item_file(type)->specs.specs[1]);
                 set_player_infinity(p, get_usable_item_file(type)->specs.specs[2]);
                 set_player_arrow_speed(p, get_usable_item_file(type)->specs.specs[3]);

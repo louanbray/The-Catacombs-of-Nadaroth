@@ -41,13 +41,6 @@
 /// @brief Utils
 #define CHAR_TO_INT 49
 
-/// @brief Player Movement results
-#define CAN_MOVE 0
-#define MOVED_CHUNK 1
-#define CANT_MOVE 2
-#define PICKED_UP 3
-#define PICKED_UP_ENTITY 4
-
 /// @brief Player designs
 #define PLAYER_DESIGN_BALL 9210
 #define PLAYER_DESIGN_CAMO 11201
@@ -90,69 +83,75 @@ TODO LIST:
 
 /// @brief Gate position/type
 typedef enum Direction {  //! DO NOT MODIFY
-    STARGATE,
-    EAST,
-    NORTH,
-    WEST,
-    SOUTH
+    DIR_STARGATE,
+    DIR_EAST,
+    DIR_NORTH,
+    DIR_WEST,
+    DIR_SOUTH
 } Direction;
 
 /// @brief item type
 typedef enum ItemType {  //? MODIFY TO ADD ITEM TYPES
-    WALL,                // Isn't reactive to player contacts or interactions
-    GATE,                // The four directions gate
-    SGATE,               // Star gate (all the stargates in a chunk are linked)
-    PICKABLE,            // Self explanatory
-    ENEMY,               // A 'Thing' with HPs
-    LOOTABLE,            // Will fetch a loot table
+    ITEMTYPE_WALL,       // Isn't reactive to player contacts or interactions
+    ITEMTYPE_GATE,       // The four directions gate
+    ITEMTYPE_SGATE,      // Star gate (all the stargates in a chunk are linked)
+    ITEMTYPE_PICKABLE,   // Self explanatory
+    ITEMTYPE_ENEMY,      // A 'Thing' with HPs
+    ITEMTYPE_LOOTABLE,   // Will fetch a loot table
 } ItemType;
 
 typedef enum Rarity {
-    BRONZE,
-    SILVER,
-    GOLD,
-    NADINO,
+    RARITY_BRONZE,
+    RARITY_SILVER,
+    RARITY_GOLD,
+    RARITY_NADINO,
 } Rarity;
 
 /// @brief Items meant to be used
 typedef enum UsableItem {
-    NOT_USABLE_ITEM,
-    BASIC_BOW,
-    ADVANCED_BOW,
-    SUPER_BOW,
-    NADINO_BOW,
-    BOWS_END,  // Marker to separate bows from other usable items
-    BRONZE_KEY,
-    SILVER_KEY,
-    GOLD_KEY,
-    NADINO_KEY,
-    BOMB,            // Wanna explode a chunk ? Here's what you need (BEWARE: NO LOOT WILL BE GIVEN | A NEW CHUNK WILL BE GENERATED HERE NEXT TIME (or the same if unlucky hehe)) (SILVER)
-    FOOD_START,      // Marker to separate food from other usable items
-    ONION_RING,      // Restore one heart (BRONZE)
-    STOCKFISH,       // Restore full health (SILVER)
-    SCHOOL_DISHES,   // Restore one mental health (SILVER)
-    GOLDEN_APPLE,    // Add one heart (permanent (as long as you don't die you can regen)) (GOLD)
-    FORGOTTEN_DISH,  // Restore full mental health (GOLD)
+    USABLE_ITEM_NOT_USABLE,
+
+    // Bows
+    USABLE_ITEM_BASIC_BOW,
+    USABLE_ITEM_ADVANCED_BOW,
+    USABLE_ITEM_SUPER_BOW,
+    USABLE_ITEM_NADINO_BOW,
+    USABLE_ITEM_BOWS_END,  // Marker to separate bows from other usable items
+
+    // Other
+    USABLE_ITEM_BRONZE_KEY,
+    USABLE_ITEM_SILVER_KEY,
+    USABLE_ITEM_GOLD_KEY,
+    USABLE_ITEM_NADINO_KEY,
+    USABLE_ITEM_BOMB,  // Wanna explode a chunk ? Here's what you need (BEWARE: NO LOOT WILL BE GIVEN | A NEW CHUNK WILL BE GENERATED HERE NEXT TIME (or the same if unlucky hehe)) (SILVER)
     //? Add armors / potions (consumables = stats up) if enough time
+
+    // Foods
+    USABLE_ITEM_FOOD_START,      // Marker to separate food from other usable items
+    USABLE_ITEM_ONION_RING,      // Restore one heart (BRONZE)
+    USABLE_ITEM_STOCKFISH,       // Restore full health (SILVER)
+    USABLE_ITEM_SCHOOL_DISHES,   // Restore one mental health (SILVER)
+    USABLE_ITEM_GOLDEN_APPLE,    // Add one heart (permanent (as long as you don't die you can regen)) (GOLD)
+    USABLE_ITEM_FORGOTTEN_DISH,  // Restore full mental health (GOLD)
 
     USABLE_ITEM_COUNT
 } UsableItem;
 
 /// @brief chunk type (0,0) -> SPAWN
 typedef enum ChunkType {  //? MODIFY TO ADD LEVELS
-    DEBUG,
-    SPAWN,
-    DEFAULT,
-    DEFAULT2,
-    TREASURE_ROOM,           // Some chests but you need to hunt for keys (Chest value random | chest number and concept need to be worked on)  //! Keys are not implemented
-    BOSS_ROOM,               // Depending on the boss, you need to find the right weapon | DIFFICULTY + = BETTER KEY REWARD (GOLD to NADINO)    //! WIP (Ig Boss == NADINO ?)
-    WAITING_ROOM,            // Peaceful room                                                                                                   // I can manage this
-    RANDOM_CHUNK_EASY,       // Randomly generated chunk (w enemies and bronze chests (1 max) | EASY)                                           //! WIP (NOT SO RANDOM FOR NOW)
-    RANDOM_CHUNK_MEDIUM,     // Randomly generated chunk (w enemies and bronze chests (2 max) | MEDIUM)                                         //! WIP (NOT SO RANDOM FOR NOW)
-    RANDOM_CHUNK_HARD,       // Randomly generated chunk (w enemies and bronze chests (3 max), 1 silver | HARD)                                 //! WIP (NOT SO RANDOM FOR NOW)
-    RANDOM_CHUNK_NADINHARD,  // Randomly generated chunk (w enemies and silver chests (3 max) | VERY HARD)                                      //! WIP (NOT SO RANDOM FOR NOW)
-    ESCAPE_ROOM_1,           // Escape rooms w enigmas, has a timer, do your best                                                               //! WIP (Timer ? What is that.)
-    ESCAPE_ROOM_2,           // Same here, another variant                                                                                      //! WIP (Same here...)
+    CHUNK_DEBUG,
+    CHUNK_SPAWN,
+    CHUNK_DEFAULT,
+    CHUNK_DEFAULT2,
+    CHUNK_TREASURE_ROOM,     // Some chests but you need to hunt for keys (Chest value random | chest number and concept need to be worked on)  //! Keys are not implemented
+    CHUNK_BOSS_ROOM,         // Depending on the boss, you need to find the right weapon | DIFFICULTY + = BETTER KEY REWARD (GOLD to NADINO)    //! WIP (Ig Boss == NADINO ?)
+    CHUNK_WAITING_ROOM,      // Peaceful room                                                                                                   // I can manage this
+    CHUNK_RANDOM_EASY,       // Randomly generated chunk (w enemies and bronze chests (1 max) | EASY)                                           //! WIP (NOT SO RANDOM FOR NOW)
+    CHUNK_RANDOM_MEDIUM,     // Randomly generated chunk (w enemies and bronze chests (2 max) | MEDIUM)                                         //! WIP (NOT SO RANDOM FOR NOW)
+    CHUNK_RANDOM_HARD,       // Randomly generated chunk (w enemies and bronze chests (3 max), 1 silver | HARD)                                 //! WIP (NOT SO RANDOM FOR NOW)
+    CHUNK_RANDOM_NADINHARD,  // Randomly generated chunk (w enemies and silver chests (3 max) | VERY HARD)                                      //! WIP (NOT SO RANDOM FOR NOW)
+    CHUNK_ESCAPE_ROOM_1,     // Escape rooms w enigmas, has a timer, do your best                                                               //! WIP (Timer ? What is that.)
+    CHUNK_ESCAPE_ROOM_2,     // Same here, another variant                                                                                      //! WIP (Same here...)
     //? ADD AUTO GENERATED ESCAPE ROOMS (gimme the determination)
 
     CHUNK_TYPE_COUNT  // This will automatically be the count of enum entries
@@ -160,32 +159,32 @@ typedef enum ChunkType {  //? MODIFY TO ADD LEVELS
 
 /// @brief Every entity (>1 item linked)
 typedef enum EntityType {  //? MODIFY TO ADD ENTITY TYPES
-    NULL_ENTITY,
-    ENEMY_BRONZE_1,
-    ENEMY_BRONZE_2,
-    ENEMY_SILVER_1,
-    ENEMY_SILVER_2,
-    ENEMY_GOLD_1,
-    ENEMY_GOLD_2,
-    ENEMY_NADINO_1,
-    ENEMY_NADINO_2,
-    BRONZE_CHEST,
-    SILVER_CHEST,
-    GOLD_CHEST,
-    NADINO_CHEST,
-    STAR_GATE,
+    ENTITY_NULL,
+    ENTITY_ENEMY_BRONZE_1,
+    ENTITY_ENEMY_BRONZE_2,
+    ENTITY_ENEMY_SILVER_1,
+    ENTITY_ENEMY_SILVER_2,
+    ENTITY_ENEMY_GOLD_1,
+    ENTITY_ENEMY_GOLD_2,
+    ENTITY_ENEMY_NADINO_1,
+    ENTITY_ENEMY_NADINO_2,
+    ENTITY_BRONZE_CHEST,
+    ENTITY_SILVER_CHEST,
+    ENTITY_GOLD_CHEST,
+    ENTITY_NADINO_CHEST,
+    ENTITY_STAR_GATE,
 
     // Other entity types...
     ENTITY_TYPE_COUNT  // This will automatically be the count of enum entries
 } EntityType;
 
 typedef enum GamePhase {
-    INTRODUCTION,
-    FIRST_ACT_FIRST_PHASE,
-    FIRST_ACT_SECOND_PHASE,
-    FIRST_ACT_THIRD_PHASE,
-    FIRST_ACT_FOURTH_PHASE,
-    FIRST_ACT_END
+    GAMEPHASE_INTRODUCTION,
+    GAMEPHASE_FIRST_ACT_FIRST_PHASE,
+    GAMEPHASE_FIRST_ACT_SECOND_PHASE,
+    GAMEPHASE_FIRST_ACT_THIRD_PHASE,
+    GAMEPHASE_FIRST_ACT_FOURTH_PHASE,
+    GAMEPHASE_FIRST_ACT_END
 } GamePhase;
 
 // Color enumeration (using a small integer type)
@@ -201,6 +200,22 @@ typedef enum Color {
     COLOR_GRAY,
     // Extend as needed
 } Color;
+
+// Game State after exiting the pause menu
+typedef enum ResumeState {
+    RESUME_DEFAULT,
+    RESUME_NEW_GAME,
+    RESUME_RESET
+} ResumeState;
+
+/// @brief Player Movement results
+typedef enum PlayerMovementResult {
+    MOV_CAN_MOVE,
+    MOV_MOVED_CHUNK,
+    MOV_CANT_MOVE,
+    MOV_PICKED_UP,
+    MOV_PICKED_UP_ENTITY
+} PlayerMovementResult;
 
 static const int ScorePerPhase[] = {0, 25, 75, 210, 630, 0, 0};  //! TEMPORARY (1870 removed)
 

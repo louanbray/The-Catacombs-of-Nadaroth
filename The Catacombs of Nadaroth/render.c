@@ -65,7 +65,8 @@ typedef struct Render_Buffer {
 #define ITEM_DESCRIPTION_Y_OFFSET 6
 
 // Achievements
-#define MAX_ACH_PER_PAGE 16
+#define MAX_ACH_PER_PAGE 10
+#define ACH_ENTRY_SPACING 3
 #define ACH_X_OFFSET 6
 #define ACH_ARROW_PREV_X 2
 #define ACH_ARROW_NEXT_X (RENDER_WIDTH - 5)
@@ -323,16 +324,16 @@ void render_item_title(Render_Buffer* screen, void* it) {
 
     int color = COLOR_DEFAULT;
     switch (class) {
-        case BRONZE:
+        case RARITY_BRONZE:
             color = COLOR_RED;
             break;
-        case SILVER:
+        case RARITY_SILVER:
             color = COLOR_CYAN_BOLD;
             break;
-        case GOLD:
+        case RARITY_GOLD:
             color = COLOR_YELLOW;
             break;
-        case NADINO:
+        case RARITY_NADINO:
             color = COLOR_MAGENTA_BOLD;
             break;
         default:
@@ -560,7 +561,7 @@ void update_screen_(Render_Buffer* r) {
 
 // Marks rows that have changed.
 void mark_changed_rows(Render_Buffer* r) {
-    // #pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         int changed = 0;
         for (int j = 0; j < RENDER_WIDTH; j++) {
@@ -662,7 +663,7 @@ void display_item_description(Render_Buffer* r, void* it) {
     if (!item_) return;
 
     UsableItem type = get_item_usable_type(item_);
-    if (type == NOT_USABLE_ITEM) return;
+    if (type == USABLE_ITEM_NOT_USABLE) return;
 
     UsableItemAssetFile* item_file = get_usable_item_file(type);
     const char* desc = item_file->description;
@@ -894,9 +895,9 @@ void display_achievements(Render_Buffer* r, int page) {
         } else
             swprintf(buffer, RENDER_WIDTH - 1, L"%hs: %hs (%d/%d)", title, "LOCKED", get_achievement_progress((enum AchievementID)i), get_achievement_max_progress((enum AchievementID)i));
 
-        write_wstr(r->bd, RENDER_HEIGHT - 2 * (j + 2), ACH_X_OFFSET, buffer, wcslen(buffer), color);
+        write_wstr(r->bd, RENDER_HEIGHT - ACH_ENTRY_SPACING * (j + 2), ACH_X_OFFSET, buffer, wcslen(buffer), color);
         swprintf(buffer, RENDER_WIDTH - 1, L"└─ %hs", get_achievement_description((enum AchievementID)i));
-        write_wstr(r->bd, RENDER_HEIGHT - 2 * (j + 2) - 1, ACH_X_OFFSET, buffer, wcslen(buffer), COLOR_DEFAULT);
+        write_wstr(r->bd, RENDER_HEIGHT - ACH_ENTRY_SPACING * (j + 2) - 1, ACH_X_OFFSET, buffer, wcslen(buffer), COLOR_DEFAULT);
     }
     char buffer[50];
     render_string(r, SPACE_TO_EXIT_DISPLAY_X_POS, SPACE_TO_EXIT_DISPLAY_Y_POS, " PRESS [SPACE] TO EXIT", 23);
@@ -1031,11 +1032,11 @@ void home_menu(Render_Buffer* r, player* p) {
     }
 }
 
-void pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
+ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
     FILE* file = fopen("assets/interfaces/structures/pause_menu.dodjo", "r");
     if (!file) {
         perror("Error opening pause menu file");
-        return;
+        return RESUME_DEFAULT;
     }
 
     pause_game();  // Dark shenanigans
@@ -1048,8 +1049,9 @@ void pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
 
     bool no_refresh = false;
     bool loaded_a_game = false;
+    ResumeState state = RESUME_DEFAULT;
 
-    while ((!USE_KEY('P') && !USE_KEY('p') && !USE_KEY(' ') && !USE_KEY('\n'))) {
+    while ((!USE_KEY(' ') && !USE_KEY('\n'))) {
         if (USE_KEY('N') || USE_KEY('n')) {
             if (save_game("assets/data/save.dat", p, m, h)) {
                 LOG_INFO("Game saved successfully!");
@@ -1075,6 +1077,12 @@ void pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
         } else if (USE_KEY('S') || USE_KEY('s')) {
             display_settings(r, 0);
             no_refresh = true;
+        } else if (USE_KEY('R') || USE_KEY('r')) {
+            state = RESUME_RESET;
+            break;
+        } else if (USE_KEY('G') || USE_KEY('g')) {
+            state = RESUME_NEW_GAME;
+            break;
         }
         struct timespec ts = {.tv_sec = 0, .tv_nsec = 50000000};
         nanosleep(&ts, NULL);
@@ -1090,6 +1098,7 @@ void pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
 
     unlock_inputs();
     resume_game();
+    return state;
 }
 
 #pragma endregion

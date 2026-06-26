@@ -12,25 +12,25 @@
 /// @brief Returns the part of the map the player is in as a direction (USED ONLY FOR GATES)
 /// @param x player x
 /// @param y player y
-/// @return int direction
-int get_direction(int x, int y) {
+/// @return Direction direction
+Direction get_direction(int x, int y) {
     if (x > 10) {
-        return EAST;
+        return DIR_EAST;
     } else if (x < -10) {
-        return WEST;
+        return DIR_WEST;
     } else if (y > 10) {
-        return NORTH;
+        return DIR_NORTH;
     } else if (y < -10) {
-        return SOUTH;
+        return DIR_SOUTH;
     }
     return 0;
 }
 
 int pickup_lootable_from_chunk(player* p, item* i) {
-    if (is_hotbar_full(get_player_hotbar(p))) return CANT_MOVE;
+    if (is_hotbar_full(get_player_hotbar(p))) return MOV_CANT_MOVE;
     if (!is_an_entity(i)) {
         remove_item(get_player_chunk(p), i);
-        return CAN_MOVE;
+        return MOV_CAN_MOVE;
     }
     entity* e = get_entity_link(i);
     i = get_entity_brain(e);
@@ -43,11 +43,11 @@ int pickup_lootable_from_chunk(player* p, item* i) {
     set_achievement_progress(ACH_LOOT_COLLECTOR, get_statistic(STAT_CHEST_OPENED));
     play_sound_effect_by_id(AUDIO_PICKUP_ITEM);
 
-    return PICKED_UP_ENTITY;
+    return MOV_PICKED_UP_ENTITY;
 }
 
 int pickup_from_chunk(player* p, item* i) {
-    if (is_hotbar_full(get_player_hotbar(p))) return CANT_MOVE;
+    if (is_hotbar_full(get_player_hotbar(p))) return MOV_CANT_MOVE;
 
     bool isAnEntity = is_an_entity(i);
 
@@ -63,38 +63,38 @@ int pickup_from_chunk(player* p, item* i) {
 
     pickup(get_player_hotbar(p), i);
 
-    return PICKED_UP + isAnEntity;
+    return MOV_PICKED_UP + isAnEntity;
 }
 
-int handle(player* p, int x, int y) {
+PlayerMovementResult handle(player* p, int x, int y) {
     chunk* ck = get_player_chunk(p);
     hm* h = get_chunk_furniture_coords(ck);
 
     item* i = get_hm(h, x, y);
 
     if (i != NULL) {
-        if (is_item_hidden(i)) return CAN_MOVE;
+        if (is_item_hidden(i)) return MOV_CAN_MOVE;
 
         switch (get_item_type(i)) {  //? Modify to an item-player interaction
-            case GATE:
+            case ITEMTYPE_GATE:
                 move_player_chunk(p, get_direction(x, y));
-                return MOVED_CHUNK;
+                return MOV_MOVED_CHUNK;
                 break;
-            case SGATE:
-                move_player_chunk(p, STARGATE);
-                return MOVED_CHUNK;
+            case ITEMTYPE_SGATE:
+                move_player_chunk(p, DIR_STARGATE);
+                return MOV_MOVED_CHUNK;
                 break;
-            case LOOTABLE:
+            case ITEMTYPE_LOOTABLE:
                 return pickup_lootable_from_chunk(p, i);
                 break;
-            case PICKABLE:
+            case ITEMTYPE_PICKABLE:
                 return pickup_from_chunk(p, i);
                 break;
             default:
-                return CANT_MOVE;
+                return MOV_CANT_MOVE;
                 break;
         }
     }
 
-    return CAN_MOVE;
+    return MOV_CAN_MOVE;
 }

@@ -66,7 +66,7 @@ player* create_player(map* m) {
     p->design = PLAYER_DESIGN_BALL;
     p->name = NULL;
     p->map = m;
-    p->phase = INTRODUCTION;
+    p->phase = GAMEPHASE_INTRODUCTION;
     p->color = COLOR_GREEN;
     p->additional_damage = 0.0f;
     p->additional_arrow_speed = 0;
@@ -79,7 +79,7 @@ player* create_player(map* m) {
 }
 
 void player_death(player* p) {
-    if (p->phase == FIRST_ACT_END) return;
+    if (p->phase == GAMEPHASE_FIRST_ACT_END) return;
     reset_total_enemies();
     chunk* spawn_chunk = get_spawn(get_player_map(p));
     p->current_chunk = spawn_chunk;
@@ -88,7 +88,7 @@ void player_death(player* p) {
     p->health = p->start_health;
     p->px = p->x;
     p->py = p->y;
-    if (p->score >= ScorePerPhase[p->phase] || p->phase == INTRODUCTION) {
+    if (p->score >= ScorePerPhase[p->phase] || p->phase == GAMEPHASE_INTRODUCTION) {
         p->phase++;
     } else {
         modify_player_mental_health(p, -1);
@@ -272,7 +272,7 @@ void link_hotbar(player* p, hotbar* h) {
     p->hotbar = h;
 }
 
-int move_player(player* p, Direction dir) {
+PlayerMovementResult move_player(player* p, Direction dir) {
     const int dx[] = {0, 2, 0, -2, 0};
     const int dy[] = {0, 0, 1, 0, -1};
 
@@ -283,11 +283,11 @@ int move_player(player* p, Direction dir) {
     int new_y = p->y + dy[dir];
 
     if (!is_in_box(new_x, new_y))
-        return CANT_MOVE;
+        return MOV_CANT_MOVE;
 
-    int n = handle(p, new_x, new_y);
+    PlayerMovementResult n = handle(p, new_x, new_y);
 
-    if (n == CAN_MOVE || n == PICKED_UP || n == PICKED_UP_ENTITY) {
+    if (n == MOV_CAN_MOVE || n == MOV_PICKED_UP || n == MOV_PICKED_UP_ENTITY) {
         p->x = new_x;
         p->y = new_y;
         increment_statistic(STAT_DISTANCE_TRAVELED, 1);
