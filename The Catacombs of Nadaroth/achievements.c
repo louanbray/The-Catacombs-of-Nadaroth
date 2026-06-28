@@ -99,6 +99,15 @@ int get_completed_achiemevents() {
     return completed_achievements;
 }
 
+// Reset run based achievements (if uncompleted)
+void reset_run_based_achievements() {
+    set_achievement_progress(ACH_UNSTOPPABLE, 0);
+    set_achievement_progress(ACH_MASTER_EXPLORER, 0);
+    set_achievement_progress(ACH_SURVIVOR, 0);
+    set_achievement_progress(ACH_CRAFTSMAN, 0);
+    set_achievement_progress(ACH_GOURMET, 0);
+}
+
 void load_achievements() {
     achievements = calloc(sizeof(achievement*), ACHIEVEMENT_COUNT);
     FILE* player_file = fopen(PLAYER_FILE, "r");
@@ -138,12 +147,7 @@ void load_achievements() {
     fclose(data_file);
     if (player_file) fclose(player_file);
 
-    // Reset run based achievements (if uncompleted)
-    set_achievement_progress(ACH_UNSTOPPABLE, 0);
-    set_achievement_progress(ACH_MASTER_EXPLORER, 0);
-    set_achievement_progress(ACH_SURVIVOR, 0);
-    set_achievement_progress(ACH_CRAFTSMAN, 0);
-    set_achievement_progress(ACH_GOURMET, 0);
+    reset_run_based_achievements();
 }
 void save_achievements() {
     FILE* file = fopen(PLAYER_FILE, "w");

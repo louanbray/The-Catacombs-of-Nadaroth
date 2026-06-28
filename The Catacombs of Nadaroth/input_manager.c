@@ -250,7 +250,7 @@ void unlock_inputs() {
     unlock = true;
 }
 
-void process_input(player* p, Render_Buffer* screen,
+void process_input(player** p, Render_Buffer* screen,
                    void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y),
                    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p),
                    void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction),
@@ -311,17 +311,18 @@ void process_input(player* p, Render_Buffer* screen,
                     parse_sgr_mouse_event(input_buffer + processed, &event);
 
                     if (unlock) {
+                        player* current_player = *p;
                         if (event.left_click) {
-                            mouse_left_event_callback(screen, p, event.target_x, event.target_y);
+                            mouse_left_event_callback(screen, current_player, event.target_x, event.target_y);
                         }
                         if (event.right_click) {
-                            mouse_right_event_callback(screen, p);
+                            mouse_right_event_callback(screen, current_player);
                         }
                         if (event.scroll_up) {
-                            mouse_scroll_callback(screen, p, event.target_x, event.target_y, 1);
+                            mouse_scroll_callback(screen, current_player, event.target_x, event.target_y, 1);
                         }
                         if (event.scroll_down) {
-                            mouse_scroll_callback(screen, p, event.target_x, event.target_y, -1);
+                            mouse_scroll_callback(screen, current_player, event.target_x, event.target_y, -1);
                         }
                     }
 
@@ -339,8 +340,10 @@ void process_input(player* p, Render_Buffer* screen,
                        input_buffer[processed] == '\n' || input_buffer[processed] == '\r') {
                 unsigned char key = (unsigned char)input_buffer[processed];
 
-                if (unlock)
-                    printable_char_callback(screen, p, key);
+                if (unlock) {
+                    player* current_player = *p;
+                    printable_char_callback(screen, current_player, key);
+                }
 
                 key_states[key] = true;
 

@@ -330,13 +330,22 @@ static void clear_local_elements() {
 
 void handle_resume(ResumeState state, Render_Buffer* screen) {
     if (state == RESUME_DEFAULT) return;
-    if (state == RESUME_NEW_GAME) SEED = time(NULL);
+    if (state == RESUME_NEW_GAME) {
+        SEED = time(NULL);
+        increment_statistic(STAT_GAME_STARTED, 1);
+    }
+
+    Color player_color = get_player_color(PLAYER_L);
+    PlayerClass player_class = get_player_class(PLAYER_L);
+
     srand(SEED);
     lock_inputs();
     pause_game();
 
-    load_statistics();
+    reset_run_based_achievements();
 
+    kill_all_projectiles(screen);
+    clear_screen(get_board(screen));
     stop_projectile_system();
 
     clear_local_elements();
@@ -344,6 +353,12 @@ void handle_resume(ResumeState state, Render_Buffer* screen) {
 
     init_projectile_system(screen, PLAYER_L, SEED);
 
+    if ((state == RESUME_RESET && get_setting_value(SETTING_SKIP_PLAYER_CUSTOM_ON_RESET)) || (state == RESUME_NEW_GAME && get_setting_value(SETTING_SKIP_PLAYER_CUSTOM_ON_NEW_GAME))) {
+        set_player_color(PLAYER_L, player_color);
+        set_player_class(PLAYER_L, player_class);
+    }
+
+    home_menu(screen, PLAYER_L, state);
     set_time_played((struct timeval){0, 0});
 
     render_from_player(screen, PLAYER_L);
@@ -384,7 +399,7 @@ int main(int argc, char* argv[]) {
 
     // ------------------- Start input processing thread -------------------
     pthread_t input_thread;
-    InputThreadArgs input_args = {PLAYER_L, screen, fire_projectile, interact, scroll_callback, compute_entry};
+    InputThreadArgs input_args = {&PLAYER_L, screen, fire_projectile, interact, scroll_callback, compute_entry};
 
     if (pthread_create(&input_thread, NULL, process_input_thread, &input_args) != 0)
         return EXIT_FAILURE;
@@ -393,7 +408,7 @@ int main(int argc, char* argv[]) {
     update_screen(screen);
 
     // ------------------- Show home menu and help -------------------
-    home_menu(screen, PLAYER_L);
+    home_menu(screen, PLAYER_L, RESUME_DEFAULT);
 
     if (!get_setting_value(SETTING_SKIP_INTRO)) {
         display_interface(screen, "assets/interfaces/structures/help.dodjo");
@@ -460,7 +475,7 @@ int main(int argc, char* argv[]) {
 
         if (USE_KEY('E') || USE_KEY('e')) {
             display_item_description(screen, get_selected_item(HOTBAR_L));
-        } else if (!is_debug_mode() && USE_KEY(' ')) {
+        } else if (USE_KEY(' ')) {
             handle_resume(pause_menu(screen, PLAYER_L, MAP_L, HOTBAR_L), screen);
         } else if (USE_KEY('H') || USE_KEY('h')) {
             display_interface(screen, "assets/interfaces/structures/help.dodjo");
@@ -468,7 +483,8 @@ int main(int argc, char* argv[]) {
             display_achievements(screen, 0);
         } else if (USE_KEY('T') || USE_KEY('t')) {
             display_statistics(screen);
-        } else if (USE_KEY('N') || USE_KEY('n')) {
+        }
+        /* else if (USE_KEY('N') || USE_KEY('n')) {
             pause_game();
             lock_inputs();
             if (save_game("assets/data/save.dat", PLAYER_L, MAP_L, HOTBAR_L)) {
@@ -494,7 +510,7 @@ int main(int argc, char* argv[]) {
             }
             resume_game();
             unlock_inputs();
-        }
+        }*/
 
         if (is_debug_mode()) {
             if (USE_KEY('I') || USE_KEY('i')) {
@@ -504,8 +520,6 @@ int main(int argc, char* argv[]) {
                     disable_sound_effect(AUDIO_PLAYER_HURT);
                 else
                     enable_sound_effect(AUDIO_PLAYER_HURT);
-            } else if (USE_KEY(' ')) {
-                handle_resume(pause_menu(screen, PLAYER_L, MAP_L, HOTBAR_L), screen);
             } else if (USE_KEY('R') || USE_KEY('r')) {
                 kill_all_projectiles(screen);
             } else if (USE_KEY('U') || USE_KEY('u')) {

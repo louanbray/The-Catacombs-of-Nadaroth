@@ -45,6 +45,10 @@ void default_screen(board screen);
 /// @param b The board to clear.
 void blank_screen(board b);
 
+/// @brief Clears the board (fills with blank/default cells), draws borders
+/// @param b The board to clear.
+void clear_screen(board b);
+
 /// @brief Returns the current board from the render buffer.
 /// @param screen Pointer to the Render_Buffer.
 /// @return The current board.
@@ -219,8 +223,9 @@ void display_settings(Render_Buffer* r, int page);
  *
  * @param r Pointer to the render buffer
  * @param p Pointer to the player
+ * @param resume_state Is the menu dispayed due to a reset (if not use RESET_DEFAULT)
  */
-void home_menu(Render_Buffer* r, player* p);
+void home_menu(Render_Buffer* r, player* p, ResumeState resume_state);
 
 /**
  * @brief Displays the pause menu GUI

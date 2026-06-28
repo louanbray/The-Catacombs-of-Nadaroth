@@ -217,6 +217,14 @@ typedef enum PlayerMovementResult {
     MOV_PICKED_UP_ENTITY
 } PlayerMovementResult;
 
+///@brief Player Class
+typedef enum PlayerClass {
+    PLAYER_CLASS_BALL,
+    PLAYER_CLASS_CAMO,
+    PLAYER_CLASS_BRAWLER,
+    PLAYER_CLASS_SHIELD,
+} PlayerClass;
+
 static const int ScorePerPhase[] = {0, 25, 75, 210, 630, 0, 0};  //! TEMPORARY (1870 removed)
 
 #endif

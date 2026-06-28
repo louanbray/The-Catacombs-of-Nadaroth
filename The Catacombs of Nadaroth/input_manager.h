@@ -20,7 +20,7 @@ typedef struct Render_Buffer Render_Buffer;
 typedef struct player player;
 
 typedef struct InputThreadArgs {
-    player* p;
+    player** p;
     Render_Buffer* screen;
     void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y);
     void (*mouse_right_event_callback)(Render_Buffer* screen, player* p);
@@ -53,7 +53,7 @@ void init_terminal();
  * @param printable_char_callback Callback function to handle printable character events. It takes the screen pointer, user-defined data pointer,
  *                                and the printable character.
  */
-void process_input(player* p, Render_Buffer* screen,
+void process_input(player** p, Render_Buffer* screen,
                    void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y),
                    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p),
                    void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction),

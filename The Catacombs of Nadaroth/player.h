@@ -307,7 +307,7 @@ void set_player_color(player* p, Color color);
 
 void set_player_design(player* p, int design);
 
-void set_player_class(player* p, int class);
+void set_player_class(player* p, PlayerClass class);
 
 void set_player_infinity(player* p, bool infinite);
 
@@ -319,7 +319,7 @@ bool is_player_aggroed(player* p, int x, int y);
 
 bool can_player_die();
 
-int get_player_class(player* p);
+PlayerClass get_player_class(player* p);
 
 void survivor_countdown(player* p, int seconds);
 

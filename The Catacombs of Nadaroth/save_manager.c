@@ -799,6 +799,7 @@ bool save_game(const char* filename, player* p, map* m, hotbar* h) {
     uint32_t version = SAVE_VERSION;
     struct timeval game_started = get_game_started();
     struct timeval time_played = get_time_played();
+    Difficulty difficulty = get_difficulty();
 
     fwrite(&magic, sizeof(uint32_t), 1, f);
     fwrite(&version, sizeof(uint32_t), 1, f);
@@ -806,6 +807,7 @@ bool save_game(const char* filename, player* p, map* m, hotbar* h) {
     fwrite(&game_started.tv_usec, sizeof(suseconds_t), 1, f);
     fwrite(&time_played.tv_sec, sizeof(time_t), 1, f);
     fwrite(&time_played.tv_usec, sizeof(suseconds_t), 1, f);
+    fwrite(&difficulty, sizeof(Difficulty), 1, f);
 
     // Save player data
     if (!save_player_data(f, p)) {
@@ -951,6 +953,7 @@ bool load_game(const char* filename, player* p, map* m, hotbar* h) {
     struct timeval time_played;
     time_t tv_sec;
     suseconds_t tv_usec;
+    Difficulty difficulty;
 
     fread(&tv_sec, sizeof(time_t), 1, f);
     fread(&tv_usec, sizeof(suseconds_t), 1, f);
@@ -964,6 +967,9 @@ bool load_game(const char* filename, player* p, map* m, hotbar* h) {
     time_played.tv_sec = tv_sec;
     time_played.tv_usec = tv_usec;
     set_time_played(time_played);
+
+    fread(&difficulty, sizeof(Difficulty), 1, f);
+    set_difficulty(difficulty);
 
     // Load player data
     if (!load_player_data(f, p)) {

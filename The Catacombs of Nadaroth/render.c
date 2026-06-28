@@ -5,6 +5,7 @@
 
 #include "achievements.h"
 #include "assets_manager.h"
+#include "audio_manager.h"
 #include "dynarray.h"
 #include "game_status.h"
 #include "input_manager.h"
@@ -1010,25 +1011,29 @@ void display_settings(Render_Buffer* r, int page) {
         display_settings(r, page - 1);
 }
 
-void home_menu(Render_Buffer* r, player* p) {
-    display_interface(r, "assets/interfaces/structures/start_menu.dodjo");
+void home_menu(Render_Buffer* r, player* p, ResumeState resume_state) {
+    if (resume_state == RESUME_DEFAULT || (resume_state == RESUME_RESET && !get_setting_value(SETTING_SKIP_START_MENU_ON_RESET)) || (resume_state == RESUME_NEW_GAME && !get_setting_value(SETTING_SKIP_START_MENU_ON_NEW_GAME))) display_interface(r, "assets/interfaces/structures/start_menu.dodjo");
     int res = 0;
-    int* result = display_interface_with_interactions(r, "assets/interfaces/structures/skin.dodjo", "skin", &res);
-    if (result != NULL && res >= 2) {
-        int class = result[0];
-        int color = result[1];
-        set_player_class(p, class);
-        color = color == COLOR_DEFAULT ? COLOR_YELLOW : color == COLOR_YELLOW ? COLOR_DEFAULT
-                                                                              : color;
-        LOG_INFO("Player changed design to %d and color to %d", get_player_design(p), color);
-        set_player_color(p, color);
-        free(result);
+    if (resume_state == RESUME_DEFAULT || (resume_state == RESUME_RESET && !get_setting_value(SETTING_SKIP_PLAYER_CUSTOM_ON_RESET)) || (resume_state == RESUME_NEW_GAME && !get_setting_value(SETTING_SKIP_PLAYER_CUSTOM_ON_NEW_GAME))) {
+        int* result = display_interface_with_interactions(r, "assets/interfaces/structures/skin.dodjo", "skin", &res);
+        if (result != NULL && res >= 2) {
+            int class = result[0];
+            int color = result[1];
+            set_player_class(p, class);
+            color = color == COLOR_DEFAULT ? COLOR_YELLOW : color == COLOR_YELLOW ? COLOR_DEFAULT
+                                                                                  : color;
+            LOG_INFO("Player changed design to %d and color to %d", get_player_design(p), color);
+            set_player_color(p, color);
+            free(result);
+        }
     }
     res = 0;
-    result = display_interface_with_interactions(r, "assets/interfaces/structures/difficulty.dodjo", "difficulty", &res);
-    if (result != NULL && res >= 1) {
-        set_difficulty(result[0]);
-        free(result);
+    if (resume_state == RESUME_DEFAULT || (resume_state == RESUME_RESET && !get_setting_value(SETTING_SKIP_DIFFICULTY_SELECTION_ON_RESET)) || (resume_state == RESUME_NEW_GAME && !get_setting_value(SETTING_SKIP_DIFFICULTY_SELECTION_ON_NEW_GAME))) {
+        int* result = display_interface_with_interactions(r, "assets/interfaces/structures/difficulty.dodjo", "difficulty", &res);
+        if (result != NULL && res >= 1) {
+            set_difficulty(result[0]);
+            free(result);
+        }
     }
 }
 
@@ -1053,18 +1058,30 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
 
     while ((!USE_KEY(' ') && !USE_KEY('\n'))) {
         if (USE_KEY('N') || USE_KEY('n')) {
+            write_str(r->bd, INFO_ROW_MID, 2, " ", RENDER_WIDTH - 4, COLOR_DEFAULT);
             if (save_game("assets/data/save.dat", p, m, h)) {
                 LOG_INFO("Game saved successfully!");
+                write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 24) / 2 + 2, "Game saved successfully!", 25, COLOR_GREEN);
+                play_sound_effect_by_id(AUDIO_SUCCESS);
             } else {
                 LOG_ERROR("Failed to save game");
+                write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 19) / 2 + 1, "Failed to save game", 20, COLOR_RED);
+                play_sound_effect_by_id(AUDIO_FAILURE);
             }
+            update_screen(r);
         } else if (USE_KEY('B') || USE_KEY('b')) {
+            write_str(r->bd, INFO_ROW_MID, 2, " ", RENDER_WIDTH - 4, COLOR_DEFAULT);
             if (load_game("assets/data/save.dat", p, m, h)) {
                 loaded_a_game = true;
                 LOG_INFO("Game loaded successfully!");
+                write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 25) / 2 + 1, "Game loaded successfully!", 26, COLOR_GREEN);
+                play_sound_effect_by_id(AUDIO_SUCCESS);
             } else {
                 LOG_ERROR("Failed to load game");
+                write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 19) / 2 + 1, "Failed to load game", 20, COLOR_RED);
+                play_sound_effect_by_id(AUDIO_FAILURE);
             }
+            update_screen(r);
         } else if (USE_KEY('H') || USE_KEY('h')) {
             display_interface(r, "assets/interfaces/structures/help.dodjo");
             no_refresh = true;

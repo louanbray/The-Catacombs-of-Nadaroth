@@ -33,6 +33,7 @@ const char* get_achievement_description(enum AchievementID id);
 void set_achievement_progress(enum AchievementID id, int progress);
 void add_achievement_progress(enum AchievementID id, int progress);
 bool is_achievement_unlocked(enum AchievementID id);
+void reset_run_based_achievements();
 void load_achievements();
 void save_achievements();
 

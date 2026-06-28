@@ -344,7 +344,7 @@ void set_player_health_raw(player* p, int health) {
     p->health = health;
 }
 
-void set_player_class(player* p, int class) {
+void set_player_class(player* p, PlayerClass class) {
     p->additional_damage = 0.0f;
     p->additional_arrow_speed = 0;
     p->accuracy_mode = false;
@@ -353,9 +353,9 @@ void set_player_class(player* p, int class) {
     int additional_health = 0;
     int additional_max_health = 0;
 
-    if (class == 0) {
+    if (class == PLAYER_CLASS_BALL) {
         p->design = PLAYER_DESIGN_BALL;
-    } else if (class == 1) {
+    } else if (class == PLAYER_CLASS_CAMO) {
         p->design = PLAYER_DESIGN_CAMO;
         p->additional_damage = 0.25f;
         additional_health = -1;
@@ -363,14 +363,14 @@ void set_player_class(player* p, int class) {
         p->additional_arrow_speed = 2;
         p->accuracy_mode = true;
         p->aggro_range = 15;
-    } else if (class == 2) {
+    } else if (class == PLAYER_CLASS_BRAWLER) {
         p->design = PLAYER_DESIGN_BRAWLER;
         p->additional_damage = 0.5f;
         additional_health = 2;
         additional_max_health = 3;
         p->additional_arrow_speed = -2;
         p->range = 10;
-    } else if (class == 3) {
+    } else if (class == PLAYER_CLASS_SHIELD) {
         p->design = PLAYER_DESIGN_SHIELD;
         p->additional_damage = -0.25f;
         additional_health = 3;
@@ -385,15 +385,15 @@ void set_player_class(player* p, int class) {
     p->max_health = p->start_max_health;
 }
 
-int get_player_class(player* p) {
+PlayerClass get_player_class(player* p) {
     if (p->design == PLAYER_DESIGN_BALL)
-        return 0;
+        return PLAYER_CLASS_BALL;
     else if (p->design == PLAYER_DESIGN_CAMO)
-        return 1;
+        return PLAYER_CLASS_CAMO;
     else if (p->design == PLAYER_DESIGN_BRAWLER)
-        return 2;
+        return PLAYER_CLASS_BRAWLER;
     else if (p->design == PLAYER_DESIGN_SHIELD)
-        return 3;
+        return PLAYER_CLASS_SHIELD;
     return -1;
 }
 

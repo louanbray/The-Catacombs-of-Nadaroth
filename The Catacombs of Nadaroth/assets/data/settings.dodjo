@@ -1,1 +1,7 @@
 0;Skip Intro;Skip the first cinematic and help gui;1
+1;Skip Start-up Menu (Reset);Skip the start-up menu when resetting;1
+2;Skip Start-up Menu (New Game);Skip the start-up menu when starting a new game;1
+3;Skip Player Custom (Reset);Keep the current player class/color when resetting;1
+4;Skip Player Custom (New Game);Keep the current player class/color when starting a new game;1
+5;Skip Difficulty Selection (Reset);Keep the current difficulty when resetting;1
+6;Skip Difficulty Selection (New Game);Keep the current difficuty when starting a new game;1
