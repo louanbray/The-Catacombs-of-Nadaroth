@@ -11,11 +11,6 @@ typedef struct item {
     Color color;
 } item;
 
-/// @brief Create item using given parameters
-/// @param x pos x
-/// @param y pos y
-/// @param type Type
-/// @return item
 item* generate_item(int x, int y, ItemType type, int display, UsableItem usable_item, int index) {
     item* i = malloc(sizeof(item));
     i->x = x;

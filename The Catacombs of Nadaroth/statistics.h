@@ -16,9 +16,31 @@ enum StatisticID {
     STATISTIC_COUNT,
 };
 
+/**
+ * Increase a statistic by the given amount.
+ *
+ * The id is ignored when out of range. Updated values are persisted automatically,
+ * except that distance traveled is only saved every 10 points.
+ */
 void increment_statistic(enum StatisticID id, int amount);
+
+/**
+ * Get the current value of a statistic.
+ *
+ * Returns 0 when the id is out of range.
+ */
 int get_statistic(enum StatisticID id);
+
+/**
+ * Load statistics from the persistent statistics file.
+ *
+ * Missing files leave the in-memory statistics initialized to zero.
+ */
 void load_statistics();
+
+/**
+ * Save all statistics to the persistent statistics file.
+ */
 void save_statistics();
 
 #endif

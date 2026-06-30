@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include "achievements.h"
+#include "assets_manager.h"
 #include "handler.h"
 #include "logger.h"
 #include "map.h"
@@ -10,6 +11,11 @@
 #include "statistics.h"
 
 static int CAN_DIE = true;
+static int last_hotbar_index = 0;
+
+#define DEFAULT_DAMAGE 1
+#define DEFAULT_ARROW_SPEED 6
+#define DEFAULT_INFINITY false
 
 typedef struct player {
     map* map;
@@ -56,18 +62,18 @@ player* create_player(map* m) {
     p->start_health = 2;
     p->start_max_health = 5;
     p->health = p->start_health;
-    p->mental_health = 4;
+    p->mental_health = MAX_MENTAL_HEALTH;
     p->max_health = p->start_max_health;
-    p->damage = 1;
-    p->arrow_speed = 6;
+    p->damage = DEFAULT_DAMAGE;
+    p->arrow_speed = DEFAULT_ARROW_SPEED;
     p->range = -1;
-    p->infinity = false;
+    p->infinity = DEFAULT_INFINITY;
     p->hotbar = NULL;
     p->design = PLAYER_DESIGN_BALL;
     p->name = NULL;
     p->map = m;
     p->phase = GAMEPHASE_INTRODUCTION;
-    p->color = COLOR_GREEN;
+    p->color = COLOR_YELLOW;
     p->additional_damage = 0.0f;
     p->additional_arrow_speed = 0;
     p->accuracy_mode = false;
@@ -229,7 +235,7 @@ void set_player_mental_health(player* p, int mental_health) {
 void modify_player_mental_health(player* p, int mental_health) {
     p->mental_health += mental_health;
     if (p->mental_health < 0) p->mental_health = 0;
-    if (p->mental_health > 4) p->mental_health = 4;
+    if (p->mental_health > MAX_MENTAL_HEALTH) p->mental_health = MAX_MENTAL_HEALTH;
 }
 
 void set_player_arrow_speed(player* p, int speed) {
@@ -404,8 +410,8 @@ void destroy_player_cchunk(player* p) {
 }
 
 int distance_to_player_sq(player* p, int x, int y) {
-    int dx = (get_player_x(p) + RECENTER_X - x) / 2;
-    int dy = -get_player_y(p) + RECENTER_Y - y;
+    int dx = (p->x + RECENTER_X - x) / 2;
+    int dy = -p->y + RECENTER_Y - y;
     return dx * dx + dy * dy;
 }
 
@@ -428,5 +434,28 @@ void survivor_countdown(player* p, int seconds) {
     if (p->time_survivor_in_chunk <= 0) {
         add_achievement_progress(ACH_SURVIVOR, 1);
         p->time_survivor_in_chunk = -1;
+    }
+}
+
+void bow_check_flag() {
+    last_hotbar_index = -1;
+}
+
+void player_update_weapon(player* p) {
+    int index = get_selected_slot(p->hotbar);
+    if (index != last_hotbar_index) {
+        last_hotbar_index = index;
+        item* it = get_selected_item(p->hotbar);
+        p->damage = DEFAULT_DAMAGE;
+        p->infinity = DEFAULT_INFINITY;
+        p->arrow_speed = DEFAULT_ARROW_SPEED;
+        if (it != NULL) {
+            UsableItem type = get_item_usable_type(it);
+            if (type < USABLE_ITEM_BOWS_END && type != USABLE_ITEM_NOT_USABLE) {
+                p->damage = get_usable_item_file(type)->specs.specs[1];
+                p->infinity = get_usable_item_file(type)->specs.specs[2];
+                p->arrow_speed = get_usable_item_file(type)->specs.specs[3];
+            }
+        }
     }
 }

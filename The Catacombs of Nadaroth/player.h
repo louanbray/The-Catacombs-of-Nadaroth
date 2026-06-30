@@ -305,22 +305,78 @@ void set_player_phase(player* p, GamePhase phase);
  */
 void set_player_color(player* p, Color color);
 
+/**
+ * @brief Sets the design of a player.
+ *
+ * @param p Pointer to the player to modify.
+ * @param design L'your design'
+ */
 void set_player_design(player* p, int design);
 
+/**
+ * @brief Sets the class of a player.
+ *
+ * @param p Pointer to the player to modify.
+ * @param class Player class to assign.
+ */
 void set_player_class(player* p, PlayerClass class);
 
+/**
+ * @brief Enables or disables player infinity.
+ *
+ * @param p Pointer to the player to modify.
+ * @param infinite True to enable infinity, false to disable it.
+ */
 void set_player_infinity(player* p, bool infinite);
 
+/**
+ * @brief Sets whether players can die.
+ *
+ * @param can_die True if players can die, otherwise false.
+ */
 void set_player_can_die(bool can_die);
 
+/**
+ * @brief Calculates the squared distance from a player to a point.
+ *
+ * @param p Pointer to the player.
+ * @param x X coordinate of the target point.
+ * @param y Y coordinate of the target point.
+ * @return int The squared distance.
+ */
 int distance_to_player_sq(player* p, int x, int y);
 
+/**
+ * @brief Checks whether a player is in aggro range.
+ *
+ * @param p Pointer to the player.
+ * @param x X coordinate to check.
+ * @param y Y coordinate to check.
+ * @return true if the player is aggroed, otherwise false.
+ */
 bool is_player_aggroed(player* p, int x, int y);
 
+/**
+ * @brief Checks whether players are currently allowed to die.
+ *
+ * @return true if players can die, otherwise false.
+ */
 bool can_player_die();
 
+/**
+ * @brief Gets the class of a player.
+ *
+ * @param p Pointer to the player.
+ * @return PlayerClass The player's class.
+ */
 PlayerClass get_player_class(player* p);
 
+/**
+ * @brief Updates the survivor countdown (decrease it by the time elapsed) and add achievement progress if it goes to 0.
+ *
+ * @param p Pointer to the player.
+ * @param seconds Time elapsed since last call in seconds.
+ */
 void survivor_countdown(player* p, int seconds);
 
 /**
@@ -329,5 +385,15 @@ void survivor_countdown(player* p, int seconds);
  * @param p Pointer to the player object
  */
 void increment_player_phase(player* p);
+
+/**
+ * Reset the cached hotbar slot tracking so the next shot re-evaluates weapon stats.
+ */
+void bow_check_flag();
+
+/**
+ * Check if the tool in hand changed and computes the shooting characteristics
+ */
+void player_update_weapon(player* p);
 
 #endif

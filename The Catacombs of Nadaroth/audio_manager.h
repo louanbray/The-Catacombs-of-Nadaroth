@@ -43,7 +43,18 @@ void play_bgm(const char* filename, int loop);
  */
 void play_sound_effect_by_id(AudioID audio_id);
 
+/**
+ * @brief Enables the use of the specified sound effect
+ *
+ * @param audio_id The sound effect to enable
+ */
 void enable_sound_effect(AudioID audio_id);
+
+/**
+ * @brief Disables the use of the specified sound effect
+ *
+ * @param audio_id The sound effect to disable
+ */
 void disable_sound_effect(AudioID audio_id);
 
 /**

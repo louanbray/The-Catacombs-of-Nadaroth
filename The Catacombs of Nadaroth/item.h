@@ -39,10 +39,12 @@ typedef struct lootable {
     int nadino;
 } lootable;
 
-/// @brief Create item using given parameters with the specs based on his type
-/// @param pos_x pos x
-/// @param pos_y pos y
-/// @param type Type
+/// @brief Create item using given parameters
+/// @param x pos x
+/// @param y pos y
+/// @param type ItemType
+/// @param usable_item UsableItem (USABLE_ITEM_NOT_USABLE if not usable)
+/// @param index Index of this item in the current chunk, if just displayed, use -1
 /// @return item
 item* generate_item(int pos_x, int pos_y, ItemType type, int display, UsableItem usable_item, int index);
 
@@ -79,8 +81,20 @@ void* get_item_spec(item* item);
  */
 int get_item_index(item* item);
 
+/**
+ * @brief Get the usable item type of an item.
+ *
+ * @param item Pointer to the item
+ * @return UsableItem and if unusable, returns USABLE_ITEM_NOT_USABLE.
+ */
 UsableItem get_item_usable_type(item* i);
 
+/**
+ * @brief Get an item's color
+ *
+ * @param item Pointer to the item
+ * @return Color, item color
+ */
 Color get_item_color(item* i);
 
 /// @brief Is item hidden (true if yes)
@@ -123,8 +137,20 @@ void set_item_x(item* item, int pos_x);
 /// @param pos_y pos y
 void set_item_y(item* item, int pos_y);
 
+/**
+ * @brief Set the usable item type of an item.
+ *
+ * @param item Pointer to the item
+ * @param usable_item UsableItem and if unusable, use USABLE_ITEM_NOT_USABLE.
+ */
 void set_item_usable_type(item* i, UsableItem usable_item);
 
+/**
+ * @brief Set an item's color
+ *
+ * @param item Pointer to the item
+ * @param color Color, item color
+ */
 void set_item_color(item* i, Color color);
 
 /// @brief Free item

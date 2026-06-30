@@ -6,15 +6,15 @@
 dynarray** loot_manager = NULL;
 const int loot_table_count = 4;
 
-Color get_color_for_rarity(int rarity_index) {
+Color get_color_for_rarity(Rarity rarity_index) {
     switch (rarity_index) {
-        case 0:
+        case RARITY_BRONZE:
             return COLOR_RED;
-        case 1:
+        case RARITY_SILVER:
             return COLOR_CYAN;
-        case 2:
+        case RARITY_GOLD:
             return COLOR_YELLOW;
-        case 3:
+        case RARITY_NADINO:
             return COLOR_MAGENTA;
         default:
             return COLOR_DEFAULT;
@@ -28,8 +28,8 @@ void create_loot_tables() {
     }
 }
 
-void add_loot_to_loot_table(int display, UsableItem usable_type, int table_index) {
-    if (table_index < 0 || table_index >= loot_table_count) {
+void add_loot_to_loot_table(int display, UsableItem usable_type, Rarity table_index) {
+    if (table_index < 0 || (int)table_index >= loot_table_count) {
         return;
     }
     item* loot_item = generate_item(0, 0, ITEMTYPE_PICKABLE, display, usable_type, -1);

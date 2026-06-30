@@ -3,7 +3,6 @@
 #include <limits.h>
 
 #include "achievements.h"
-#include "assets_manager.h"
 #include "audio_manager.h"
 #include "constants.h"
 #include "entity.h"
@@ -26,7 +25,6 @@
 #define PLAYER_PROJECTILE_DESIGN L'○'
 #define ENEMY_PROJECTILE_DESIGN L'●'
 
-static int last_hotbar_index = 0;
 static unsigned int projectile_rng_seed = 0;
 static int total_enemies = 0;
 static int total_player_projectiles = 0;
@@ -329,28 +327,9 @@ void enemy_attack_projectile(Render_Buffer* r, player* p, item* brain) {
         p_data);
 }
 
-void bow_check_flag() {
-    last_hotbar_index = -1;
-}
-
 void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
     if (get_difficulty() == DIFFICULTY_HARD && total_player_projectiles >= 1) return;
-    int index = get_selected_slot(get_player_hotbar(p));
-    if (index != last_hotbar_index) {
-        last_hotbar_index = index;
-        item* it = get_selected_item(get_player_hotbar(p));
-        set_player_damage(p, 1);
-        set_player_infinity(p, false);
-        set_player_arrow_speed(p, 6);
-        if (it != NULL) {
-            UsableItem type = get_item_usable_type(it);
-            if (type == USABLE_ITEM_BASIC_BOW || type == USABLE_ITEM_ADVANCED_BOW || type == USABLE_ITEM_SUPER_BOW || type == USABLE_ITEM_NADINO_BOW) {
-                set_player_damage(p, get_usable_item_file(type)->specs.specs[1]);
-                set_player_infinity(p, get_usable_item_file(type)->specs.specs[2]);
-                set_player_arrow_speed(p, get_usable_item_file(type)->specs.specs[3]);
-            }
-        }
-    }
+    player_update_weapon(p);
     int x = get_player_x(p) + RECENTER_X;
     int y = -get_player_y(p) + RECENTER_Y;
 
