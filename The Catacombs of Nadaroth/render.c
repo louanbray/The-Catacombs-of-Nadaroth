@@ -964,7 +964,6 @@ void display_settings(Render_Buffer* r, int page) {
     bool left = false, right = false, up = false, down = false;
     int incr = 0;
 
-    LOG_ERROR("%d - %d - %d", first_setting_on_screen, last_setting_on_screen, selected);
     while (!USE_KEY('\n') && !USE_KEY(' ') && !left && !right) {
         if (selected != first_setting_on_screen && (USE_KEY('Z') || USE_KEY('z'))) up = true;
         if (selected != last_setting_on_screen && (USE_KEY('S') || USE_KEY('s'))) down = true;

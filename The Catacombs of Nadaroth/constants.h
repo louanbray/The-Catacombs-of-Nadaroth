@@ -76,7 +76,7 @@ TODO LIST:
 - Update Entity / Chunk editor                                                                                                    [DEV] (LOW)           {DONE}
 - Change time_played timer precision to microseconds + fix timer reset when loading a save                                        [DEV] (MEDIUM)        {DONE}
 - Separate STAT_TIME_PLAYED and time_in_game (pause doesn't count) -> can restore exact time elapsed                              [DEV] (LOW)           {DONE}
-? - Implement status menu                                                                                                         [RENDER/DEV] (LOW)
+- Implement status menu                                                                                                           [RENDER/DEV] (LOW)    {DONE}
 ? - Work on menus (!!Username!!, stat attribution aso...)                                                                         [RENDER/DEV] (LOW)
 ? - Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
 */

@@ -23,17 +23,53 @@ typedef struct PlayerClassModifiers {
     bool accuracy_mode;
     int aggro_range;
     int range;
-    int health;
-    int max_health;
+    int start_health;
+    int start_max_health;
     int player_design;
 } PlayerClassModifiers;
 
-static const PlayerClassModifiers BALL_MODIFIER = {0.0f, 0, false, -1, -1, 2, 5, PLAYER_DESIGN_BALL};
-static const PlayerClassModifiers CAMO_MODIFIER = {0.25f, 2, true, 15, -1, 1, 3, PLAYER_DESIGN_CAMO};
-static const PlayerClassModifiers BRAWLER_MODIFIER = {0.5f, -2, false, -1, 10, 4, 8, PLAYER_DESIGN_BRAWLER};
-static const PlayerClassModifiers SHIELD_MODIFIER = {-0.25f, -1, false, -1, -1, 5, 10, PLAYER_DESIGN_SHIELD};
-
-static const PlayerClassModifiers CLASS_MODIFIERS[PLAYER_CLASS_COUNT] = {BALL_MODIFIER, CAMO_MODIFIER, BRAWLER_MODIFIER, SHIELD_MODIFIER};
+static const PlayerClassModifiers CLASS_MODIFIERS[PLAYER_CLASS_COUNT] = {
+    [PLAYER_CLASS_BALL] = {
+        .additional_damage = 0.0f,
+        .additional_arrow_speed = 0,
+        .accuracy_mode = false,
+        .aggro_range = -1,
+        .range = -1,
+        .start_health = 2,
+        .start_max_health = 5,
+        .player_design = PLAYER_DESIGN_BALL,
+    },
+    [PLAYER_CLASS_CAMO] = {
+        .additional_damage = 0.25f,
+        .additional_arrow_speed = 2,
+        .accuracy_mode = true,
+        .aggro_range = 15,
+        .range = -1,
+        .start_health = 1,
+        .start_max_health = 3,
+        .player_design = PLAYER_DESIGN_CAMO,
+    },
+    [PLAYER_CLASS_BRAWLER] = {
+        .additional_damage = 0.5f,
+        .additional_arrow_speed = -2,
+        .accuracy_mode = false,
+        .aggro_range = -1,
+        .range = 10,
+        .start_health = 4,
+        .start_max_health = 8,
+        .player_design = PLAYER_DESIGN_BRAWLER,
+    },
+    [PLAYER_CLASS_SHIELD] = {
+        .additional_damage = -0.25f,
+        .additional_arrow_speed = -1,
+        .accuracy_mode = false,
+        .aggro_range = -1,
+        .range = -1,
+        .start_health = 5,
+        .start_max_health = 10,
+        .player_design = PLAYER_DESIGN_SHIELD,
+    },
+};
 
 typedef struct player {
     map* map;
@@ -47,7 +83,7 @@ typedef struct player {
     Color color;
     int score, deaths;
     GamePhase phase;
-    char* name;
+    char* name;  //! TODO (useless)
     int start_health, start_max_health;
     float additional_damage;
     int additional_arrow_speed;
@@ -82,26 +118,17 @@ player* create_player(map* m) {
     p->current_chunk = get_spawn(m);
     p->score = 0;
     p->deaths = 0;
-    p->start_health = 2;
-    p->start_max_health = 5;
-    p->health = p->start_health;
     p->mental_health = MAX_MENTAL_HEALTH;
-    p->max_health = p->start_max_health;
     p->damage = DEFAULT_DAMAGE;
     p->arrow_speed = DEFAULT_ARROW_SPEED;
-    p->range = -1;
     p->infinity = DEFAULT_INFINITY;
     p->hotbar = NULL;
-    p->design = PLAYER_DESIGN_BALL;
     p->name = NULL;
     p->map = m;
     p->phase = GAMEPHASE_INTRODUCTION;
     p->color = COLOR_YELLOW;
-    p->additional_damage = 0.0f;
-    p->additional_arrow_speed = 0;
-    p->accuracy_mode = false;
-    p->aggro_range = -1;
     p->time_survivor_in_chunk = -1;
+    set_player_class(p, PLAYER_CLASS_BALL);
     center_player(p);
     set_map_player(m, p);
     return p;
@@ -306,15 +333,17 @@ void set_player_health_raw(player* p, int health) {
 }
 
 void set_player_class(player* p, PlayerClass class) {
-    if (class > PLAYER_CLASS_COUNT || class < 0) class = PLAYER_CLASS_BALL;
-    p->additional_damage = CLASS_MODIFIERS[class].additional_damage;
-    p->additional_arrow_speed = CLASS_MODIFIERS[class].additional_arrow_speed;
-    p->accuracy_mode = CLASS_MODIFIERS[class].accuracy_mode;
-    p->aggro_range = CLASS_MODIFIERS[class].aggro_range;
-    p->range = CLASS_MODIFIERS[class].range;
-    p->start_health = CLASS_MODIFIERS[class].health;
-    p->start_max_health = CLASS_MODIFIERS[class].max_health;
-    p->design = CLASS_MODIFIERS[class].player_design;
+    if (class >= PLAYER_CLASS_COUNT || class < 0) class = PLAYER_CLASS_BALL;
+    const PlayerClassModifiers* m = &CLASS_MODIFIERS[class];
+
+    p->additional_damage = m->additional_damage;
+    p->additional_arrow_speed = m->additional_arrow_speed;
+    p->accuracy_mode = m->accuracy_mode;
+    p->aggro_range = m->aggro_range;
+    p->range = m->range;
+    p->start_health = m->start_health;
+    p->start_max_health = m->start_max_health;
+    p->design = m->player_design;
 
     p->health = p->start_health;
     p->max_health = p->start_max_health;
