@@ -223,6 +223,9 @@ typedef enum PlayerClass {
     PLAYER_CLASS_CAMO,
     PLAYER_CLASS_BRAWLER,
     PLAYER_CLASS_SHIELD,
+
+    // count
+    PLAYER_CLASS_COUNT
 } PlayerClass;
 
 static const int ScorePerPhase[] = {0, 25, 75, 210, 630, 0, 0};  //! TEMPORARY (1870 removed)

@@ -15,7 +15,11 @@
     [W] : DROP ITEM (/!\ DESTRUCTION)~
 ~
     [E] : EXAMINE ITEM~
+~
     [H] : SHOW THIS PAGE~
+    [A] : ACHIEVEMENTS~
+    [T] : STATISTICS~
+~
     [SPACE] : PAUSE THE GAME~
 ~
   TIPS : ~

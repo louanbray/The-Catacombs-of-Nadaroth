@@ -17,6 +17,24 @@ static int last_hotbar_index = 0;
 #define DEFAULT_ARROW_SPEED 6
 #define DEFAULT_INFINITY false
 
+typedef struct PlayerClassModifiers {
+    float additional_damage;
+    int additional_arrow_speed;
+    bool accuracy_mode;
+    int aggro_range;
+    int range;
+    int health;
+    int max_health;
+    int player_design;
+} PlayerClassModifiers;
+
+static const PlayerClassModifiers BALL_MODIFIER = {0.0f, 0, false, -1, -1, 2, 5, PLAYER_DESIGN_BALL};
+static const PlayerClassModifiers CAMO_MODIFIER = {0.25f, 2, true, 15, -1, 1, 3, PLAYER_DESIGN_CAMO};
+static const PlayerClassModifiers BRAWLER_MODIFIER = {0.5f, -2, false, -1, 10, 4, 8, PLAYER_DESIGN_BRAWLER};
+static const PlayerClassModifiers SHIELD_MODIFIER = {-0.25f, -1, false, -1, -1, 5, 10, PLAYER_DESIGN_SHIELD};
+
+static const PlayerClassModifiers CLASS_MODIFIERS[PLAYER_CLASS_COUNT] = {BALL_MODIFIER, CAMO_MODIFIER, BRAWLER_MODIFIER, SHIELD_MODIFIER};
+
 typedef struct player {
     map* map;
     int x, y, px, py;
@@ -36,7 +54,12 @@ typedef struct player {
     bool accuracy_mode;
     int aggro_range;
     int time_survivor_in_chunk;
+    PlayerClass class;
 } player;
+
+static int min(int x, int y) {
+    return x < y ? x : y;
+}
 
 /// @brief Set player pos to chunk center
 /// @param p
@@ -216,6 +239,10 @@ void set_player_phase(player* p, GamePhase phase) {
     p->phase = phase;
 }
 
+PlayerClass get_player_class(player* p) {
+    return p->class;
+}
+
 void increment_player_phase(player* p) {
     p->phase++;
 }
@@ -274,6 +301,26 @@ void set_player_design(player* p, int design) {
     p->design = design;
 }
 
+void set_player_health_raw(player* p, int health) {
+    p->health = health;
+}
+
+void set_player_class(player* p, PlayerClass class) {
+    if (class > PLAYER_CLASS_COUNT || class < 0) class = PLAYER_CLASS_BALL;
+    p->additional_damage = CLASS_MODIFIERS[class].additional_damage;
+    p->additional_arrow_speed = CLASS_MODIFIERS[class].additional_arrow_speed;
+    p->accuracy_mode = CLASS_MODIFIERS[class].accuracy_mode;
+    p->aggro_range = CLASS_MODIFIERS[class].aggro_range;
+    p->range = CLASS_MODIFIERS[class].range;
+    p->start_health = CLASS_MODIFIERS[class].health;
+    p->start_max_health = CLASS_MODIFIERS[class].max_health;
+    p->design = CLASS_MODIFIERS[class].player_design;
+
+    p->health = p->start_health;
+    p->max_health = p->start_max_health;
+    p->class = class;
+}
+
 void link_hotbar(player* p, hotbar* h) {
     p->hotbar = h;
 }
@@ -288,8 +335,7 @@ PlayerMovementResult move_player(player* p, Direction dir) {
     int new_x = p->x + dx[dir];
     int new_y = p->y + dy[dir];
 
-    if (!is_in_box(new_x, new_y))
-        return MOV_CANT_MOVE;
+    if (!is_in_box(new_x, new_y)) return MOV_CANT_MOVE;
 
     PlayerMovementResult n = handle(p, new_x, new_y);
 
@@ -339,68 +385,7 @@ void heal_player(player* p, int heal) {
         set_achievement_progress(ACH_SURVIVOR, 0);
         p->time_survivor_in_chunk = -1;
     }
-    if (p->health + heal > p->max_health) {
-        p->health = p->max_health;
-        return;
-    }
-    p->health += heal;
-}
-
-void set_player_health_raw(player* p, int health) {
-    p->health = health;
-}
-
-void set_player_class(player* p, PlayerClass class) {
-    p->additional_damage = 0.0f;
-    p->additional_arrow_speed = 0;
-    p->accuracy_mode = false;
-    p->aggro_range = -1;
-    p->range = -1;
-    int additional_health = 0;
-    int additional_max_health = 0;
-
-    if (class == PLAYER_CLASS_BALL) {
-        p->design = PLAYER_DESIGN_BALL;
-    } else if (class == PLAYER_CLASS_CAMO) {
-        p->design = PLAYER_DESIGN_CAMO;
-        p->additional_damage = 0.25f;
-        additional_health = -1;
-        additional_max_health = -2;
-        p->additional_arrow_speed = 2;
-        p->accuracy_mode = true;
-        p->aggro_range = 15;
-    } else if (class == PLAYER_CLASS_BRAWLER) {
-        p->design = PLAYER_DESIGN_BRAWLER;
-        p->additional_damage = 0.5f;
-        additional_health = 2;
-        additional_max_health = 3;
-        p->additional_arrow_speed = -2;
-        p->range = 10;
-    } else if (class == PLAYER_CLASS_SHIELD) {
-        p->design = PLAYER_DESIGN_SHIELD;
-        p->additional_damage = -0.25f;
-        additional_health = 3;
-        additional_max_health = 5;
-        p->additional_arrow_speed = -1;
-    } else {
-        p->design = PLAYER_DESIGN_BALL;  // classe inconnue → fallback Ball
-    }
-    p->start_health = 2 + additional_health;
-    p->start_max_health = 5 + additional_max_health;
-    p->health = p->start_health;
-    p->max_health = p->start_max_health;
-}
-
-PlayerClass get_player_class(player* p) {
-    if (p->design == PLAYER_DESIGN_BALL)
-        return PLAYER_CLASS_BALL;
-    else if (p->design == PLAYER_DESIGN_CAMO)
-        return PLAYER_CLASS_CAMO;
-    else if (p->design == PLAYER_DESIGN_BRAWLER)
-        return PLAYER_CLASS_BRAWLER;
-    else if (p->design == PLAYER_DESIGN_SHIELD)
-        return PLAYER_CLASS_SHIELD;
-    return -1;
+    p->health = min(p->health + heal, p->max_health);
 }
 
 void destroy_player_cchunk(player* p) {
