@@ -28,6 +28,40 @@ static map* MAP_L;
 static player* PLAYER_L;
 static hotbar* HOTBAR_L;
 
+#include <errno.h>
+#include <sys/stat.h>
+
+#ifdef _WIN32
+#include <direct.h>
+#define MKDIR(path) _mkdir(path)
+#else
+#include <sys/types.h>
+#define MKDIR(path) mkdir(path, 0755)
+#endif
+
+bool directory_exists(const char* path) {
+    struct stat st;
+
+    if (stat(path, &st) != 0)
+        return false;
+
+#ifdef _WIN32
+    return (st.st_mode & _S_IFDIR) != 0;
+#else
+    return S_ISDIR(st.st_mode);
+#endif
+}
+
+bool create_dir_if_not_exists(const char* path) {
+    if (MKDIR(path) == 0)
+        return true;
+
+    if (errno == EEXIST)
+        return directory_exists(path);
+
+    return false;
+}
+
 /// @brief
 /// Initialize global game state and core subsystems.
 void init_game_system() {
@@ -371,6 +405,7 @@ void handle_resume(ResumeState state, Render_Buffer* screen) {
 /// @brief Where it all begins
 /// @return I dream of a 0
 int main(int argc, char* argv[]) {
+    create_dir_if_not_exists("data");
     SEED = time(NULL);
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-seed") == 0 && i + 1 < argc) {
@@ -484,33 +519,6 @@ int main(int argc, char* argv[]) {
         } else if (USE_KEY('T') || USE_KEY('t')) {
             display_statistics(screen);
         }
-        /* else if (USE_KEY('N') || USE_KEY('n')) {
-            pause_game();
-            lock_inputs();
-            if (save_game("assets/data/save.dat", PLAYER_L, MAP_L, HOTBAR_L)) {
-                LOG_INFO("Game saved successfully!");
-            } else {
-                LOG_ERROR("Failed to save game");
-            }
-            resume_game();
-            unlock_inputs();
-        } else if (USE_KEY('B') || USE_KEY('b')) {
-            pause_game();
-            lock_inputs();
-            stop_projectile_system();
-            bool loaded = load_game("assets/data/save.dat", PLAYER_L, MAP_L, HOTBAR_L);
-            restart_projectile_system(screen, PLAYER_L, SEED);
-            if (loaded) {
-                render(screen, MAP_L);
-                update_screen(screen);
-                if (is_debug_mode()) kill_all_projectiles(screen);  //? To prevent cheating in normal mode
-                LOG_INFO("Game loaded successfully!");
-            } else {
-                LOG_ERROR("Failed to load game");
-            }
-            resume_game();
-            unlock_inputs();
-        }*/
 
         if (is_debug_mode()) {
             if (USE_KEY('I') || USE_KEY('i')) {

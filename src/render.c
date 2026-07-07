@@ -613,7 +613,7 @@ void finalize_render_buffer(Render_Buffer* r) {
 }
 
 // No screen update variant
-static void finalize_render_buffer_silent(Render_Buffer* r) {
+void finalize_render_buffer_silent(Render_Buffer* r) {
     free(r->bd);
     r->bd = r->dump;
     if (GAME_PAUSED == 1) unlock_inputs();
@@ -868,7 +868,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
         if (USE_KEY(' ')) break;
     }
     USE_KEY(' ');
-    finalize_render_buffer(r);
+    finalize_render_buffer_silent(r);
     fclose(file);
 }
 
@@ -1086,7 +1086,7 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
     while ((!USE_KEY(' ') && !USE_KEY('\n'))) {
         if (USE_KEY('N') || USE_KEY('n')) {
             write_str(r->bd, INFO_ROW_MID, 2, " ", RENDER_WIDTH - 4, COLOR_DEFAULT);
-            if (save_game("assets/data/save.dat", p, m, h)) {
+            if (save_game("data/save.dat", p, m, h)) {
                 LOG_INFO("Game saved successfully!");
                 write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 24) / 2 + 2, "Game saved successfully!", 25, COLOR_GREEN);
                 play_sound_effect_by_id(AUDIO_SUCCESS);
@@ -1098,7 +1098,7 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
             update_screen(r);
         } else if (USE_KEY('B') || USE_KEY('b')) {
             write_str(r->bd, INFO_ROW_MID, 2, " ", RENDER_WIDTH - 4, COLOR_DEFAULT);
-            if (load_game("assets/data/save.dat", p, m, h)) {
+            if (load_game("data/save.dat", p, m, h)) {
                 loaded_a_game = true;
                 LOG_INFO("Game loaded successfully!");
                 write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 25) / 2 + 1, "Game loaded successfully!", 26, COLOR_GREEN);

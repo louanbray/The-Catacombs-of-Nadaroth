@@ -8,8 +8,8 @@
 #include "constants.h"
 #include "logger.h"
 
-#define PLAYER_FILE "assets/data/player_achievements.dodjo"
-#define DATA_FILE "assets/data/achievements.dodjo"
+#define PLAYER_FILE "data/player_achievements.dodjo"
+#define DATA_FILE "assets/definitions/achievements.dodjo"
 
 typedef struct achievement {
     enum AchievementID id;

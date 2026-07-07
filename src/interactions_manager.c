@@ -578,7 +578,7 @@ int* display_interface_with_interactions_main(Render_Buffer* r, const char* visu
         selected_indices[ai] = a->current_index % a->pos_count;
     }
 
-    finalize_render_buffer(r);
+    finalize_render_buffer_silent(r);
 
     return selected_indices;
 }

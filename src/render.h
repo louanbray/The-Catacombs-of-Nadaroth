@@ -252,6 +252,7 @@ void setup_render_buffer(Render_Buffer* r);
  * @param r Pointer to the render buffer
  */
 void finalize_render_buffer(Render_Buffer* r);
+void finalize_render_buffer_silent(Render_Buffer* r);
 
 /**
  * @brief Render the given text file in the play box

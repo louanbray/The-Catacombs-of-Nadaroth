@@ -1,10 +1,7 @@
-build/
-release/
-.vscode/
+.vscode/*
+build/*
+release/*
+data/*
 *.o
-assets/data/player_achievements.dodjo
-assets/data/player_statistics.dodjo
-assets/data/player_settings.dodjo
-assets/data/game.log
-assets/data/save.dat
+*.py
 *.txt

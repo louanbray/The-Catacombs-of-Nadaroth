@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define STAT_FILE "assets/data/player_statistics.dodjo"
+#define STAT_FILE "data/player_statistics.dodjo"
 
 static int* statistics = NULL;
 

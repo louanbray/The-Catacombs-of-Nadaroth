@@ -7,8 +7,8 @@
 #include "audio_manager.h"
 #include "logger.h"
 
-#define SETTINGS_FILE "assets/data/player_settings.dodjo"
-#define DATA_FILE "assets/data/settings.dodjo"
+#define SETTINGS_FILE "data/player_settings.dodjo"
+#define DATA_FILE "assets/definitions/settings.dodjo"
 
 typedef struct setting {
     enum SettingID id;
