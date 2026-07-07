@@ -28,7 +28,7 @@ ifeq ($(OS),Windows_NT)
     LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread -lz
     OPENMP = -fopenmp
     RM = C:/msys64/usr/bin/rm -f
-    MKDIR = mkdir -p $(1)
+    MKDIR = if not exist $(subst /,\,$(patsubst %/,%,$(1))) mkdir $(subst /,\,$(patsubst %/,%,$(1)))
     RUN_CMD = .\$(TARGET)
     NATIVE_DIST_DIR = release/windows
 else
@@ -90,10 +90,15 @@ RELEASE_WIN_LDFLAGS = \
 RELEASE_WIN_OPENMP = -fopenmp
 
 # ============================================================
-# Targets / sources
+# Targets / sources (MODIFIED FOR RECURSION)
 # ============================================================
+# Fonction macro pour chercher récursivement les fichiers
+rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+
 TARGET = $(BUILD_DIR)/$(EXECUTABLE)
-SRCS = $(wildcard $(SRC_DIR)/*.c)
+# Trouve tous les .c dans src/ et ses sous-dossiers
+SRCS = $(call rwildcard,$(SRC_DIR),*.c)
+
 OBJS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 
 RELEASE_TARGET = $(RELEASE_BUILD_DIR)/$(RELEASE_EXECUTABLE)
@@ -110,11 +115,10 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(OPENMP) -o $@ $^ $(LDFLAGS)
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+# Changement ici : on crée dynamiquement le sous-dossier requis avant de compiler
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@$(call MKDIR,$(dir $@))
 	$(CC) $(CFLAGS) $(OPENMP) -c $< -o $@
-
-$(BUILD_DIR):
-	$(call MKDIR,$(BUILD_DIR))
 
 # ============================================================
 # Run helpers
@@ -150,11 +154,10 @@ endif
 $(RELEASE_TARGET): $(RELEASE_OBJS)
 	$(CC) $(RELEASE_CFLAGS) $(OPENMP) -o $@ $^ $(LDFLAGS)
 
-$(RELEASE_BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(RELEASE_BUILD_DIR)
+# Changement ici aussi pour la création de sous-dossier en release
+$(RELEASE_BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@$(call MKDIR,$(dir $@))
 	$(CC) $(RELEASE_CFLAGS) $(OPENMP) -c $< -o $@
-
-$(RELEASE_BUILD_DIR):
-	$(call MKDIR,$(RELEASE_BUILD_DIR))
 
 run_release: $(RELEASE_TARGET)
 ifeq ($(OS),Windows_NT)
@@ -179,25 +182,24 @@ release_windows: $(RELEASE_WIN_TARGET)
 $(RELEASE_WIN_TARGET): $(RELEASE_WIN_OBJS)
 	$(CC_WIN) $(RELEASE_WIN_CFLAGS) $(RELEASE_WIN_OPENMP) -o $@ $^ $(RELEASE_WIN_LDFLAGS)
 
-$(RELEASE_WIN_BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(RELEASE_WIN_BUILD_DIR)
+# Changement ici aussi pour la cross-compilation Windows
+$(RELEASE_WIN_BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@$(call MKDIR,$(dir $@))
 	$(CC_WIN) $(RELEASE_WIN_CFLAGS) $(RELEASE_WIN_OPENMP) -c $< -o $@
 
-$(RELEASE_WIN_BUILD_DIR):
-	$(call MKDIR,$(RELEASE_WIN_BUILD_DIR))
-
 # ============================================================
-# Clean
+# Clean (MODIFIED TO CLEAN RECURSIVE OBJECTS PRECISELY)
 # ============================================================
 clean:
-	$(RM) $(BUILD_DIR)/*.o $(TARGET)
+	$(RM) $(OBJS) $(TARGET)
 
 clean_release:
-	$(RM) $(RELEASE_BUILD_DIR)/*.o $(RELEASE_TARGET)
+	$(RM) $(RELEASE_OBJS) $(RELEASE_TARGET)
 	rm -rf release/linux release/macos release/windows
 	rm -f release/linux.zip release/macos.zip release/windows.zip
 
 clean_release_windows:
-	$(RM) $(RELEASE_WIN_BUILD_DIR)/*.o $(RELEASE_WIN_TARGET)
+	$(RM) $(RELEASE_WIN_OBJS) $(RELEASE_WIN_TARGET)
 	rm -rf release/windows
 	rm -f release/windows.zip
 

@@ -2,6 +2,5 @@
 build/*
 release/*
 data/*
+python/*
 *.o
-*.py
-*.txt

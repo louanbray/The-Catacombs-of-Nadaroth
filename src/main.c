@@ -7,21 +7,21 @@
 #include <windows.h>
 #endif
 
-#include "achievements.h"
-#include "assets_manager.h"
-#include "audio_manager.h"
-#include "entity.h"
-#include "game_status.h"
-#include "input_manager.h"
-#include "logger.h"
-#include "loot_manager.h"
-#include "map.h"
-#include "player.h"
-#include "projectile.h"
-#include "render.h"
-#include "save_manager.h"
-#include "settings.h"
-#include "statistics.h"
+#include "display/render.h"
+#include "game_objects/entity.h"
+#include "game_objects/map.h"
+#include "game_objects/player.h"
+#include "managers/achievements_manager.h"
+#include "managers/assets_manager.h"
+#include "managers/audio_manager.h"
+#include "managers/input_manager.h"
+#include "managers/loot_manager.h"
+#include "managers/projectile_manager.h"
+#include "managers/save_manager.h"
+#include "managers/settings_manager.h"
+#include "managers/statistics_manager.h"
+#include "utils/game_status.h"
+#include "utils/logger.h"
 
 static int SEED;
 static map* MAP_L;
