@@ -4,7 +4,6 @@
 #include "../utils/dynarray.h"
 
 dynarray** loot_manager = NULL;
-const int loot_table_count = 4;
 
 Color get_color_for_rarity(Rarity rarity_index) {
     switch (rarity_index) {
@@ -22,29 +21,78 @@ Color get_color_for_rarity(Rarity rarity_index) {
 }
 
 void create_loot_tables() {
-    loot_manager = malloc(sizeof(dynarray*) * loot_table_count);
-    for (int i = 0; i < loot_table_count; i++) {
+    loot_manager = malloc(sizeof(dynarray*) * LOOT_TABLE_COUNT);
+    for (int i = 0; i < LOOT_TABLE_COUNT; i++) {
         loot_manager[i] = create_dyn();
     }
 }
 
-void add_loot_to_loot_table(int display, UsableItem usable_type, Rarity table_index) {
-    if (table_index < 0 || (int)table_index >= loot_table_count) {
+void add_loot_to_loot_table(int display, UsableItem usable_type, LootTableID table_index, Rarity rarity) {
+    if (table_index < 0 || (int)table_index >= LOOT_TABLE_COUNT) {
         return;
     }
     item* loot_item = generate_item(0, 0, ITEMTYPE_PICKABLE, display, usable_type, -1);
-    set_item_color(loot_item, get_color_for_rarity(table_index));
+    set_item_color(loot_item, get_color_for_rarity(rarity));
     append(loot_manager[table_index], loot_item);
 }
 
 item* generate_loot(lootable* loot) {
-    int random_value = rand() % 100;
-    int total_weight = loot->bronze + loot->silver + loot->gold + loot->nadino;
+    if (loot == NULL || loot->id < 0 || (int)loot->id >= LOOT_TABLE_COUNT) {
+        return NULL;
+    }
 
-    int index = loot_table_count - 1 - (random_value < (loot->bronze + loot->silver + loot->gold) * 100 / total_weight) - (random_value < (loot->bronze + loot->silver) * 100 / total_weight) - (random_value < loot->bronze * 100 / total_weight);
-    int length = len_dyn(loot_manager[index]);
-    int random_index = rand() % length;
-    item* loot_item = get_dyn(loot_manager[index], random_index);
+    int total_weight = loot->bronze + loot->silver + loot->gold + loot->nadino;
+    if (total_weight <= 0) {
+        return NULL;
+    }
+
+    int random_value = rand() % total_weight;
+    Rarity rolled_rarity;
+
+    if (random_value < loot->bronze) {
+        rolled_rarity = RARITY_BRONZE;
+    } else if (random_value < loot->bronze + loot->silver) {
+        rolled_rarity = RARITY_SILVER;
+    } else if (random_value < loot->bronze + loot->silver + loot->gold) {
+        rolled_rarity = RARITY_GOLD;
+    } else {
+        rolled_rarity = RARITY_NADINO;
+    }
+
+    dynarray* table = loot_manager[loot->id];
+    int length = len_dyn(table);
+    if (length == 0) {
+        return NULL;
+    }
+
+    Color target_color = get_color_for_rarity(rolled_rarity);
+
+    int match_count = 0;
+    for (int i = 0; i < length; i++) {
+        item* it = get_dyn(table, i);
+        if (get_item_color(it) == target_color) {
+            match_count++;
+        }
+    }
+
+    item* loot_item = NULL;
+    if (match_count > 0) {
+        int random_match_index = rand() % match_count;
+        int current_match = 0;
+        for (int i = 0; i < length; i++) {
+            item* it = get_dyn(table, i);
+            if (get_item_color(it) == target_color) {
+                if (current_match == random_match_index) {
+                    loot_item = it;
+                    break;
+                }
+                current_match++;
+            }
+        }
+    } else {
+        loot_item = get_dyn(table, rand() % length);
+    }
+
     item* new_loot = generate_item(0, 0, ITEMTYPE_PICKABLE, get_item_display(loot_item), get_item_usable_type(loot_item), -1);
     set_item_color(new_loot, get_item_color(loot_item));
 
@@ -55,20 +103,26 @@ void init_loot_tables() {
     create_loot_tables();
 
     // BRONZE LOOT
-    add_loot_to_loot_table(L'B', USABLE_ITEM_BASIC_BOW, RARITY_BRONZE);
-    add_loot_to_loot_table(L'O', USABLE_ITEM_ONION_RING, RARITY_BRONZE);
+    add_loot_to_loot_table(L'B', USABLE_ITEM_BASIC_BOW, LOOT_TABLE_CHEST, RARITY_BRONZE);
+    add_loot_to_loot_table(L'O', USABLE_ITEM_ONION_RING, LOOT_TABLE_CHEST, RARITY_BRONZE);
 
     // SILVER LOOT
-    add_loot_to_loot_table(L'B', USABLE_ITEM_ADVANCED_BOW, RARITY_SILVER);
-    add_loot_to_loot_table(L'S', USABLE_ITEM_STOCKFISH, RARITY_SILVER);
-    add_loot_to_loot_table(L'✧', USABLE_ITEM_BOMB, RARITY_SILVER);
+    add_loot_to_loot_table(L'B', USABLE_ITEM_ADVANCED_BOW, LOOT_TABLE_CHEST, RARITY_SILVER);
+    add_loot_to_loot_table(L'S', USABLE_ITEM_STOCKFISH, LOOT_TABLE_CHEST, RARITY_SILVER);
+    add_loot_to_loot_table(L'✧', USABLE_ITEM_BOMB, LOOT_TABLE_CHEST, RARITY_SILVER);
 
     // GOLD LOOT
-    add_loot_to_loot_table(L'B', USABLE_ITEM_SUPER_BOW, RARITY_GOLD);
-    add_loot_to_loot_table(L'G', USABLE_ITEM_GOLDEN_APPLE, RARITY_GOLD);
+    add_loot_to_loot_table(L'B', USABLE_ITEM_SUPER_BOW, LOOT_TABLE_CHEST, RARITY_GOLD);
+    add_loot_to_loot_table(L'G', USABLE_ITEM_GOLDEN_APPLE, LOOT_TABLE_CHEST, RARITY_GOLD);
     // add_loot_to_loot_table(68, SCHOOL_DISHES, RARITY_GOLD);
 
     // NADINO LOOT
     // add_loot_to_loot_table(70, FORGOTTEN_DISH, RARITY_NADINO);
-    add_loot_to_loot_table(L'B', USABLE_ITEM_NADINO_BOW, RARITY_NADINO);
+    add_loot_to_loot_table(L'B', USABLE_ITEM_NADINO_BOW, LOOT_TABLE_CHEST, RARITY_NADINO);
+
+    // Keys
+    add_loot_to_loot_table(L'⚿', USABLE_ITEM_BRONZE_KEY, LOOT_TABLE_ENEMY_KEY, RARITY_BRONZE);
+    add_loot_to_loot_table(L'⚿', USABLE_ITEM_SILVER_KEY, LOOT_TABLE_ENEMY_KEY, RARITY_SILVER);
+    add_loot_to_loot_table(L'⚿', USABLE_ITEM_GOLD_KEY, LOOT_TABLE_ENEMY_KEY, RARITY_GOLD);
+    add_loot_to_loot_table(L'⚿', USABLE_ITEM_NADINO_KEY, LOOT_TABLE_ENEMY_KEY, RARITY_NADINO);
 }

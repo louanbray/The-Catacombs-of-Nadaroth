@@ -9,9 +9,7 @@ CC_WIN    = x86_64-w64-mingw32-gcc
 
 # Path to the mingw-w64 SDL2 / SDL2_mixer dev packages (edit this,
 # or override on the command line: make release_windows MINGW_SDL2_ROOT=/path)
-MINGW_SDL2_ROOT       ?= /opt/mingw-w64/SDL2
-MINGW_SDL2_MIXER_ROOT ?= /opt/mingw-w64/SDL2_mixer
-MINGW_ZLIB_ROOT       ?= /opt/mingw-w64/zlib
+
 
 # ============================================================
 # Shared warning flags (used by every build variant)
@@ -28,9 +26,16 @@ ifeq ($(OS),Windows_NT)
     LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread -lz
     OPENMP = -fopenmp
     RM = C:/msys64/usr/bin/rm -f
+	RMDIR = C:/msys64/usr/bin/rm -rf
+	CP = C:/msys64/usr/bin/cp
+	ZIP = C:/msys64/usr/bin/zip
     MKDIR = if not exist $(subst /,\,$(patsubst %/,%,$(1))) mkdir $(subst /,\,$(patsubst %/,%,$(1)))
     RUN_CMD = .\$(TARGET)
     NATIVE_DIST_DIR = release/windows
+
+	MINGW_SDL2_ROOT       ?= C:\msys64\mingw-w64\SDL2
+	MINGW_SDL2_MIXER_ROOT ?= C:\msys64\mingw-w64\SDL2_mixer
+	MINGW_ZLIB_ROOT       ?= C:\msys64\mingw-w64\zlib
 else
     EXECUTABLE = outDebug
     RELEASE_EXECUTABLE = outRelease
@@ -48,8 +53,15 @@ else
         NATIVE_DIST_DIR = release/linux
     endif
     RM = rm -f
+	RMDIR = rm -rf
+	CP = cp
+	ZIP = zip
     MKDIR = mkdir -p $(1)
     RUN_CMD = ./$(TARGET)
+
+	MINGW_SDL2_ROOT       ?= /opt/mingw-w64/SDL2
+	MINGW_SDL2_MIXER_ROOT ?= /opt/mingw-w64/SDL2_mixer
+	MINGW_ZLIB_ROOT       ?= /opt/mingw-w64/zlib
 endif
 
 CFLAGS = $(WARN_FLAGS) $(PLATFORM_CFLAGS) -g3 -O0
@@ -141,14 +153,14 @@ run_debug: $(TARGET)
 # ============================================================
 release: $(RELEASE_TARGET)
 	$(call MKDIR,$(NATIVE_DIST_DIR))
-	cp $(RELEASE_TARGET) $(NATIVE_DIST_DIR)/
-	rm -rf $(NATIVE_DIST_DIR)/assets
-	cp -r assets $(NATIVE_DIST_DIR)/
+	$(CP) $(RELEASE_TARGET) $(NATIVE_DIST_DIR)/
+	$(RMDIR) $(NATIVE_DIST_DIR)/assets
+	$(CP) -r assets $(NATIVE_DIST_DIR)/
 ifeq ($(NATIVE_DIST_DIR),release/windows)
-	cp $(MINGW_SDL2_ROOT)/bin/SDL2.dll $(NATIVE_DIST_DIR)/
-	cp $(MINGW_SDL2_MIXER_ROOT)/bin/SDL2_mixer.dll $(NATIVE_DIST_DIR)/
+	$(CP) $(MINGW_SDL2_ROOT)/bin/SDL2.dll $(NATIVE_DIST_DIR)/
+	$(CP) $(MINGW_SDL2_MIXER_ROOT)/bin/SDL2_mixer.dll $(NATIVE_DIST_DIR)/
 endif
-	cd release && zip -r $(notdir $(NATIVE_DIST_DIR)).zip $(notdir $(NATIVE_DIST_DIR))
+	cd release && $(ZIP) -r $(notdir $(NATIVE_DIST_DIR)).zip $(notdir $(NATIVE_DIST_DIR))
 	@echo "Deployed native release to $(NATIVE_DIST_DIR)/ and created $(notdir $(NATIVE_DIST_DIR)).zip"
 
 $(RELEASE_TARGET): $(RELEASE_OBJS)
@@ -171,11 +183,11 @@ endif
 # ============================================================
 release_windows: $(RELEASE_WIN_TARGET)
 	$(call MKDIR,release/windows)
-	cp $(RELEASE_WIN_TARGET) release/windows/
-	rm -rf release/windows/assets
-	cp -r assets release/windows/
-	cp $(MINGW_SDL2_ROOT)/bin/SDL2.dll release/windows/
-	cp $(MINGW_SDL2_MIXER_ROOT)/bin/SDL2_mixer.dll release/windows/
+	$(CP) $(RELEASE_WIN_TARGET) release/windows/
+	$(RMDIR) release/windows/assets
+	$(CP) -r assets release/windows/
+	$(CP) $(MINGW_SDL2_ROOT)/bin/SDL2.dll release/windows/
+	$(CP) $(MINGW_SDL2_MIXER_ROOT)/bin/SDL2_mixer.dll release/windows/
 	cd release && zip -r windows.zip windows
 	@echo "Built and deployed bundle to release/windows/ and created windows.zip"
 
@@ -195,13 +207,13 @@ clean:
 
 clean_release:
 	$(RM) $(RELEASE_OBJS) $(RELEASE_TARGET)
-	rm -rf release/linux release/macos release/windows
-	rm -f release/linux.zip release/macos.zip release/windows.zip
+	$(RMDIR) release/linux release/macos release/windows
+	$(RM) release/linux.zip release/macos.zip release/windows.zip
 
 clean_release_windows:
 	$(RM) $(RELEASE_WIN_OBJS) $(RELEASE_WIN_TARGET)
-	rm -rf release/windows
-	rm -f release/windows.zip
+	$(RMDIR) release/windows
+	$(RM) release/windows.zip
 
 .PHONY: all run debug run_debug clean release run_release clean_release \
         release_windows clean_release_windows

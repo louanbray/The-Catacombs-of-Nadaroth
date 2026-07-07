@@ -362,7 +362,7 @@ void process_input(player** p, Render_Buffer* screen,
 
     MouseEvent event = {0, 1, false, false, 0, 0, 0, 0};
 
-    while (!ctrl_c_pressed) {
+    while (!ctrl_c_pressed || unlock == false) {
         ssize_t bytes_read = read_stdin_nonblocking(buffer, sizeof(buffer));
 
         if (bytes_read <= 0) {
@@ -471,7 +471,6 @@ void process_input(player** p, Render_Buffer* screen,
 bool check_ctrl_c() {
     if (ctrl_c_pressed) {
         restore_terminal_mode();
-        ctrl_c_pressed = false;
         return true;
     }
     return false;

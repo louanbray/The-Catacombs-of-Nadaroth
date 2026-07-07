@@ -120,6 +120,13 @@ typedef enum Rarity {
     RARITY_NADINO,
 } Rarity;
 
+typedef enum LootTableID {
+    LOOT_TABLE_CHEST,
+    LOOT_TABLE_ENEMY_KEY,
+
+    LOOT_TABLE_COUNT
+} LootTableID;
+
 /// @brief Items meant to be used
 typedef enum UsableItem {
     USABLE_ITEM_NOT_USABLE,
@@ -145,7 +152,7 @@ typedef enum UsableItem {
     USABLE_ITEM_STOCKFISH,       // Restore full health (SILVER)
     USABLE_ITEM_SCHOOL_DISHES,   // Restore one mental health (SILVER)
     USABLE_ITEM_GOLDEN_APPLE,    // Add one heart (permanent (as long as you don't die you can regen)) (GOLD)
-    USABLE_ITEM_FORGOTTEN_DISH,  // Restore full mental health (GOLD)
+    USABLE_ITEM_FORGOTTEN_DISH,  // Restore full mental health (GOLD) //! WIP (can change/be deleted)
 
     USABLE_ITEM_COUNT
 } UsableItem;

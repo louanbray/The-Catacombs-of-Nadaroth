@@ -37,6 +37,7 @@ typedef struct lootable {
     int silver;
     int gold;
     int nadino;
+    LootTableID id;
 } lootable;
 
 /// @brief Create item using given parameters

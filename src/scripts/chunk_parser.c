@@ -75,6 +75,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                     loot->silver = entityFile->specs.specs[1];
                     loot->gold = entityFile->specs.specs[2];
                     loot->nadino = entityFile->specs.specs[3];
+                    loot->id = entityFile->specs.specs[4];
                     specialize(brain, false, false, loot);
                     break;
                 }
