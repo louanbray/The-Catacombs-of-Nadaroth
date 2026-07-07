@@ -57,7 +57,7 @@ CFLAGS = $(WARN_FLAGS) $(PLATFORM_CFLAGS) -g3 -O0
 # ============================================================
 # Directories
 # ============================================================
-SRC_DIR = .
+SRC_DIR = src
 BUILD_DIR = build/Debug
 RELEASE_BUILD_DIR = build/Release
 RELEASE_WIN_BUILD_DIR = build/Release-Windows

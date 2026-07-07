@@ -1,17 +1,10 @@
-The Catacombs of Nadaroth/compile.bat.lnk
-The Catacombs of Nadaroth/run.bat.lnk
-The Catacombs of Nadaroth/build/
-The Catacombs of Nadaroth/release/
-.vscode/settings.json
-.vscode/launch.json
-.vscode/c_cpp_properties.json
+build/
+release/
+.vscode/
 *.o
-The Catacombs of Nadaroth/chunk_builder.py
-The Catacombs of Nadaroth/assets/data/player_achievements.dodjo
-The Catacombs of Nadaroth/assets/data/player_statistics.dodjo
-The Catacombs of Nadaroth/assets/data/player_settings.dodjo
-The Catacombs of Nadaroth/assets/data/game.log
-The Catacombs of Nadaroth/assets/data/save.dat
-The Catacombs of Nadaroth/chunk_spawn_rules.md
+assets/data/player_achievements.dodjo
+assets/data/player_statistics.dodjo
+assets/data/player_settings.dodjo
+assets/data/game.log
+assets/data/save.dat
 *.txt
-dm.c
