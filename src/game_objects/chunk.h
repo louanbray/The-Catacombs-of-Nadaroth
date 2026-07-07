@@ -58,6 +58,11 @@ void set_chunk_type(chunk* chunk, ChunkType type);
 /// @param item
 void remove_item(chunk* chunk, item* item);
 
+/// @brief Add an item in the chunk at item x, item y
+/// @param chunk
+/// @param item
+void add_item(chunk* chunk, item* item);
+
 /// @brief Get the enemies of the chunk
 /// @param chunk
 /// @return dynarray of enemies

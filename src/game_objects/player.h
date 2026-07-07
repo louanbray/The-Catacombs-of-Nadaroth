@@ -391,4 +391,10 @@ void increment_player_phase(player* p);
  */
 void player_update_weapon(player* p);
 
+/// @brief Drops the item at index
+/// @param player player
+/// @param index index
+/// @return bool, if anitem was dropped
+bool drop(player* p, int index);
+
 #endif

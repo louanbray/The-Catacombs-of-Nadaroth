@@ -202,3 +202,12 @@ void remove_item(chunk* ck, item* i) {
     purge_hm(h, get_item_x(i), get_item_y(i));
     set_dyn(d, get_item_index(i), NULL);
 }
+
+void add_item(chunk* ck, item* i) {
+    if (i == NULL) return;
+    hm* h = ck->hashmap;
+    dynarray* d = ck->elements;
+    set_item_index(i, len_dyn(d));
+    append(d, i);
+    set_hm(h, get_item_x(i), get_item_y(i), i);
+}

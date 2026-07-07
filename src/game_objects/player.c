@@ -468,3 +468,16 @@ void player_update_weapon(player* p) {
         }
     }
 }
+
+bool drop(player* p, int index) {
+    item* i = get_hotbar(p->hotbar, index);
+    if (!i) return false;
+
+    set_item_x(i, p->px);
+    set_item_y(i, p->py);
+
+    add_item(p->current_chunk, get_hotbar(p->hotbar, index));
+
+    hotbar_drop(p->hotbar, index, false);
+    return true;
+}

@@ -109,6 +109,10 @@ void set_item_color(item* i, Color color) {
     i->color = color;
 }
 
+void set_item_index(item* i, int index) {
+    i->index = index;
+}
+
 void free_item(item* i) {
     if (i->spec != NULL) {
         free(i->spec);

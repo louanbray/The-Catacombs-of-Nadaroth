@@ -52,10 +52,11 @@ bool is_hotbar_full(hotbar* hotbar);
 /// @param item item
 void pickup(hotbar* hotbar, item* item);
 
-/// @brief Drop (and destroy) the item at index
+/// @brief Destroys the item at index
 /// @param hotbar hotbar
 /// @param index index
-void drop(hotbar* hotbar, int index);
+/// @param free_item_dropped if true, free the item dropped
+void hotbar_drop(hotbar* hotbar, int index, bool free_item_dropped);
 
 /// @brief Select hotbar slot
 /// @param hotbar hotbar

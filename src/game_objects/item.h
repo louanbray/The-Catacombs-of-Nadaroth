@@ -153,6 +153,14 @@ void set_item_usable_type(item* i, UsableItem usable_item);
  */
 void set_item_color(item* i, Color color);
 
+/**
+ * @brief Set an item's index
+ *
+ * @param item Pointer to the item
+ * @param index int, item index
+ */
+void set_item_index(item* i, int index);
+
 /// @brief Free item
 /// @param item item
 void free_item(item* item);

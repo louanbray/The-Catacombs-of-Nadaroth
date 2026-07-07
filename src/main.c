@@ -253,8 +253,9 @@ void compute_entry(Render_Buffer* screen, player* p, int entry) {
 
         case KEY_W_LOW:
         case KEY_W_HIGH:
-            drop(hb, get_selected_slot(hb));
+            drop(p, get_selected_slot(hb));
             render_hotbar(screen, hb);
+            render_chunk(screen, get_player_chunk(p));
             break;
 
         default:
@@ -312,7 +313,7 @@ void interact(Render_Buffer* screen, player* p) {
     }
 
     if (destroy) {
-        drop(hb, get_selected_slot(hb));
+        hotbar_drop(hb, get_selected_slot(hb), true);
         render_health(screen, p);
         render_hotbar(screen, hb);
         render_score(screen, p);

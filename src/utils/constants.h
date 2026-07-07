@@ -79,7 +79,17 @@ TODO LIST:
 - Implement status menu                                                                                                           [RENDER/DEV] (LOW)    {DONE}
 ? - Work on menus (!!Username!!, stat attribution aso...)                                                                         [RENDER/DEV] (LOW)
 ? - Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
-Item drop mecanic (W + mob loot) + can walk on items without taking them) + key mecanics + open chests with  keys + key holder (found if?? achievement clue) next to hotbar else keys in hotbar + unlock keycombos (achievement clues -> special movements) + add random chunk generation + add lookup chunk item (spoils what type of chunk will the gate lead to) + patch player char not being cleaned after respawn + add chests sfx + create boss room (create boss type file parser/animation framework) + prepare inventory extension for later + rework bomb + rework escape rooms + minimap? for unlocked chunks {'#', ' '} unlockable later + make first death inevitable (bright red enemies unkillable that f*ck you up then the normal wake up scene (better intro and gives a clue of what is to come)) => unlock mental health after this and remove the 0/0 score lock. + replace 'score' with something lore related + at the end of an act add the global stats of the act and gives a rating. => better rating = better opportunities for next acts (so bad rating = harder time going forward). If diff = easy : possibility to restart an act to up your rating else if diff = hard : f you and start over. Add autosave [when?] (current game) and 5 local saves (diff games). + cross plateform (movement) and bundle for playing.
+! Mob loot + key mecanics + open chests with keys +
+! key holder (found if?? achievement clue) next to hotbar else keys in hotbar + unlock keycombos (achievement clues -> special movements) +
+! add random chunk generation + add lookup chunk item (spoils what type of chunk will the gate lead to) +
+! patch player char not being cleaned after respawn + add chests sfx + create boss room (create boss type file parser/animation framework) +
+! prepare inventory extension for later + rework bomb + rework escape rooms + minimap? for unlocked chunks {'#', ' '} unlockable later +
+! make first death inevitable (bright red enemies unkillable that f*ck you up then the normal wake up scene (better intro and gives a clue of what is to come))
+  => unlock mental health after this and remove the 0/0 score lock. +
+! replace 'score' with something lore related + at the end of an act add the global stats of the act and gives a rating.
+  => better rating = better opportunities for next acts (so bad rating = harder time going forward).
+! If diff = easy : possibility to restart an act to up your rating else if diff = hard : f you and start over.
+! Add autosave [when?] (current game) and 5 local saves (diff games). + cross plateform (movement) and bundle for playing.
 
 Bonne chance à moi
 */
