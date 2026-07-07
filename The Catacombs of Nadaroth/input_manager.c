@@ -2,6 +2,13 @@
 
 #include <time.h>
 
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <fcntl.h>
+#include <unistd.h>
+#endif
+
 #define MAX_KEYS 256
 #define MAX_BUFFER_SIZE 1024
 #define CTRL_C 0x03  // CTRL+C character code
@@ -11,22 +18,49 @@ static bool key_pressed_last_frame[MAX_KEYS] = {false};
 static bool unlock = true;
 static volatile bool ctrl_c_pressed = false;
 
+#ifdef _WIN32
+static HANDLE hStdin = NULL;
+static DWORD original_console_mode = 0;
+
+static BOOL WINAPI windows_ctrl_c_handler(DWORD fdwCtrlType) {
+    if (fdwCtrlType == CTRL_C_EVENT) {
+        ctrl_c_pressed = true;  // On lève le même flag que ton code actuel
+        return TRUE;            // On dit à Windows qu'on gère le signal nous-mêmes
+    }
+    return FALSE;
+}
+#else
 static struct termios original_termios;  // Global to store original terminal settings
+#endif
 
 /// @brief Save the current terminal settings
 void save_original_mode() {
+#ifdef _WIN32
+    hStdin = GetStdHandle(STD_INPUT_HANDLE);
+    if (hStdin == INVALID_HANDLE_VALUE || !GetConsoleMode(hStdin, &original_console_mode)) {
+        fprintf(stderr, "GetConsoleMode failed (err %lu)\n", GetLastError());
+        exit(EXIT_FAILURE);
+    }
+#else
     if (tcgetattr(STDIN_FILENO, &original_termios) < 0) {
         perror("tcgetattr");
         exit(EXIT_FAILURE);
     }
+#endif
 }
 
 /// @brief Restore the terminal to its original mode
 void restore_terminal_mode() {
+#ifdef _WIN32
+    if (hStdin) {
+        SetConsoleMode(hStdin, original_console_mode);
+    }
+#else
     if (tcsetattr(STDIN_FILENO, TCSANOW, &original_termios) < 0) {
         perror("tcsetattr");
         exit(EXIT_FAILURE);
     }
+#endif
     wprintf(L"\33[?25h");                // Re-enable cursor visibility
     wprintf(L"\033[?1003l\033[?1006l");  // Disable Mouse events
     wprintf(L"\033[?2004l");             // Disable bracketed paste mode
@@ -46,13 +80,39 @@ void handle_signal(int signo) {
 void setup_terminal_restoration() {
     save_original_mode();
     atexit(restore_terminal_mode);  // Ensure restoration on normal exit
-    // Note: SIGINT is disabled at the terminal level (ISIG flag)
+#ifdef _WIN32
+    // On enregistre le handler Windows
+    SetConsoleCtrlHandler(windows_ctrl_c_handler, TRUE);
+#endif
+    // Note: SIGINT is disabled at the terminal level (ISIG flag / raw mode)
     // so CTRL+C generates character 0x03 instead of a signal
     signal(SIGTERM, handle_signal);  // Handle termination signals
 }
 
 // Function to set the terminal to raw mode
 void set_raw_mode() {
+#ifdef _WIN32
+    // Turn off line buffering / echo / ^C-as-signal, turn on VT input so
+    // escape sequences (mouse, arrow keys, paste) arrive as raw bytes just
+    // like on a POSIX terminal. Requires Windows Terminal (or any host with
+    // VT input support) - legacy conhost has partial/buggy support for this.
+    DWORD mode = original_console_mode;
+    mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT);
+    mode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
+    if (!SetConsoleMode(hStdin, mode)) {
+        fprintf(stderr, "SetConsoleMode (input) failed (err %lu)\n", GetLastError());
+        exit(EXIT_FAILURE);
+    }
+
+    // Also make sure stdout actually interprets the ANSI escape codes below
+    // (older conhost needs this turned on explicitly; Windows Terminal
+    // already defaults to it, but enabling it again is harmless).
+    HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD out_mode = 0;
+    if (hStdout != INVALID_HANDLE_VALUE && GetConsoleMode(hStdout, &out_mode)) {
+        SetConsoleMode(hStdout, out_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    }
+#else
     struct termios t;
 
     // Get the current terminal attributes
@@ -68,9 +128,13 @@ void set_raw_mode() {
     t.c_cc[VTIME] = 0;                     // Timeout (deciseconds) for read
 
     tcsetattr(STDIN_FILENO, TCSANOW, &t);
+#endif
 }
 
-// Function to set the file descriptor to non-blocking mode
+#ifndef _WIN32
+// Function to set the file descriptor to non-blocking mode (POSIX only -
+// on Windows non-blocking behavior is handled inside read_stdin_nonblocking
+// below instead, since fcntl(O_NONBLOCK) doesn't apply to console handles).
 void set_nonblocking_mode(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags == -1) {
@@ -82,6 +146,30 @@ void set_nonblocking_mode(int fd) {
         exit(EXIT_FAILURE);
     }
 }
+#else
+void set_nonblocking_mode(int fd) {
+    (void)fd;  // no-op on Windows; see read_stdin_nonblocking()
+}
+#endif
+
+/// @brief Reads available stdin bytes without blocking. Returns 0 if
+/// nothing is available yet (mirrors what O_NONBLOCK + read() gives on
+/// POSIX), or -1 on a real error.
+static ssize_t read_stdin_nonblocking(char* buf, size_t size) {
+#ifdef _WIN32
+    DWORD waited = WaitForSingleObject(hStdin, 0);
+    if (waited != WAIT_OBJECT_0) {
+        return 0;  // nothing queued yet
+    }
+    DWORD bytes_read = 0;
+    if (!ReadFile(hStdin, buf, (DWORD)size, &bytes_read, NULL)) {
+        return -1;
+    }
+    return (ssize_t)bytes_read;
+#else
+    return read(STDIN_FILENO, buf, size);
+#endif
+}
 
 void init_terminal() {
     setup_terminal_restoration();
@@ -89,7 +177,18 @@ void init_terminal() {
     set_raw_mode();
     set_nonblocking_mode(STDIN_FILENO);
 
-    setlocale(LC_CTYPE, "");
+    setlocale(LC_ALL, "");
+
+#ifdef _WIN32
+    // Put stdout into wide-character mode so wprintf's Unicode output is
+    // passed through correctly instead of being mangled by the console's
+    // legacy codepage. IMPORTANT: once this is set, every subsequent write
+    // to stdout MUST go through a wide-character call (wprintf, putwchar,
+    // fputws) - mixing in printf/fputs/putchar on stdout after this point
+    // is undefined behavior.
+    _setmode(_fileno(stdout), _O_U16TEXT);
+#endif
+
     wprintf(L"\33[?25l");                // Disable cursor
     wprintf(L"\033[H\033[J");            // Clear
     wprintf(L"\033[?1003h\033[?1006h");  // Enable mouse motion events
@@ -263,8 +362,8 @@ void process_input(player** p, Render_Buffer* screen,
 
     MouseEvent event = {0, 1, false, false, 0, 0, 0, 0};
 
-    while (1) {
-        ssize_t bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer));
+    while (!ctrl_c_pressed) {
+        ssize_t bytes_read = read_stdin_nonblocking(buffer, sizeof(buffer));
 
         if (bytes_read <= 0) {
             usleep(1000);  // Prevent CPU saturation

@@ -77,7 +77,7 @@ Color get_setting_color(enum SettingID id) {
 }
 
 void load_settings() {
-    settings = calloc(sizeof(setting*), SETTINGS_COUNT);
+    settings = calloc(SETTINGS_COUNT, sizeof(setting*));
     FILE* settings_file = fopen(SETTINGS_FILE, "r");
     FILE* data_file = fopen(DATA_FILE, "r");
 

@@ -17,6 +17,7 @@
 #include "save_manager.h"
 #include "settings.h"
 #include "statistics.h"
+#include "win_compat.h"
 
 typedef struct Cell {
     wchar_t ch;
@@ -160,8 +161,8 @@ static int max(int x, int y) {
 
 // Create a board object
 board create_board() {
-    Cell* data = calloc(sizeof(Cell), RENDER_WIDTH * RENDER_HEIGHT);
-    board b = calloc(sizeof(Cell*), RENDER_HEIGHT);
+    Cell* data = calloc(RENDER_WIDTH * RENDER_HEIGHT, sizeof(Cell));
+    board b = calloc(RENDER_HEIGHT, sizeof(Cell*));
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         b[i] = &data[i * RENDER_WIDTH];
     }
@@ -637,7 +638,7 @@ void process_text_line(wchar_t* buffer, size_t width) {
 void read_text_into_render(Render_Buffer* r, FILE* file) {
     wchar_t buffer[MAX_LINE];
     int i = 0;
-    while (fgetws(buffer, MAX_LINE, file) != NULL && i < RENDER_HEIGHT - 2) {
+    while (portable_fgetws(buffer, MAX_LINE, file) != NULL && i < RENDER_HEIGHT - 2) {
         if (buffer[0] == L'#') {
             i++;
             continue;
@@ -715,30 +716,54 @@ int* display_interface_with_interactions(Render_Buffer* r, const char* visual_fi
 
 // draw single pattern at a board absolute pos with color application
 void draw_pattern_at(Render_Buffer* r, Pos p, const char* pattern, int color_for_entire_pattern, bool use_per_char_color, int* per_char_colors, int per_char_count) {
-    // pattern is an ASCII/UTF-8 string. We'll write it starting at p.x horizontally.
-    // Convert the whole string to wide chars first to handle multi-byte characters properly
     int len = strlen(pattern);
     if (len == 0) return;
 
-    // guard
+    // Guard
     if (p.y < 0 || p.y >= RENDER_HEIGHT) return;
     int startx = p.x;
     if (startx < 0) startx = 0;
 
-    // Convert entire pattern to wide chars at once
     wchar_t wbuffer[RENDER_WIDTH] = {0};
-    size_t wlen = mbstowcs(wbuffer, pattern, RENDER_WIDTH - 1);
+    size_t wlen = 0;
 
-    // If conversion failed, try simple ASCII conversion as fallback
-    if (wlen == (size_t)-1) {
-        wlen = 0;
-        for (int i = 0; i < len && i < RENDER_WIDTH - 1; i++) {
-            wbuffer[wlen++] = (wchar_t)(unsigned char)pattern[i];
+    // Décodage manuel UTF-8 : Garantit la reconstruction de '■' sans mbstowcs
+    size_t i = 0;
+    while (i < (size_t)len && wlen < RENDER_WIDTH - 1) {
+        unsigned char c = pattern[i];
+        wchar_t wc = 0;
+        int n = 0;
+
+        if (c < 0x80) {
+            wc = c;
+            n = 1;
+        } else if ((c & 0xE0) == 0xC0) {
+            wc = c & 0x1F;
+            n = 2;
+        } else if ((c & 0xF0) == 0xE0) {
+            wc = c & 0x0F;
+            n = 3;
+        } else if ((c & 0xF8) == 0xF0) {
+            wc = c & 0x07;
+            n = 4;
+        } else {
+            wc = c;
+            n = 1;
+        }  // Fallback octet simple
+
+        if (i + n > (size_t)len) n = len - i;
+
+        // Reconstitution du caractère Unicode
+        for (int j = 1; j < n; j++) {
+            wc = (wc << 6) | (pattern[i + j] & 0x3F);
         }
+
+        wbuffer[wlen++] = wc;
+        i += n;
     }
 
-    // Now write each wide character with its corresponding color
-    for (size_t i = 0; i < wlen; i++) {
+    // Écriture de chaque caractère large avec sa couleur associée
+    for (i = 0; i < wlen; i++) {
         int tx = startx + i;
         if (tx < 0 || tx >= RENDER_WIDTH) continue;
 
@@ -753,9 +778,12 @@ void draw_pattern_at(Render_Buffer* r, Pos p, const char* pattern, int color_for
 }
 
 // Clear previous pattern at position p filling pattern length with spaces
-void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len, int heavy) {
+void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len) {
     if (p.y < 0 || p.y >= RENDER_HEIGHT) return;
-    for (int i = 0; i < pattern_len - heavy; i++) {
+
+    // On retire "- heavy" car pattern_len est désormais le nombre exact
+    // de colonnes réelles à effacer à l'écran.
+    for (int i = 0; i < pattern_len; i++) {
         int tx = p.x + i;
         if (tx < 0 || tx >= RENDER_WIDTH) continue;
         r->bd[RENDER_HEIGHT - p.y][tx].ch = L' ';
@@ -798,7 +826,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
     wchar_t buffer[MAX_LINE];
     for (int i = 0; i < RENDER_WIDTH + 4; i++) buffer[i] = L'\0';
     int row = 0;
-    while (fgetws(buffer, MAX_LINE, file) != NULL && row < RENDER_HEIGHT - 2) {
+    while (portable_fgetws(buffer, MAX_LINE, file) != NULL && row < RENDER_HEIGHT - 2) {
         if (buffer[0] == L'#' || buffer[0] == L'§') {
             int timeout = 0;
             for (int j = 0; j < RENDER_WIDTH - 1; j++)

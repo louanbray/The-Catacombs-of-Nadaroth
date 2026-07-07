@@ -11,7 +11,6 @@
 #include "statistics.h"
 
 static int CAN_DIE = true;
-static int last_hotbar_index = 0;
 
 #define DEFAULT_DAMAGE 1
 #define DEFAULT_ARROW_SPEED 6
@@ -451,14 +450,10 @@ void survivor_countdown(player* p, int seconds) {
     }
 }
 
-void bow_check_flag() {
-    last_hotbar_index = -1;
-}
-
 void player_update_weapon(player* p) {
     int index = get_selected_slot(p->hotbar);
-    if (index != last_hotbar_index) {
-        last_hotbar_index = index;
+    if (index != get_last_hotbar_index()) {
+        set_last_hotbar_index(index);
         item* it = get_selected_item(p->hotbar);
         p->damage = DEFAULT_DAMAGE;
         p->infinity = DEFAULT_INFINITY;

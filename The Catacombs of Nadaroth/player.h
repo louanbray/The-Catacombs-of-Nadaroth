@@ -387,11 +387,6 @@ void survivor_countdown(player* p, int seconds);
 void increment_player_phase(player* p);
 
 /**
- * Reset the cached hotbar slot tracking so the next shot re-evaluates weapon stats.
- */
-void bow_check_flag();
-
-/**
  * Check if the tool in hand changed and computes the shooting characteristics
  */
 void player_update_weapon(player* p);

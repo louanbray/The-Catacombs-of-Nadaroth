@@ -12,6 +12,7 @@
 #include "player.h"
 #include "render.h"
 #include "statistics.h"
+#include "win_compat.h"
 
 #define MAX_PROJECTILES 128
 

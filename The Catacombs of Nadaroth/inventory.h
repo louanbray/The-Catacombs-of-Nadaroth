@@ -67,4 +67,12 @@ void select_slot(hotbar* hotbar, int index);
 /// @return number of items
 int get_hotbar_entries(hotbar* hotbar);
 
+/**
+ * Reset the cached hotbar slot tracking so the next shot re-evaluates weapon stats.
+ */
+void bow_check_flag();
+
+int get_last_hotbar_index();
+void set_last_hotbar_index(int index);
+
 #endif

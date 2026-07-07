@@ -1,24 +1,31 @@
 #ifndef INPUT_MANAGER_H
 #define INPUT_MANAGER_H
-
 #include <ctype.h>
-#include <fcntl.h>
 #include <locale.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <fcntl.h>
+#include <io.h>
+#include <windows.h>
+#define usleep(us) Sleep((us) / 1000 + ((us) % 1000 != 0 ? 1 : 0))
+#else
+#include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
-#include <wchar.h>
+#endif
 
 #define KEY_PRESSED(key) (get_key_state((unsigned char)(key)))                                                  //! [/!\ RESETS ONLY AFTER OTHER KEY EVENT]
 #define USE_KEY(key) (get_key_state((unsigned char)(key)) ? (release_key((unsigned char)(key)), true) : false)  //! ['EAT' THE KEY, SIMULATE A RELEASE]
-
 typedef struct Render_Buffer Render_Buffer;
 typedef struct player player;
-
 typedef struct InputThreadArgs {
     player** p;
     Render_Buffer* screen;
@@ -27,7 +34,6 @@ typedef struct InputThreadArgs {
     void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction);
     void (*printable_char_callback)(Render_Buffer* screen, player* p, int c);
 } InputThreadArgs;
-
 /**
  * @brief Initializes the terminal settings for the application.
  *
@@ -36,7 +42,6 @@ typedef struct InputThreadArgs {
  * modes, clear the screen, or perform other necessary initialization tasks.
  */
 void init_terminal();
-
 /**
  * @brief Processes input from the standard input and handles mouse events, arrow keys, and printable characters.
  *
@@ -58,7 +63,6 @@ void process_input(player** p, Render_Buffer* screen,
                    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p),
                    void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction),
                    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c));
-
 /**
  * @brief Checks if a specific key is currently pressed.
  *
@@ -66,7 +70,6 @@ void process_input(player** p, Render_Buffer* screen,
  * @return true if the key is currently pressed, false otherwise.
  */
 bool get_key_state(unsigned char key);
-
 /**
  * @brief Releases the specified key.
  *
@@ -75,22 +78,18 @@ bool get_key_state(unsigned char key);
  * @param key The key to be released. This is an unsigned char representing the key.
  */
 void release_key(unsigned char key);
-
 /**
  * @brief Locks the inputs by setting the unlock flag to false.
  */
 void lock_inputs();
-
 /**
  * @brief Unlocks the inputs by setting the unlock flag to true.
  */
 void unlock_inputs();
-
 /**
  * @brief Checks if CTRL+C was pressed (returns true once and resets the flag).
  *
  * @return true if CTRL+C was pressed, false otherwise.
  */
 bool check_ctrl_c();
-
 #endif

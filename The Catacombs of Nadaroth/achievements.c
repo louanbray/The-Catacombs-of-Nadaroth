@@ -109,7 +109,7 @@ void reset_run_based_achievements() {
 }
 
 void load_achievements() {
-    achievements = calloc(sizeof(achievement*), ACHIEVEMENT_COUNT);
+    achievements = calloc(ACHIEVEMENT_COUNT, sizeof(achievement*));
     FILE* player_file = fopen(PLAYER_FILE, "r");
     FILE* data_file = fopen(DATA_FILE, "r");
 

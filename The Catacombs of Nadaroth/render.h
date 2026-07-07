@@ -193,7 +193,7 @@ void draw_pattern_at(Render_Buffer* r, Pos p, const char* pattern, int color_for
  * @param p Absolute position on the board where the pattern will be cleared.
  * @param pattern_len Length of the pattern to clear (number of spaces to write).
  */
-void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len, int heavy);
+void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len);
 
 /**
  * @brief Displays the statistics GUI

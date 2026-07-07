@@ -20,7 +20,7 @@ int get_statistic(enum StatisticID id) {
 }
 
 void load_statistics() {
-    statistics = calloc(sizeof(int), STATISTIC_COUNT);
+    statistics = calloc(STATISTIC_COUNT, sizeof(int));
     FILE* file = fopen(STAT_FILE, "r");
     if (file == NULL) return;
     for (int i = 0; i < STATISTIC_COUNT; i++) {

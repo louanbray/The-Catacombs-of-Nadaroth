@@ -21,6 +21,10 @@
 #define SAVE_VERSION 5
 #define SAVE_MAGIC 0x4E414430  // "NAD0" in hex
 
+#ifdef _WIN32
+typedef long suseconds_t;
+#endif
+
 // Temporary storage for player's chunk coordinates during load
 static int g_player_chunk_x = 0;
 static int g_player_chunk_y = 0;

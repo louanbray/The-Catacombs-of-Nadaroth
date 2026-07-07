@@ -5,6 +5,8 @@
 #include "item.h"
 #include "projectile.h"
 
+static int last_hotbar_index = 0;
+
 /// @brief Hotbar
 typedef struct hotbar {
     item** items;
@@ -112,4 +114,16 @@ void destroy_hotbar(hotbar* h) {
     }
     free(h->items);
     free(h);
+}
+
+void bow_check_flag() {
+    last_hotbar_index = -1;
+}
+
+int get_last_hotbar_index() {
+    return last_hotbar_index;
+}
+
+void set_last_hotbar_index(int index) {
+    last_hotbar_index = index;
 }
