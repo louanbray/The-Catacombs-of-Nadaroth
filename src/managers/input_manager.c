@@ -2,6 +2,8 @@
 
 #include <time.h>
 
+#include "../utils/game_status.h"
+
 #ifdef _WIN32
 #include <io.h>
 #else
