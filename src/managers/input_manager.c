@@ -16,16 +16,15 @@
 static bool key_states[MAX_KEYS] = {false};
 static bool key_pressed_last_frame[MAX_KEYS] = {false};
 static bool unlock = true;
-static volatile bool ctrl_c_pressed = false;
 
 #ifdef _WIN32
 static HANDLE hStdin = NULL;
 static DWORD original_console_mode = 0;
 
 static BOOL WINAPI windows_ctrl_c_handler(DWORD fdwCtrlType) {
-    if (fdwCtrlType == CTRL_C_EVENT) {
-        ctrl_c_pressed = true;  // On lève le même flag que ton code actuel
-        return TRUE;            // On dit à Windows qu'on gère le signal nous-mêmes
+    if (fdwCtrlType == CTRL_C_EVENT || fdwCtrlType == CTRL_BREAK_EVENT || fdwCtrlType == CTRL_CLOSE_EVENT) {
+        stop_game();  // On lève le même flag que ton code actuel
+        return TRUE;  // On dit à Windows qu'on gère le signal nous-mêmes
     }
     return FALSE;
 }
@@ -364,7 +363,7 @@ void process_input(player** p, Render_Buffer* screen,
 
     MouseEvent event = {0, 1, false, false, 0, 0, 0, 0};
 
-    while (!ctrl_c_pressed || unlock == false) {
+    while (is_game_running() || unlock == false) {
         ssize_t bytes_read = read_stdin_nonblocking(buffer, sizeof(buffer));
 
         if (bytes_read <= 0) {
@@ -435,7 +434,7 @@ void process_input(player** p, Render_Buffer* screen,
                 processed += 3;
             } else if (input_buffer[processed] == CTRL_C) {
                 // CTRL+C detected in raw mode
-                ctrl_c_pressed = true;
+                stop_game();
                 processed++;
             } else if ((input_buffer[processed] >= 32 && input_buffer[processed] <= 126) ||
                        input_buffer[processed] == '\n' || input_buffer[processed] == '\r') {
@@ -468,12 +467,4 @@ void process_input(player** p, Render_Buffer* screen,
 
         input_buffer_length -= processed;
     }
-}
-
-bool check_ctrl_c() {
-    if (ctrl_c_pressed) {
-        restore_terminal_mode();
-        return true;
-    }
-    return false;
 }

@@ -652,7 +652,7 @@ void process_text_line(wchar_t* buffer, size_t width) {
 void read_text_into_render(Render_Buffer* r, FILE* file) {
     wchar_t buffer[MAX_LINE];
     int i = 0;
-    while (portable_fgetws(buffer, MAX_LINE, file) != NULL && i < RENDER_HEIGHT - 2) {
+    while (is_game_running() && portable_fgetws(buffer, MAX_LINE, file) != NULL && i < RENDER_HEIGHT - 2) {
         if (buffer[0] == L'#') {
             i++;
             continue;
@@ -696,7 +696,7 @@ void display_item_description(Render_Buffer* r, void* it) {
     wchar_t buffer[RENDER_WIDTH - 1];
     int i = ITEM_DESCRIPTION_Y_OFFSET;
 
-    while (fgetws_from_string(buffer, RENDER_WIDTH - 1, &desc) != NULL && i < RENDER_HEIGHT - 2) {
+    while (is_game_running() && fgetws_from_string(buffer, RENDER_WIDTH - 1, &desc) != NULL && i < RENDER_HEIGHT - 2) {
         process_text_line(buffer, RENDER_WIDTH);
         write_wstr(r->bd, RENDER_HEIGHT - i - 2, 1, buffer, RENDER_WIDTH - 2, COLOR_DEFAULT);
         i++;
@@ -840,7 +840,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
     wchar_t buffer[MAX_LINE];
     for (int i = 0; i < RENDER_WIDTH + 4; i++) buffer[i] = L'\0';
     int row = 0;
-    while (portable_fgetws(buffer, MAX_LINE, file) != NULL && row < RENDER_HEIGHT - 2) {
+    while (is_game_running() && portable_fgetws(buffer, MAX_LINE, file) != NULL && row < RENDER_HEIGHT - 2) {
         if (buffer[0] == L'#' || buffer[0] == L'§') {
             int timeout = 0;
             for (int j = 0; j < RENDER_WIDTH - 1; j++)
@@ -856,7 +856,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
             update_screen(r);
             for (int i = 0; i < timeout; i++) {
                 usleep(delay);
-                if (KEY_PRESSED(' ')) break;
+                if (!is_game_running() || KEY_PRESSED(' ')) break;
             }
         } else if (buffer[0] == L'%') {
             int eol = 0;
@@ -869,7 +869,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
                     update_screen(r);
                     usleep(delay / 50);
                 }
-                if (KEY_PRESSED(' ')) break;
+                if (!is_game_running() || KEY_PRESSED(' ')) break;
             }
             update_screen(r);
             row++;

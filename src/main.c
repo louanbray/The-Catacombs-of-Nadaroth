@@ -487,7 +487,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        if (check_ctrl_c()) {
+        if (!is_game_running()) {
             LOG_INFO("CTRL+C detected, initiating graceful shutdown...");
             pause_game();
             lock_inputs();
@@ -583,6 +583,7 @@ int main(int argc, char* argv[]) {
     LOG_INFO("Starting cleanup...");
 
     stop_projectile_system();
+    restore_terminal_mode();
 
     // Save game state
     save_achievements();

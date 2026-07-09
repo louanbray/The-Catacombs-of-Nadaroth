@@ -2,6 +2,7 @@
 #define GAME_STATUS_H
 
 #include <pthread.h>
+#include <stdbool.h>
 #include <sys/time.h>
 
 extern pthread_mutex_t pause_mutex;
@@ -16,13 +17,13 @@ typedef enum Difficulty {
 /**
  * Pauses the game by increasing GAME_PAUSED (stackable)
  */
-void pause_game(void);
+void pause_game();
 
 /**
  * Resumes the game by decreasing GAME_PAUSED (stackable).
  * GAME_PAUSED cannot be inferior to 0.
  */
-void resume_game(void);
+void resume_game();
 
 /**
  * Enables the debug mode
@@ -32,12 +33,12 @@ void set_debug_mode(int mode);
 /**
  * Is the debug mode enabled?
  */
-int is_debug_mode(void);
+int is_debug_mode();
 
 /**
  * Is a reset needed?
  */
-int need_reset(void);
+int need_reset();
 
 /**
  * @brief Set the game started time to the value specified
@@ -49,12 +50,12 @@ void set_game_started(struct timeval started);
 /**
  * @brief Get the time when the game was started
  */
-struct timeval get_game_started(void);
+struct timeval get_game_started();
 
 /**
  * @brief Get the time elapsed since the game started
  */
-struct timeval get_time_played(void);
+struct timeval get_time_played();
 
 /**
  * @brief Add time to the total time played
@@ -72,6 +73,9 @@ void set_time_played(struct timeval time_played);
  * @brief Changes the difficulty of the game
  */
 void set_difficulty(Difficulty difficulty);
+
+bool is_game_running();
+void stop_game();
 
 /**
  * @brief Get the game's current difficulty
