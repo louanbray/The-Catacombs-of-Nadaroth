@@ -12,6 +12,7 @@
 #include "achievements_manager.h"
 #include "audio_manager.h"
 #include "input_manager.h"
+#include "loot_manager.h"
 #include "statistics_manager.h"
 
 #define MAX_PROJECTILES 128
@@ -183,6 +184,16 @@ void projectile_callback(int x, int y, projectile_data* data) {
                 add_achievement_progress(ACH_UNSTOPPABLE, 1);
                 set_achievement_progress(ACH_MONSTER_HUNTER, 1);
                 if (e->score >= NADINO_ENEMY_MIN_SCORE) add_achievement_progress(ACH_BOSS_SLAYER, 1);
+
+                if (e->can_drop) {
+                    item* drop = generate_loot(&e->loot);
+                    if (drop) {
+                        set_item_x(drop, get_item_x(it));
+                        set_item_y(drop, get_item_y(it));
+                        add_item(get_player_chunk(data->p), drop);
+                    }
+                }
+
                 add_player_score(data->p, e->score);
                 set_dyn(get_chunk_enemies(get_player_chunk(data->p)), e->from_id, NULL);
                 total_enemies--;

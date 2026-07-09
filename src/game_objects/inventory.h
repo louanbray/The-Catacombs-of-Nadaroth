@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "../utils/constants.h"
+
 typedef struct item item;
 typedef struct hotbar hotbar;
 
@@ -75,5 +77,8 @@ void bow_check_flag();
 
 int get_last_hotbar_index();
 void set_last_hotbar_index(int index);
+
+// Returns the index of the first item in hotbar matching the usable item type given, if none returns -1
+int get_hotbar_index_of_usable_item(hotbar* h, UsableItem type);
 
 #endif

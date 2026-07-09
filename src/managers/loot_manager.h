@@ -17,4 +17,8 @@ item* generate_loot(lootable* loot);
 /// @brief Needed to use the loot tables as it adds the loot to the loot table.
 void init_loot_tables();
 
+/// @brief Set loot manager seed
+/// @param seed
+void seed_loot_manager(unsigned int seed);
+
 #endif

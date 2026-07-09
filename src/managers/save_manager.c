@@ -275,10 +275,13 @@ static bool save_item_data(FILE* f, item* it) {
     } else if (type == ITEMTYPE_LOOTABLE) {
         lootable* loot = (lootable*)get_item_spec(it);
         if (loot) {
+            fwrite(&loot->key, sizeof(UsableItem), 1, f);
+            fwrite(&loot->none, sizeof(int), 1, f);
             fwrite(&loot->bronze, sizeof(int), 1, f);
             fwrite(&loot->silver, sizeof(int), 1, f);
             fwrite(&loot->gold, sizeof(int), 1, f);
             fwrite(&loot->nadino, sizeof(int), 1, f);
+            fwrite(&loot->id, sizeof(LootTableID), 1, f);
         } else {
             int zero = 0;
             for (int i = 0; i < 4; i++) {
@@ -331,10 +334,13 @@ static item* load_item_data(FILE* f, chunk* c, dynarray* items_array) {
         specialize(it, used, hidden, e);
     } else if (type == ITEMTYPE_LOOTABLE) {
         lootable* loot = malloc(sizeof(lootable));
+        fread(&loot->key, sizeof(UsableItem), 1, f);
+        fread(&loot->none, sizeof(int), 1, f);
         fread(&loot->bronze, sizeof(int), 1, f);
         fread(&loot->silver, sizeof(int), 1, f);
         fread(&loot->gold, sizeof(int), 1, f);
         fread(&loot->nadino, sizeof(int), 1, f);
+        fread(&loot->id, sizeof(LootTableID), 1, f);
         specialize(it, used, hidden, loot);
     } else {
         // For other types, just set the states

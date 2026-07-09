@@ -20,10 +20,11 @@
 #include "managers/save_manager.h"
 #include "managers/settings_manager.h"
 #include "managers/statistics_manager.h"
+#include "scripts/player_handler.h"
 #include "utils/game_status.h"
 #include "utils/logger.h"
 
-static int SEED;
+static unsigned int SEED;
 static map* MAP_L;
 static player* PLAYER_L;
 static hotbar* HOTBAR_L;
@@ -70,6 +71,7 @@ void init_game_system() {
     init_terminal();
     init_assets_system();
     init_loot_tables();
+    seed_loot_manager(SEED);
     init_interactions_system();
     load_achievements();
     load_statistics();
@@ -95,7 +97,6 @@ void move(Render_Buffer* screen, player* p, int dir) {
             break;
         case MOV_PICKED_UP_ENTITY:
             render_from_player(screen, p);
-            render_hotbar(screen, get_player_hotbar(p));
             break;
         default:
             render_player(screen, p);
@@ -265,54 +266,58 @@ void compute_entry(Render_Buffer* screen, player* p, int entry) {
     update_screen(screen);
 }
 
-void interact(Render_Buffer* screen, player* p) {
+void interact(Render_Buffer* screen, player* p, int x, int y) {
     hotbar* hb = get_player_hotbar(p);
-    item* it = get_selected_item(hb);
-    if (it == NULL) return;
-
-    UsableItem type = get_item_usable_type(it);
-    if (type == USABLE_ITEM_NOT_USABLE) return;
-
+    bool chest_opened = check_lootable_interaction(p, x, y);
     bool destroy = false;
 
-    switch (type) {
-        case USABLE_ITEM_GOLDEN_APPLE:
-            destroy = true;
-            set_player_max_health(p, get_player_max_health(p) + 1);
-            break;
-        case USABLE_ITEM_ONION_RING:
-            if (get_player_max_health(p) != get_player_health(p)) {
+    item* it = get_selected_item(hb);
+    if (it != NULL) {
+        UsableItem type = get_item_usable_type(it);
+        if (type == USABLE_ITEM_NOT_USABLE) return;
+
+        switch (type) {
+            case USABLE_ITEM_GOLDEN_APPLE:
                 destroy = true;
-                heal_player(p, 1);
-            }
-            break;
-        case USABLE_ITEM_STOCKFISH:
-            if (get_player_max_health(p) != get_player_health(p)) {
+                set_player_max_health(p, get_player_max_health(p) + 1);
+                break;
+            case USABLE_ITEM_ONION_RING:
+                if (get_player_max_health(p) != get_player_health(p)) {
+                    destroy = true;
+                    heal_player(p, 1);
+                }
+                break;
+            case USABLE_ITEM_STOCKFISH:
+                if (get_player_max_health(p) != get_player_health(p)) {
+                    destroy = true;
+                    heal_player(p, get_player_max_health(p) - get_player_health(p));
+                }
+                break;
+            case USABLE_ITEM_BOMB:
                 destroy = true;
-                heal_player(p, get_player_max_health(p) - get_player_health(p));
-            }
-            break;
-        case USABLE_ITEM_BOMB:
-            destroy = true;
-            destroy_player_cchunk(p);
-            break;
-        case USABLE_ITEM_SCHOOL_DISHES:
-            if (get_player_mental_health(p) != 4) {
-                destroy = true;
-                modify_player_mental_health(p, 1);
-            }
-            break;
-        case USABLE_ITEM_FORGOTTEN_DISH:
-            if (get_player_mental_health(p) != 4) {
-                destroy = true;
-                set_player_mental_health(p, 4);
-            }
-            break;
-        default:
-            return;
+                destroy_player_cchunk(p);
+                break;
+            case USABLE_ITEM_SCHOOL_DISHES:
+                if (get_player_mental_health(p) != 4) {
+                    destroy = true;
+                    modify_player_mental_health(p, 1);
+                }
+                break;
+            case USABLE_ITEM_FORGOTTEN_DISH:
+                if (get_player_mental_health(p) != 4) {
+                    destroy = true;
+                    set_player_mental_health(p, 4);
+                }
+                break;
+            default:
+                if (chest_opened) break;
+                return;
+        }
     }
 
-    if (destroy) {
+    if (chest_opened) {
+        render_from_player(screen, p);
+    } else if (destroy) {
         hotbar_drop(hb, get_selected_slot(hb), true);
         render_health(screen, p);
         render_hotbar(screen, hb);
@@ -374,6 +379,7 @@ void handle_resume(ResumeState state, Render_Buffer* screen) {
     PlayerClass player_class = get_player_class(PLAYER_L);
 
     srand(SEED);
+    seed_loot_manager(SEED);
     lock_inputs();
     pause_game();
 
@@ -407,10 +413,10 @@ void handle_resume(ResumeState state, Render_Buffer* screen) {
 /// @return I dream of a 0
 int main(int argc, char* argv[]) {
     create_dir_if_not_exists("data");
-    SEED = time(NULL);
+    SEED = (unsigned int)time(NULL);
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-seed") == 0 && i + 1 < argc) {
-            SEED = atoi(argv[i + 1]);
+            SEED = (unsigned int)atoi(argv[i + 1]);
             break;
         }
     }

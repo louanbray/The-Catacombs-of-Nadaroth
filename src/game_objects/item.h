@@ -24,21 +24,25 @@ typedef struct entity entity;
 typedef struct item item;
 
 /// @brief Type of item
-typedef struct enemy {
-    int hp, damage;
-    int from_id;
-    int speed, infinity;
-    int score;
-    int attack_delay, attack_interval;
-} enemy;
-
 typedef struct lootable {
+    UsableItem key;
+    int none;
     int bronze;
     int silver;
     int gold;
     int nadino;
     LootTableID id;
 } lootable;
+
+typedef struct enemy {
+    int hp, damage;
+    int from_id;
+    int speed, infinity;
+    int score;
+    int attack_delay, attack_interval;
+    bool can_drop;
+    lootable loot;
+} enemy;
 
 /// @brief Create item using given parameters
 /// @param x pos x

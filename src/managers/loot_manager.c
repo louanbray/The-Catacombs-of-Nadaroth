@@ -2,8 +2,10 @@
 
 #include "../game_objects/item.h"
 #include "../utils/dynarray.h"
+#include "../utils/logger.h"
 
 dynarray** loot_manager = NULL;
+static unsigned int loot_seed = 1;
 
 Color get_color_for_rarity(Rarity rarity_index) {
     switch (rarity_index) {
@@ -27,6 +29,15 @@ void create_loot_tables() {
     }
 }
 
+void seed_loot_manager(unsigned int seed) {
+    loot_seed = seed;
+}
+
+static int loot_rand() {
+    loot_seed = loot_seed * 1103515245 + 12345;
+    return (unsigned int)(loot_seed / 65536) % 32768;
+}
+
 void add_loot_to_loot_table(int display, UsableItem usable_type, LootTableID table_index, Rarity rarity) {
     if (table_index < 0 || (int)table_index >= LOOT_TABLE_COUNT) {
         return;
@@ -41,19 +52,21 @@ item* generate_loot(lootable* loot) {
         return NULL;
     }
 
-    int total_weight = loot->bronze + loot->silver + loot->gold + loot->nadino;
+    int total_weight = loot->none + loot->bronze + loot->silver + loot->gold + loot->nadino;
     if (total_weight <= 0) {
         return NULL;
     }
 
-    int random_value = rand() % total_weight;
+    int random_value = loot_rand() % total_weight;
     Rarity rolled_rarity;
 
-    if (random_value < loot->bronze) {
+    if (random_value < loot->none) {
+        return NULL;
+    } else if (random_value < loot->none + loot->bronze) {
         rolled_rarity = RARITY_BRONZE;
-    } else if (random_value < loot->bronze + loot->silver) {
+    } else if (random_value < loot->none + loot->bronze + loot->silver) {
         rolled_rarity = RARITY_SILVER;
-    } else if (random_value < loot->bronze + loot->silver + loot->gold) {
+    } else if (random_value < loot->none + loot->bronze + loot->silver + loot->gold) {
         rolled_rarity = RARITY_GOLD;
     } else {
         rolled_rarity = RARITY_NADINO;
@@ -77,7 +90,7 @@ item* generate_loot(lootable* loot) {
 
     item* loot_item = NULL;
     if (match_count > 0) {
-        int random_match_index = rand() % match_count;
+        int random_match_index = loot_rand() % match_count;
         int current_match = 0;
         for (int i = 0; i < length; i++) {
             item* it = get_dyn(table, i);
@@ -90,7 +103,7 @@ item* generate_loot(lootable* loot) {
             }
         }
     } else {
-        loot_item = get_dyn(table, rand() % length);
+        loot_item = get_dyn(table, loot_rand() % length);
     }
 
     item* new_loot = generate_item(0, 0, ITEMTYPE_PICKABLE, get_item_display(loot_item), get_item_usable_type(loot_item), -1);

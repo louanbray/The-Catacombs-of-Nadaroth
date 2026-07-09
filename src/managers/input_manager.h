@@ -30,7 +30,7 @@ typedef struct InputThreadArgs {
     player** p;
     Render_Buffer* screen;
     void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y);
-    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p);
+    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p, int x, int y);
     void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction);
     void (*printable_char_callback)(Render_Buffer* screen, player* p, int c);
 } InputThreadArgs;
@@ -48,6 +48,7 @@ void init_terminal();
  * This function continuously reads input from the standard input and processes it to handle mouse events, arrow keys,
  * and printable characters. It uses the provided callback functions to handle each type of input event.
  *
+ * @param p Seed of the game
  * @param p Pointer to user-defined data that will be passed to the callback functions.
  * @param screen Pointer to the screen or context that will be passed to the callback functions.
  * @param mouse_left_event_callback Callback function to handle left mouse button events. It takes the screen pointer, user-defined data pointer,
@@ -60,7 +61,7 @@ void init_terminal();
  */
 void process_input(player** p, Render_Buffer* screen,
                    void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y),
-                   void (*mouse_right_event_callback)(Render_Buffer* screen, player* p),
+                   void (*mouse_right_event_callback)(Render_Buffer* screen, player* p, int x, int y),
                    void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction),
                    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c));
 /**
@@ -86,6 +87,7 @@ void lock_inputs();
  * @brief Unlocks the inputs by setting the unlock flag to true.
  */
 void unlock_inputs();
+
 /**
  * @brief Checks if CTRL+C was pressed (returns true once and resets the flag).
  *

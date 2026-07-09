@@ -53,6 +53,23 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                     elt->score = entityFile->specs.specs[4];
                     elt->attack_delay = entityFile->specs.specs[5];
                     elt->attack_interval = entityFile->specs.specs[6];
+
+                    elt->can_drop = (bool)entityFile->specs.specs[7];
+
+                    if (elt->can_drop) {
+                        elt->loot = (lootable){
+                            .key = USABLE_ITEM_NONE,
+                            .none = entityFile->specs.specs[8],
+                            .bronze = entityFile->specs.specs[9],
+                            .silver = entityFile->specs.specs[10],
+                            .gold = entityFile->specs.specs[11],
+                            .nadino = entityFile->specs.specs[12],
+                            .id = entityFile->specs.specs[13],
+                        };
+                    } else {
+                        elt->loot = (lootable){0};
+                    }
+
                     specialize(brain, false, false, elt);
                     Color color = COLOR_DEFAULT;
                     if (entry->entity_type == ENTITY_ENEMY_BRONZE_1 || entry->entity_type == ENTITY_ENEMY_BRONZE_2) {
@@ -71,11 +88,13 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                 }
                 case ITEMTYPE_LOOTABLE: {
                     lootable* loot = malloc(sizeof(lootable));
-                    loot->bronze = entityFile->specs.specs[0];
-                    loot->silver = entityFile->specs.specs[1];
-                    loot->gold = entityFile->specs.specs[2];
-                    loot->nadino = entityFile->specs.specs[3];
-                    loot->id = entityFile->specs.specs[4];
+                    loot->key = entityFile->specs.specs[0];
+                    loot->none = entityFile->specs.specs[1];
+                    loot->bronze = entityFile->specs.specs[2];
+                    loot->silver = entityFile->specs.specs[3];
+                    loot->gold = entityFile->specs.specs[4];
+                    loot->nadino = entityFile->specs.specs[5];
+                    loot->id = entityFile->specs.specs[6];
                     specialize(brain, false, false, loot);
                     break;
                 }

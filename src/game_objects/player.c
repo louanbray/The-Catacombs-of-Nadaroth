@@ -6,7 +6,7 @@
 #include "../managers/assets_manager.h"
 #include "../managers/projectile_manager.h"
 #include "../managers/statistics_manager.h"
-#include "../scripts/handler.h"
+#include "../scripts/player_handler.h"
 #include "../utils/logger.h"
 #include "map.h"
 

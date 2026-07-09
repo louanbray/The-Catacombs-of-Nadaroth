@@ -90,27 +90,27 @@ typedef struct Render_Buffer {
 //
 #pragma region Helper
 // Converts a color code to its corresponding ANSI escape sequence.
-const char* ansi_from_color(int color) {
+const wchar_t* ansi_from_color(int color) {
     switch (color) {
         case COLOR_RED:
-            return "\033[31m";
+            return L"\033[31m";
         case COLOR_CYAN_BOLD:
-            return "\033[36;1m";
+            return L"\033[36;1m";
         case COLOR_CYAN:
-            return "\033[36m";
+            return L"\033[36m";
         case COLOR_YELLOW:
-            return "\033[33m";
+            return L"\033[33m";
         case COLOR_MAGENTA_BOLD:
-            return "\033[35;1m";
+            return L"\033[35;1m";
         case COLOR_MAGENTA:
-            return "\033[35m";
+            return L"\033[35m";
         case COLOR_GREEN:
-            return "\033[32m";
+            return L"\033[32m";
         case COLOR_GRAY:
-            return "\033[90m";
+            return L"\033[90m";
         case COLOR_DEFAULT:
         default:
-            return "\033[0m";
+            return L"\033[0m";
     }
 }
 
@@ -316,8 +316,6 @@ void render_item_title(Render_Buffer* screen, void* it) {
         screen->bd[INFO_ROW_BOTTOM][TITLE_ERASE_START + i].color = COLOR_DEFAULT;
     }
 
-    update_line(screen, 1);
-
     if (it == NULL) return;
 
     UsableItemAssetFile* uif = get_usable_item_file(get_item_usable_type((item*)it));
@@ -388,7 +386,7 @@ void render_timer(Render_Buffer* r) {
 
 // Renders the player onto the board.
 void render_player(Render_Buffer* r, player* p) {
-    render_char(r->bd, get_player_px(p), get_player_py(p), ' ');
+    if (r->bd[get_player_py(p) + 2 + RENDER_HEIGHT / 2][get_player_px(p) + RENDER_WIDTH / 2].ch == get_player_design(p)) render_char(r->bd, get_player_px(p), get_player_py(p), ' ');
     render_char_colored(r->bd, get_player_x(p), get_player_y(p), get_player_design(p), get_player_color(p));
 }
 
@@ -514,11 +512,13 @@ void update_line_(Render_Buffer* r, int row) {
     int start = -1;
     int current_color = -1;
 
-    // Buffer to accumulate characters to output.
     wchar_t buffer[RENDER_WIDTH + 1] = {0};
     for (int i = 0; i < RENDER_WIDTH; i++)
         buffer[i] = L' ';
     buffer[RENDER_WIDTH] = L'\0';
+
+    wchar_t line_output[4096];
+    int out_idx = 0;
 
     for (int j = 0; j < RENDER_WIDTH; j++) {
         Cell curr = r->bd[row][j];
@@ -530,7 +530,10 @@ void update_line_(Render_Buffer* r, int row) {
                 current_color = curr.color;
             } else if (curr.color != current_color) {
                 buffer[j] = L'\0';
-                wprintf(L"\033[%d;%dH%s%ls", screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
+
+                out_idx += swprintf(&line_output[out_idx], 4096 - out_idx,
+                                    L"\033[%d;%dH%ls%ls",
+                                    screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
 
                 start = j;
                 current_color = curr.color;
@@ -540,15 +543,26 @@ void update_line_(Render_Buffer* r, int row) {
             buffer[j] = curr.ch;
         } else if (start != -1) {
             buffer[j] = L'\0';
-            wprintf(L"\033[%d;%dH%s%ls", screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
+
+            out_idx += swprintf(&line_output[out_idx], 4096 - out_idx,
+                                L"\033[%d;%dH%ls%ls",
+                                screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
             start = -1;
         }
     }
+
     if (start != -1) {
         buffer[RENDER_WIDTH] = L'\0';
-        wprintf(L"\033[%d;%dH%s%ls", screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
+        out_idx += swprintf(&line_output[out_idx], 4096 - out_idx,
+                            L"\033[%d;%dH%ls%ls",
+                            screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
     }
-    wprintf(L"\033[%d;%dH%s", screen_row, RENDER_WIDTH, ansi_from_color(COLOR_DEFAULT));
+
+    out_idx += swprintf(&line_output[out_idx], 4096 - out_idx,
+                        L"\033[%d;%dH%ls",
+                        screen_row, RENDER_WIDTH, ansi_from_color(COLOR_DEFAULT));
+
+    wprintf(L"%ls", line_output);
 }
 
 // This function outputs only modified parts of the screen.

@@ -51,7 +51,7 @@ bool is_hotbar_full(hotbar* h) {
 }
 
 void pickup(hotbar* h, item* e) {
-    if (is_hotbar_full(h)) {
+    if (is_hotbar_full(h) || !e || !h) {
         return;
     }
 
@@ -131,4 +131,13 @@ int get_last_hotbar_index() {
 
 void set_last_hotbar_index(int index) {
     last_hotbar_index = index;
+}
+
+int get_hotbar_index_of_usable_item(hotbar* h, UsableItem type) {
+    if (!h) return -1;
+    for (int i = 0; i < HOTBAR_SIZE; i++) {
+        if (h->items[i] != NULL)
+            if (get_item_usable_type(h->items[i]) == type) return i;
+    }
+    return -1;
 }

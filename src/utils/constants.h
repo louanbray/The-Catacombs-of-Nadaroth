@@ -79,7 +79,7 @@ TODO LIST:
 - Implement status menu                                                                                                           [RENDER/DEV] (LOW)    {DONE}
 ? - Work on menus (!!Username!!, stat attribution aso...)                                                                         [RENDER/DEV] (LOW)
 ? - Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
-! Mob loot + key mecanics + open chests with keys +
+! keys: has to be nearby and raycast
 ! key holder (found if?? achievement clue) next to hotbar else keys in hotbar + unlock keycombos (achievement clues -> special movements) +
 ! add random chunk generation + add lookup chunk item (spoils what type of chunk will the gate lead to) +
 ! patch player char not being cleaned after respawn + add chests sfx + create boss room (create boss type file parser/animation framework) +
@@ -129,6 +129,7 @@ typedef enum LootTableID {
 
 /// @brief Items meant to be used
 typedef enum UsableItem {
+    USABLE_ITEM_NONE,
     USABLE_ITEM_NOT_USABLE,
 
     // Bows

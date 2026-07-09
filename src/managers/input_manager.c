@@ -259,6 +259,8 @@ void parse_sgr_mouse_event(const char* buffer, MouseEvent* event) {
             if (event_type == 'M' && !event->right_just_pressed) {
                 event->right_click = 1;
                 event->right_just_pressed = true;
+                event->target_x = (x / 2) * 2;
+                event->target_y = y;
             } else if (event_type == 'm') {
                 event->right_just_pressed = false;
             }
@@ -351,7 +353,7 @@ void unlock_inputs() {
 
 void process_input(player** p, Render_Buffer* screen,
                    void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y),
-                   void (*mouse_right_event_callback)(Render_Buffer* screen, player* p),
+                   void (*mouse_right_event_callback)(Render_Buffer* screen, player* p, int x, int y),
                    void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction),
                    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c)) {
     char buffer[128];
@@ -415,7 +417,7 @@ void process_input(player** p, Render_Buffer* screen,
                             mouse_left_event_callback(screen, current_player, event.target_x, event.target_y);
                         }
                         if (event.right_click) {
-                            mouse_right_event_callback(screen, current_player);
+                            mouse_right_event_callback(screen, current_player, event.target_x, event.target_y);
                         }
                         if (event.scroll_up) {
                             mouse_scroll_callback(screen, current_player, event.target_x, event.target_y, 1);
