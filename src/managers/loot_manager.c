@@ -2,7 +2,6 @@
 
 #include "../game_objects/item.h"
 #include "../utils/dynarray.h"
-#include "../utils/logger.h"
 
 dynarray** loot_manager = NULL;
 static unsigned int loot_seed = 1;

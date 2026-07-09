@@ -26,6 +26,62 @@ Direction get_direction(int x, int y) {
     return 0;
 }
 
+bool is_player_in_interaction_range(player* p, int x, int y) {
+    return distance_to_player_sq(p, x, y) <= 13;
+}
+
+bool can_player_see(player* p, int target_x, int target_y, item* e_brain) {
+    hm* chunk_items = get_chunk_furniture_coords(get_player_chunk(p));
+    if (chunk_items == NULL) return false;
+
+    int px = get_player_x(p);
+    int py = get_player_y(p);
+
+    if (px == target_x && py == target_y) return true;
+
+    int dx = abs(target_x - px) / 2;
+    int dy = abs(target_y - py);
+    int sx = (px < target_x) ? 2 : -2;
+    int sy = (py < target_y) ? 1 : -1;
+    int err = dx - dy;
+
+    int curr_x = px;
+    int curr_y = py;
+
+    while (true) {
+        if (curr_x == target_x && curr_y == target_y) break;
+
+        if (curr_x != px || curr_y != py) {
+            item* obstacle = (item*)get_hm(chunk_items, curr_x, curr_y);
+            if (obstacle != NULL) {
+                //? if (is_item_solid(obstacle)) return false;
+                if (!is_an_entity(obstacle)) return false;
+                if (get_entity_brain(get_entity_link(obstacle)) != e_brain) return false;
+            }
+        }
+
+        int e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            curr_x += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            curr_y += sy;
+        }
+    }
+
+    return true;
+}
+
+bool can_interact(player* p, item* e_brain) {
+    int x = get_item_x(e_brain);
+    int y = get_item_y(e_brain);
+    int dx = x + RECENTER_X;
+    int dy = RECENTER_Y - y;
+    return is_player_in_interaction_range(p, dx, dy) && can_player_see(p, x, y, e_brain);
+}
+
 void open_lootable_from_chunk(chunk* c, item* i) {
     lootable* loot = get_item_spec(i);
     item* drop = generate_loot(loot);
@@ -56,6 +112,7 @@ bool check_lootable_interaction(player* p, int x, int y) {
     bool has_key = loot->key != USABLE_ITEM_NONE;
 
     if (has_key && hotbar_index == -1) return false;
+    if (!can_interact(p, it)) return false;
     remove_entity_from_chunk(e);
 
     open_lootable_from_chunk(get_player_chunk(p), it);
