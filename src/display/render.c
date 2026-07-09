@@ -882,6 +882,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
         if (USE_KEY(' ')) break;
     }
     USE_KEY(' ');
+    if (!is_game_running()) unlock_inputs();
     finalize_render_buffer_silent(r);
     fclose(file);
 }
