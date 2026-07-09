@@ -378,6 +378,7 @@ void* projectile_loop(void* args) {
     int* enemy_attack_timers = NULL;
     chunk* current_chunk = NULL;
     int* enemy_ids = NULL;
+    int tracked_enemy_count = -1;
 
     struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666667};  // 60 FPS
 
@@ -399,10 +400,11 @@ void* projectile_loop(void* args) {
         dynarray* d = get_chunk_enemies(c);
         int current_enemy_count = len_dyn(d);
 
-        if (c != current_chunk) {
+        if (c != current_chunk || current_enemy_count != tracked_enemy_count) {
             free(enemy_attack_timers);
             free(enemy_ids);
             current_chunk = c;
+            tracked_enemy_count = current_enemy_count;
             enemy_attack_timers = malloc(current_enemy_count * sizeof(int));
             enemy_ids = malloc(current_enemy_count * sizeof(int));
             total_player_projectiles = 0;

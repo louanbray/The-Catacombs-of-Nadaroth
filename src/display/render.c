@@ -10,6 +10,7 @@
 #include "../managers/assets_manager.h"
 #include "../managers/audio_manager.h"
 #include "../managers/input_manager.h"
+#include "../managers/loot_manager.h"
 #include "../managers/projectile_manager.h"
 #include "../managers/save_manager.h"
 #include "../managers/settings_manager.h"
@@ -45,6 +46,8 @@ typedef struct Render_Buffer {
 
 #define HOTBAR_START ((RENDER_WIDTH + 1) / 2 - 10)
 #define HOTBAR_END ((RENDER_WIDTH + 1) / 2 + 10)
+
+#define KEYHOLDER_START ((RENDER_WIDTH + 1) / 2 + 20)
 
 #define TITLE_ERASE_START (RENDER_WIDTH / 2 - 10)
 #define MAX_TITLE_SIZE 20
@@ -480,6 +483,26 @@ void render_hotbar(Render_Buffer* r, hotbar* h) {
     }
 }
 
+void render_keyholder(Render_Buffer* r, keyholder* k) {
+    int display = KEYHOLDER_START;
+    KeyHolderLevel level = get_keyholder_level(k);
+    for (Rarity rarity = 0; rarity < RARITY_COUNT; rarity++) {
+        Color color = get_color_for_rarity(rarity);
+        bool draw = (int)rarity < (int)level;
+        r->bd[INFO_ROW_TOP][display].ch = draw ? CHEST_KEY_DESIGN : L' ';
+        r->bd[INFO_ROW_TOP][display].color = color;
+
+        int key_nb = get_keyholder_keys_of_rarity(k, rarity);
+        r->bd[INFO_ROW_MID][display].ch = draw ? min(9, key_nb) + L'0' : L' ';
+        r->bd[INFO_ROW_MID][display].color = color;
+
+        r->bd[INFO_ROW_MID][display + 1].ch = draw && key_nb > 9 ? L'+' : L' ';
+        r->bd[INFO_ROW_MID][display + 1].color = color;
+
+        display += 3;
+    }
+}
+
 // Overall render function starting from the map.
 void render(Render_Buffer* r, map* m) {
     player* p = get_player(m);
@@ -497,6 +520,7 @@ void render_from_player(Render_Buffer* r, player* p) {
     render_health(r, p);
     render_mental_health(r, p);
     render_timer(r);
+    render_keyholder(r, get_player_keyholder(p));
 }
 #pragma endregion
 
@@ -1113,6 +1137,7 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
             update_screen(r);
         } else if (USE_KEY('B') || USE_KEY('b')) {
             write_str(r->bd, INFO_ROW_MID, 2, " ", RENDER_WIDTH - 4, COLOR_DEFAULT);
+            kill_all_projectiles(r);
             if (load_game("data/save.dat", p, m, h)) {
                 loaded_a_game = true;
                 LOG_INFO("Game loaded successfully!");

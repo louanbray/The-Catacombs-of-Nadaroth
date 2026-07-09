@@ -110,14 +110,26 @@ bool check_lootable_interaction(player* p, int x, int y) {
     int hotbar_index = get_hotbar_index_of_usable_item(h, loot->key);
 
     bool has_key = loot->key != USABLE_ITEM_NONE;
+    bool has_key_in_keyholder = false;
 
-    if (has_key && hotbar_index == -1) return false;
+    Rarity r = get_key_rarity(loot->key);
+    keyholder* k = get_player_keyholder(p);
+
+    if (has_key && hotbar_index == -1) {
+        if (!keyholder_has_key_of_rarity(k, r)) return false;
+        has_key_in_keyholder = true;
+    }
     if (!can_interact(p, it)) return false;
     remove_entity_from_chunk(e);
 
     open_lootable_from_chunk(get_player_chunk(p), it);
 
-    if (has_key) hotbar_drop(h, hotbar_index, true);
+    if (has_key) {
+        if (has_key_in_keyholder)
+            add_keyholder_keys_of_rarity(k, r, -1);
+        else
+            hotbar_drop(h, hotbar_index, true);
+    }
     destroy_entity(e);
     return true;
 }
@@ -135,13 +147,26 @@ PlayerMovementResult collide_lootable(player* p, item* it) {
     lootable* loot = get_item_spec(i);
 
     bool has_key = loot->key != USABLE_ITEM_NONE;
-    if (has_key && !key) return MOV_CANT_MOVE;
-    if (has_key && get_item_usable_type(key) != loot->key) return MOV_CANT_MOVE;
+    bool has_key_in_keyholder = false;
+
+    Rarity r = get_key_rarity(loot->key);
+    keyholder* k = get_player_keyholder(p);
+
+    if ((has_key && !key) || (has_key && get_item_usable_type(key) != loot->key)) {
+        if (!keyholder_has_key_of_rarity(k, r)) return MOV_CANT_MOVE;
+        has_key_in_keyholder = true;
+    }
+
     remove_entity_from_chunk(e);
 
     open_lootable_from_chunk(get_player_chunk(p), i);
 
-    if (has_key) hotbar_drop(h, get_selected_slot(h), true);
+    if (has_key) {
+        if (has_key_in_keyholder)
+            add_keyholder_keys_of_rarity(k, r, -1);
+        else
+            hotbar_drop(h, get_selected_slot(h), true);
+    }
     destroy_entity(e);
     return MOV_PICKED_UP_ENTITY;
 }
@@ -161,7 +186,7 @@ PlayerMovementResult pickup_from_chunk(player* p, item* i) {
         remove_item(get_player_chunk(p), i);
     }
 
-    pickup(get_player_hotbar(p), i);
+    pickup(p, i);
 
     return MOV_PICKED_UP + isAnEntity;
 }

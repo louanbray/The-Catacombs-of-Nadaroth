@@ -47,6 +47,8 @@
 #define PLAYER_DESIGN_BRAWLER 9632
 #define PLAYER_DESIGN_SHIELD 9960
 
+#define CHEST_KEY_DESIGN L'⚿'
+
 /// @brief Inventory
 #define HOTBAR_SIZE 9
 
@@ -79,7 +81,7 @@ TODO LIST:
 - Implement status menu                                                                                                           [RENDER/DEV] (LOW)    {DONE}
 ? - Work on menus (!!Username!!, stat attribution aso...)                                                                         [RENDER/DEV] (LOW)
 ? - Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
-! key holder (found if?? achievement clue) next to hotbar else keys in hotbar + unlock keycombos (achievement clues -> special movements) +
+! key holder :check: (found if?? achievement clue)  + unlock keycombos (achievement clues -> special movements) +
 ! add random chunk generation + add lookup chunk item (spoils what type of chunk will the gate lead to) +
 ! patch player char not being cleaned after respawn + add chests sfx + create boss room (create boss type file parser/animation framework) +
 ! prepare inventory extension for later + rework bomb + rework escape rooms + minimap? for unlocked chunks {'#', ' '} unlockable later +
@@ -113,10 +115,12 @@ typedef enum ItemType {  //? MODIFY TO ADD ITEM TYPES
 } ItemType;
 
 typedef enum Rarity {
+    RARITY_NONE = -1,
     RARITY_BRONZE,
     RARITY_SILVER,
     RARITY_GOLD,
     RARITY_NADINO,
+    RARITY_COUNT
 } Rarity;
 
 typedef enum LootTableID {
@@ -138,11 +142,14 @@ typedef enum UsableItem {
     USABLE_ITEM_NADINO_BOW,
     USABLE_ITEM_BOWS_END,  // Marker to separate bows from other usable items
 
-    // Other
+    // Keys
     USABLE_ITEM_BRONZE_KEY,
     USABLE_ITEM_SILVER_KEY,
     USABLE_ITEM_GOLD_KEY,
     USABLE_ITEM_NADINO_KEY,
+    USABLE_ITEM_KEYS_END,
+
+    // Other
     USABLE_ITEM_BOMB,  // Wanna explode a chunk ? Here's what you need (BEWARE: NO LOOT WILL BE GIVEN | A NEW CHUNK WILL BE GENERATED HERE NEXT TIME (or the same if unlucky hehe)) (SILVER)
     //? Add armors / potions (consumables = stats up) if enough time
 
@@ -247,6 +254,15 @@ typedef enum PlayerClass {
     // count
     PLAYER_CLASS_COUNT
 } PlayerClass;
+
+typedef enum KeyHolderLevel {
+    KEYHOLDER_LOCKED,
+    KEYHOLDER_BRONZE,
+    KEYHOLDER_SILVER,
+    KEYHOLDER_GOLD,
+    KEYHOLDER_NADINO,
+    KEYHOLDER_MAX_LEVEL
+} KeyHolderLevel;
 
 static const int ScorePerPhase[] = {0, 25, 75, 210, 630, 0, 0};  //! TEMPORARY (1870 removed)
 

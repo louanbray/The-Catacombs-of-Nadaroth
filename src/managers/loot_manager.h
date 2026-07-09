@@ -4,6 +4,8 @@
 typedef struct item item;
 typedef struct lootable lootable;
 
+#include "../utils/constants.h"
+
 /**
  * @brief Returns an item generated using the loot table odds from this specific lootable
  *
@@ -20,5 +22,7 @@ void init_loot_tables();
 /// @brief Set loot manager seed
 /// @param seed
 void seed_loot_manager(unsigned int seed);
+
+Color get_color_for_rarity(Rarity rarity_index);
 
 #endif

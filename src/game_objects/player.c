@@ -75,6 +75,7 @@ typedef struct player {
     int x, y, px, py;
     chunk* current_chunk;
     hotbar* hotbar;
+    keyholder* keyholder;
     int health, max_health, mental_health;
     int damage, arrow_speed;
     int range, infinity;
@@ -109,6 +110,8 @@ void destroy_player(player* p) {
     if (p == NULL) return;
     if (p->name != NULL)
         free(p->name);
+    if (p->keyholder)
+        destroy_keyholder(p->keyholder);
     free(p);
 }
 
@@ -122,6 +125,7 @@ player* create_player(map* m) {
     p->arrow_speed = DEFAULT_ARROW_SPEED;
     p->infinity = DEFAULT_INFINITY;
     p->hotbar = NULL;
+    p->keyholder = create_keyholder();
     p->name = NULL;
     p->map = m;
     p->phase = GAMEPHASE_INTRODUCTION;
@@ -267,6 +271,10 @@ void set_player_phase(player* p, GamePhase phase) {
 
 PlayerClass get_player_class(player* p) {
     return p->class;
+}
+
+keyholder* get_player_keyholder(player* p) {
+    return p->keyholder;
 }
 
 void increment_player_phase(player* p) {

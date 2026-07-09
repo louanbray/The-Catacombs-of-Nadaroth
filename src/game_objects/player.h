@@ -371,6 +371,11 @@ bool can_player_die();
  */
 PlayerClass get_player_class(player* p);
 
+/// @brief Returns the player's keyholder
+/// @param p player
+/// @return keyholder
+keyholder* get_player_keyholder(player* p);
+
 /**
  * @brief Updates the survivor countdown (decrease it by the time elapsed) and add achievement progress if it goes to 0.
  *

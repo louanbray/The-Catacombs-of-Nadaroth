@@ -18,7 +18,7 @@
 #include "../utils/logger.h"
 #include "projectile_manager.h"
 
-#define SAVE_VERSION 5
+#define SAVE_VERSION 6
 #define SAVE_MAGIC 0x4E414430  // "NAD0" in hex
 
 #ifdef _WIN32
@@ -28,6 +28,30 @@ typedef long suseconds_t;
 // Temporary storage for player's chunk coordinates during load
 static int g_player_chunk_x = 0;
 static int g_player_chunk_y = 0;
+
+static bool is_valid_difficulty_raw(int32_t difficulty) {
+    return difficulty == DIFFICULTY_EASY || difficulty == DIFFICULTY_HARD;
+}
+
+static bool is_valid_timeval_raw(int64_t seconds, int64_t microseconds) {
+    return seconds >= 0 && microseconds >= 0 && microseconds < 1000000;
+}
+
+static bool read_timeval_fixed(FILE* f, struct timeval* out) {
+    if (!f || !out) return false;
+
+    int64_t seconds = 0;
+    int64_t microseconds = 0;
+
+    if (fread(&seconds, sizeof(int64_t), 1, f) != 1) return false;
+    if (fread(&microseconds, sizeof(int64_t), 1, f) != 1) return false;
+
+    if (!is_valid_timeval_raw(seconds, microseconds)) return false;
+
+    out->tv_sec = (time_t)seconds;
+    out->tv_usec = (suseconds_t)microseconds;
+    return true;
+}
 
 /// @brief Save player data to file
 static bool save_player_data(FILE* f, player* p) {
@@ -75,6 +99,17 @@ static bool save_player_data(FILE* f, player* p) {
     fwrite(&chunk_x, sizeof(int), 1, f);
     fwrite(&chunk_y, sizeof(int), 1, f);
 
+    // Save player's keyholder (level + counts per rarity)
+    keyholder* kh = get_player_keyholder(p);
+    int kh_level = KEYHOLDER_LOCKED;
+    if (kh) kh_level = (int)get_keyholder_level(kh);
+    fwrite(&kh_level, sizeof(int), 1, f);
+    for (int r = 0; r < RARITY_COUNT; r++) {
+        int cnt = 0;
+        if (kh) cnt = get_keyholder_keys_of_rarity(kh, (Rarity)r);
+        fwrite(&cnt, sizeof(int), 1, f);
+    }
+
     return true;
 }
 
@@ -106,6 +141,14 @@ static bool load_player_data(FILE* f, player* p) {
     fread(&chunk_x, sizeof(int), 1, f);
     fread(&chunk_y, sizeof(int), 1, f);
 
+    // Read player's keyholder (level + counts per rarity)
+    int kh_level = 0;
+    fread(&kh_level, sizeof(int), 1, f);
+    int kh_counts[RARITY_COUNT];
+    for (int r = 0; r < RARITY_COUNT; r++) {
+        fread(&kh_counts[r], sizeof(int), 1, f);
+    }
+
     // Store chunk coordinates in globals for later restoration
     g_player_chunk_x = chunk_x;
     g_player_chunk_y = chunk_y;
@@ -128,6 +171,15 @@ static bool load_player_data(FILE* f, player* p) {
     set_player_deaths(p, deaths);
 
     set_player_health_raw(p, health);
+
+    // Restore keyholder data
+    keyholder* kh = get_player_keyholder(p);
+    if (kh) {
+        set_keyholder_level(kh, (KeyHolderLevel)kh_level);
+        for (int r = 0; r < RARITY_COUNT; r++) {
+            set_keyholder_keys_of_rarity(kh, (Rarity)r, kh_counts[r]);
+        }
+    }
 
     return true;
 }
@@ -188,6 +240,8 @@ static bool load_hotbar_data(FILE* f, hotbar* h) {
         LOG_ERROR("Hotbar size mismatch in save file");
         return false;
     }
+
+    clear_hotbar(h);
 
     // Load each slot
     for (int i = 0; i < max_size; i++) {
@@ -265,12 +319,29 @@ static bool save_item_data(FILE* f, item* it) {
             fwrite(&e->score, sizeof(int), 1, f);
             fwrite(&e->attack_delay, sizeof(int), 1, f);
             fwrite(&e->attack_interval, sizeof(int), 1, f);
+            fwrite(&e->can_drop, sizeof(bool), 1, f);
+            fwrite(&e->loot.key, sizeof(UsableItem), 1, f);
+            fwrite(&e->loot.none, sizeof(int), 1, f);
+            fwrite(&e->loot.bronze, sizeof(int), 1, f);
+            fwrite(&e->loot.silver, sizeof(int), 1, f);
+            fwrite(&e->loot.gold, sizeof(int), 1, f);
+            fwrite(&e->loot.nadino, sizeof(int), 1, f);
+            fwrite(&e->loot.id, sizeof(LootTableID), 1, f);
         } else {
             // Write zeros if no spec (shouldn't happen for enemies)
             int zero = 0;
+            bool zero_bool = false;
             for (int i = 0; i < 8; i++) {
                 fwrite(&zero, sizeof(int), 1, f);
             }
+            fwrite(&zero_bool, sizeof(bool), 1, f);
+            fwrite(&zero, sizeof(UsableItem), 1, f);
+            fwrite(&zero, sizeof(int), 1, f);
+            fwrite(&zero, sizeof(int), 1, f);
+            fwrite(&zero, sizeof(int), 1, f);
+            fwrite(&zero, sizeof(int), 1, f);
+            fwrite(&zero, sizeof(int), 1, f);
+            fwrite(&zero, sizeof(LootTableID), 1, f);
         }
     } else if (type == ITEMTYPE_LOOTABLE) {
         lootable* loot = (lootable*)get_item_spec(it);
@@ -284,7 +355,7 @@ static bool save_item_data(FILE* f, item* it) {
             fwrite(&loot->id, sizeof(LootTableID), 1, f);
         } else {
             int zero = 0;
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 7; i++) {
                 fwrite(&zero, sizeof(int), 1, f);
             }
         }
@@ -331,6 +402,14 @@ static item* load_item_data(FILE* f, chunk* c, dynarray* items_array) {
         fread(&e->score, sizeof(int), 1, f);
         fread(&e->attack_delay, sizeof(int), 1, f);
         fread(&e->attack_interval, sizeof(int), 1, f);
+        fread(&e->can_drop, sizeof(bool), 1, f);
+        fread(&e->loot.key, sizeof(UsableItem), 1, f);
+        fread(&e->loot.none, sizeof(int), 1, f);
+        fread(&e->loot.bronze, sizeof(int), 1, f);
+        fread(&e->loot.silver, sizeof(int), 1, f);
+        fread(&e->loot.gold, sizeof(int), 1, f);
+        fread(&e->loot.nadino, sizeof(int), 1, f);
+        fread(&e->loot.id, sizeof(LootTableID), 1, f);
         specialize(it, used, hidden, e);
     } else if (type == ITEMTYPE_LOOTABLE) {
         lootable* loot = malloc(sizeof(lootable));
@@ -809,15 +888,19 @@ bool save_game(const char* filename, player* p, map* m, hotbar* h) {
     uint32_t version = SAVE_VERSION;
     struct timeval game_started = get_game_started();
     struct timeval time_played = get_time_played();
-    Difficulty difficulty = get_difficulty();
+    int32_t difficulty = (int32_t)get_difficulty();
 
     fwrite(&magic, sizeof(uint32_t), 1, f);
     fwrite(&version, sizeof(uint32_t), 1, f);
-    fwrite(&game_started.tv_sec, sizeof(time_t), 1, f);
-    fwrite(&game_started.tv_usec, sizeof(suseconds_t), 1, f);
-    fwrite(&time_played.tv_sec, sizeof(time_t), 1, f);
-    fwrite(&time_played.tv_usec, sizeof(suseconds_t), 1, f);
-    fwrite(&difficulty, sizeof(Difficulty), 1, f);
+    int64_t game_started_sec = (int64_t)game_started.tv_sec;
+    int64_t game_started_usec = (int64_t)game_started.tv_usec;
+    int64_t time_played_sec = (int64_t)time_played.tv_sec;
+    int64_t time_played_usec = (int64_t)time_played.tv_usec;
+    fwrite(&game_started_sec, sizeof(int64_t), 1, f);
+    fwrite(&game_started_usec, sizeof(int64_t), 1, f);
+    fwrite(&time_played_sec, sizeof(int64_t), 1, f);
+    fwrite(&time_played_usec, sizeof(int64_t), 1, f);
+    fwrite(&difficulty, sizeof(int32_t), 1, f);
 
     // Save player data
     if (!save_player_data(f, p)) {
@@ -961,24 +1044,29 @@ bool load_game(const char* filename, player* p, map* m, hotbar* h) {
 
     struct timeval game_started;
     struct timeval time_played;
-    time_t tv_sec;
-    suseconds_t tv_usec;
     Difficulty difficulty;
+    bool header_loaded = false;
 
-    fread(&tv_sec, sizeof(time_t), 1, f);
-    fread(&tv_usec, sizeof(suseconds_t), 1, f);
+    if (version == SAVE_VERSION) {
+        int32_t difficulty_raw = 0;
+        header_loaded = read_timeval_fixed(f, &game_started) &&
+                        read_timeval_fixed(f, &time_played) &&
+                        fread(&difficulty_raw, sizeof(int32_t), 1, f) == 1 &&
+                        is_valid_difficulty_raw(difficulty_raw);
+        if (header_loaded) {
+            difficulty = (Difficulty)difficulty_raw;
+        }
+    }
 
-    game_started.tv_sec = tv_sec;
-    game_started.tv_usec = tv_usec;
+    if (!header_loaded) {
+        LOG_ERROR("Failed to read save header");
+        fclose(f);
+        remove(temp_filename);
+        return false;
+    }
+
     set_game_started(game_started);
-
-    fread(&tv_sec, sizeof(time_t), 1, f);
-    fread(&tv_usec, sizeof(suseconds_t), 1, f);
-    time_played.tv_sec = tv_sec;
-    time_played.tv_usec = tv_usec;
     set_time_played(time_played);
-
-    fread(&difficulty, sizeof(Difficulty), 1, f);
     set_difficulty(difficulty);
 
     // Load player data

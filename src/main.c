@@ -94,6 +94,7 @@ void move(Render_Buffer* screen, player* p, int dir) {
         case MOV_PICKED_UP:
             render_player(screen, p);
             render_hotbar(screen, get_player_hotbar(p));
+            render_keyholder(screen, get_player_keyholder(p));
             break;
         case MOV_PICKED_UP_ENTITY:
             render_from_player(screen, p);
@@ -551,6 +552,30 @@ int main(int argc, char* argv[]) {
                 render_mental_health(screen, PLAYER_L);
                 update_screen(screen);
                 LOG_INFO("Player mental health decreased by 1");
+            } else if (USE_KEY('<')) {
+                keyholder* k = get_player_keyholder(PLAYER_L);
+                set_keyholder_level(k, get_keyholder_level(k) - 1);
+                render_keyholder(screen, k);
+                update_screen(screen);
+                LOG_INFO("Player keyholder level decreased by 1");
+            } else if (USE_KEY('>')) {
+                keyholder* k = get_player_keyholder(PLAYER_L);
+                keyholder_level_up(k);
+                render_keyholder(screen, k);
+                update_screen(screen);
+                LOG_INFO("Player keyholder level increased by 1");
+            } else if (USE_KEY(';')) {
+                keyholder* k = get_player_keyholder(PLAYER_L);
+                add_keyholder_keys_of_rarity(k, RARITY_BRONZE, -1);
+                render_keyholder(screen, k);
+                update_screen(screen);
+                LOG_INFO("Player keyholder level decreased by 1");
+            } else if (USE_KEY(':')) {
+                keyholder* k = get_player_keyholder(PLAYER_L);
+                add_keyholder_keys_of_rarity(k, RARITY_BRONZE, 1);
+                render_keyholder(screen, k);
+                update_screen(screen);
+                LOG_INFO("Player keyholder level increased by 1");
             } else if (USE_KEY('K') || USE_KEY('k')) {
                 simulate_projectile_hit(get_player_health(PLAYER_L), PLAYER_L, screen);
                 render_health(screen, PLAYER_L);

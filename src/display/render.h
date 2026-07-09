@@ -9,6 +9,7 @@
 
 // Forward declarations for types used elsewhere
 typedef struct hotbar hotbar;
+typedef struct keyholder keyholder;
 typedef struct dynarray dynarray;
 typedef struct player player;
 typedef struct chunk chunk;
@@ -100,6 +101,11 @@ void render_player(Render_Buffer* screen, player* player);
 /// @param screen Pointer to the Render_Buffer.
 /// @param hotbar Pointer to the hotbar.
 void render_hotbar(Render_Buffer* screen, hotbar* hotbar);
+
+/// @brief Renders the keyholder on the board
+/// @param r Pointer to the Render_Buffer
+/// @param k Pointer to the keyholder
+void render_keyholder(Render_Buffer* r, keyholder* k);
 
 /// @brief Renders the player's health on the board.
 /// @param screen Pointer to the Render_Buffer.
