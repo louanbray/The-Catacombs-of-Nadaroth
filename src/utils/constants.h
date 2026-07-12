@@ -33,6 +33,14 @@
 #define RECENTER_X (RENDER_WIDTH / 2 + 1)
 #define RECENTER_Y (RENDER_HEIGHT / 2 - 1)
 
+#define RTW_X(x) (x - RENDER_WIDTH / 2)
+#define RTW_Y(y) (RENDER_HEIGHT / 2 - 2 - y)
+#define WTR_X(x) (x + RENDER_WIDTH / 2)
+#define WTR_Y(y) (RENDER_HEIGHT / 2 - 2 - y)
+
+#define ITR(xy) (xy - 1)
+#define RTI(xy) (xy + 1)
+
 #define PLAYBOX_MIN_OX -64
 #define PLAYBOX_MAX_OX 63
 #define PLAYBOX_MIN_OY -17
@@ -81,7 +89,7 @@ TODO LIST:
 - Implement status menu                                                                                                           [RENDER/DEV] (LOW)    {DONE}
 ? - Work on menus (!!Username!!, stat attribution aso...)                                                                         [RENDER/DEV] (LOW)
 ? - Easter Eggs (Konami Code in the character choosing menu)   									                                  [DEV] (LOW)
-! key holder :check: (found if?? achievement clue)  + unlock keycombos (achievement clues -> special movements) +
+! key holder :check: (found if?? achievement clue) + unlock keycombos (achievement clues -> special movements) +
 ! add random chunk generation + add lookup chunk item (spoils what type of chunk will the gate lead to) +
 ! patch player char not being cleaned after respawn + add chests sfx + create boss room (create boss type file parser/animation framework) +
 ! prepare inventory extension for later + rework bomb + rework escape rooms + minimap? for unlocked chunks {'#', ' '} unlockable later +

@@ -3,8 +3,10 @@
 #include <string.h>
 
 FILE* g_log_file = NULL;
+FILE* d_log_file = NULL;
 
 #define LOG_FILE_PATH "data/game.log"
+#define DEBUG_FILE_PATH "data/debug.log"
 
 void init_logger() {
     g_log_file = fopen(LOG_FILE_PATH, "a");
@@ -25,6 +27,9 @@ void init_logger() {
     fprintf(g_log_file, "Game session started at %s\n", timestamp);
     fprintf(g_log_file, "================================================================================\n");
     fflush(g_log_file);
+
+    d_log_file = fopen(DEBUG_FILE_PATH, "w");
+    if (d_log_file == NULL) return;
 }
 
 void close_logger() {
@@ -40,5 +45,10 @@ void close_logger() {
 
         fclose(g_log_file);
         g_log_file = NULL;
+    }
+    if (d_log_file != NULL) {
+        fprintf(d_log_file, "================================================================================\n");
+        fclose(d_log_file);
+        d_log_file = NULL;
     }
 }

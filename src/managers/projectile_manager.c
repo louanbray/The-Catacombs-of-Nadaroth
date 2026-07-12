@@ -104,7 +104,7 @@ void update_projectiles(Render_Buffer* r) {
 
         int speed = 2;
 
-        wchar_t c = render_get_cell_char(r, RENDER_HEIGHT - p->y, p->x * speed - 1);
+        wchar_t c = render_get_cell_char(r, ITR(p->y), ITR(p->x * speed));
 
         if (c == L' ') {
             wprintf(L"\033[%d;%dH ", p->y, p->x * speed);
@@ -141,7 +141,7 @@ void update_projectiles(Render_Buffer* r) {
             p->distance_traveled++;  // Increment distance when moving vertically
         }
 
-        c = render_get_cell_char(r, RENDER_HEIGHT - p->y, p->x * speed - 1);
+        c = render_get_cell_char(r, ITR(p->y), ITR(p->x * speed));
 
         if (c == L' ') {
             if (p->home)

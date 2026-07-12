@@ -34,9 +34,9 @@ typedef struct Render_Buffer {
     int* rc;     // row changed flags
 } Render_Buffer;
 
-#define INFO_ROW_BOTTOM 1
-#define INFO_ROW_MID 2
-#define INFO_ROW_TOP 3
+#define INFO_ROW_BOTTOM (RENDER_HEIGHT - 2)
+#define INFO_ROW_MID (RENDER_HEIGHT - 3)
+#define INFO_ROW_TOP (RENDER_HEIGHT - 4)
 
 #define MAX_LINE 512
 
@@ -185,26 +185,26 @@ void blank_screen(board b) {
 void clear_screen(board b) {
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         for (int j = 0; j < RENDER_WIDTH; j++) {
-            if (i > 0 && (j == 0 || j == RENDER_WIDTH - 1)) {
+            if (i < RENDER_HEIGHT - 1 && (j == 0 || j == RENDER_WIDTH - 1)) {
                 if (j == 0) {
-                    if (i == JUNCTION_HEIGHT)
+                    if (i == RENDER_HEIGHT - 1 - JUNCTION_HEIGHT)
                         b[i][j].ch = L'╠';
-                    else if (i == RENDER_HEIGHT - 1)
+                    else if (i == 0)
                         b[i][j].ch = L'╔';
                     else
                         b[i][j].ch = L'║';
                 } else if (j == RENDER_WIDTH - 1) {
-                    if (i == JUNCTION_HEIGHT)
+                    if (i == RENDER_HEIGHT - 1 - JUNCTION_HEIGHT)
                         b[i][j].ch = L'╣';
-                    else if (i == RENDER_HEIGHT - 1)
+                    else if (i == 0)
                         b[i][j].ch = L'╗';
                     else
                         b[i][j].ch = L'║';
                 }
-            } else if ((i == 0 || i == RENDER_HEIGHT - 1) || i == 4) {
+            } else if ((i == 0 || i == RENDER_HEIGHT - 1) || i == RENDER_HEIGHT - 1 - JUNCTION_HEIGHT) {
                 if (j != 0 && j != RENDER_WIDTH - 1) {
                     b[i][j].ch = L'═';
-                } else if (i == 0) {
+                } else if (i == RENDER_HEIGHT - 1) {
                     if (j == 0)
                         b[i][j].ch = L'╚';
                     else
@@ -264,8 +264,8 @@ board get_board(Render_Buffer* r) {
 #pragma region RenderUtils
 // Places a character (with default color) at a position (using center-based coordinates).
 void render_char(board b, int x, int y, int c) {
-    int draw_y = y + 2 + RENDER_HEIGHT / 2;
-    int draw_x = x + RENDER_WIDTH / 2;
+    int draw_y = WTR_Y(y);
+    int draw_x = WTR_X(x);
     if (draw_y >= 0 && draw_y < RENDER_HEIGHT && draw_x >= 0 && draw_x < RENDER_WIDTH) {
         b[draw_y][draw_x].ch = (wchar_t)c;
         b[draw_y][draw_x].color = COLOR_DEFAULT;
@@ -273,8 +273,8 @@ void render_char(board b, int x, int y, int c) {
 }
 
 void render_char_colored(board b, int x, int y, int c, int color) {
-    int draw_y = y + 2 + RENDER_HEIGHT / 2;
-    int draw_x = x + RENDER_WIDTH / 2;
+    int draw_y = WTR_Y(y);
+    int draw_x = WTR_X(x);
     if (draw_y >= 0 && draw_y < RENDER_HEIGHT && draw_x >= 0 && draw_x < RENDER_WIDTH) {
         b[draw_y][draw_x].ch = (wchar_t)c;
         b[draw_y][draw_x].color = color;
@@ -287,25 +287,17 @@ wchar_t render_get_cell_char(Render_Buffer* screen, int y, int x) {
 
 // Renders a string onto the render buffer at the specified coordinates.
 void render_string(Render_Buffer* screen, int x, int y, char* s, int len) {
-    // Adjust coordinates to be relative to the center.
-    int draw_x = x + RENDER_WIDTH / 2;
-    int draw_y = y + 2 + RENDER_HEIGHT / 2;
-    write_str(screen->bd, draw_y, draw_x, s, len, COLOR_DEFAULT);
+    write_str(screen->bd, WTR_Y(y), WTR_X(x), s, len, COLOR_DEFAULT);
 }
 
 // Renders a string onto the render buffer at the specified coordinates.
 void render_colored_string(Render_Buffer* screen, int x, int y, char* s, int len, int color) {
-    // Adjust coordinates to be relative to the center.
-    int draw_x = x + RENDER_WIDTH / 2;
-    int draw_y = y + 2 + RENDER_HEIGHT / 2;
-    write_str(screen->bd, draw_y, draw_x, s, len, color);
+    write_str(screen->bd, WTR_Y(y), WTR_X(x), s, len, color);
 }
 
 // Renders a wide string onto the render buffer at the specified coordinates.
 void render_unicode_string(Render_Buffer* screen, int x, int y, wchar_t* s, int len) {
-    int draw_x = x + RENDER_WIDTH / 2;
-    int draw_y = y + 2 + RENDER_HEIGHT / 2;
-    write_wstr(screen->bd, draw_y, draw_x, s, len, COLOR_DEFAULT);
+    write_wstr(screen->bd, WTR_Y(y), WTR_X(x), s, len, COLOR_DEFAULT);
 }
 
 #pragma endregion
@@ -389,7 +381,7 @@ void render_timer(Render_Buffer* r) {
 
 // Renders the player onto the board.
 void render_player(Render_Buffer* r, player* p) {
-    if (r->bd[get_player_py(p) + 2 + RENDER_HEIGHT / 2][get_player_px(p) + RENDER_WIDTH / 2].ch == get_player_design(p)) render_char(r->bd, get_player_px(p), get_player_py(p), ' ');
+    if (r->bd[WTR_Y(get_player_py(p))][WTR_X(get_player_px(p))].ch == get_player_design(p)) render_char(r->bd, get_player_px(p), get_player_py(p), ' ');
     render_char_colored(r->bd, get_player_x(p), get_player_y(p), get_player_design(p), get_player_color(p));
 }
 
@@ -530,7 +522,7 @@ void render_from_player(Render_Buffer* r, player* p) {
 #pragma region ScreenUpdate
 void update_line_(Render_Buffer* r, int row) {
     if (!r->rc[row]) return;
-    int screen_row = RENDER_HEIGHT - row;
+    int screen_row = row + 1;
     r->rc[row] = 0;
 
     int start = -1;
@@ -684,13 +676,13 @@ void read_text_into_render(Render_Buffer* r, FILE* file) {
         process_text_line(buffer, RENDER_WIDTH);
         size_t len = wcslen(buffer);
         if (len > RENDER_WIDTH - 2) len = RENDER_WIDTH - 2;
-        write_wstr(r->bd, RENDER_HEIGHT - i - 2, 1, buffer, len, COLOR_DEFAULT);
+        write_wstr(r->bd, i + 1, 1, buffer, len, COLOR_DEFAULT);
         i++;
     }
     for (; i < RENDER_HEIGHT - 2; i++) {
         if (i != REVERSED_INBOX_JUNCTION_HEIGHT)
             for (int j = 1; j < RENDER_WIDTH - 1; j++)
-                r->bd[RENDER_HEIGHT - i - 2][j].ch = L' ';
+                r->bd[i + 1][j].ch = L' ';
     }
 }
 
@@ -712,8 +704,8 @@ void display_item_description(Render_Buffer* r, void* it) {
 
     for (int i = 0; i < ITEM_DESCRIPTION_Y_OFFSET; i++) {
         for (int j = 1; j < RENDER_WIDTH - 1; j++) {
-            r->bd[RENDER_HEIGHT - i - 2][j].ch = L' ';
-            r->bd[RENDER_HEIGHT - i - 2][j].color = COLOR_DEFAULT;
+            r->bd[i + 1][j].ch = L' ';
+            r->bd[i + 1][j].color = COLOR_DEFAULT;
         }
     }
 
@@ -722,15 +714,15 @@ void display_item_description(Render_Buffer* r, void* it) {
 
     while (is_game_running() && fgetws_from_string(buffer, RENDER_WIDTH - 1, &desc) != NULL && i < RENDER_HEIGHT - 2) {
         process_text_line(buffer, RENDER_WIDTH);
-        write_wstr(r->bd, RENDER_HEIGHT - i - 2, 1, buffer, RENDER_WIDTH - 2, COLOR_DEFAULT);
+        write_wstr(r->bd, i + 1, 1, buffer, RENDER_WIDTH - 2, COLOR_DEFAULT);
         i++;
     }
 
     for (; i < RENDER_HEIGHT - 2; i++) {
         if (i != REVERSED_INBOX_JUNCTION_HEIGHT)
             for (int j = 1; j < RENDER_WIDTH - 1; j++) {
-                r->bd[RENDER_HEIGHT - i - 2][j].ch = L' ';
-                r->bd[RENDER_HEIGHT - i - 2][j].color = COLOR_DEFAULT;
+                r->bd[i + 1][j].ch = L' ';
+                r->bd[i + 1][j].color = COLOR_DEFAULT;
             }
     }
     render_colored_string(r, TITLE_DISPLAY_X_POS, TITLE_DISPLAY_Y_POS, " [The Eyes of The Wanderer]", 28, COLOR_YELLOW);
@@ -810,8 +802,8 @@ void draw_pattern_at(Render_Buffer* r, Pos p, const char* pattern, int color_for
             color = per_char_colors[i];
         }
 
-        r->bd[RENDER_HEIGHT - p.y][tx].ch = wbuffer[i];
-        r->bd[RENDER_HEIGHT - p.y][tx].color = color;
+        r->bd[p.y - 1][tx].ch = wbuffer[i];
+        r->bd[p.y - 1][tx].color = color;
     }
 }
 
@@ -824,8 +816,8 @@ void clear_pattern_at(Render_Buffer* r, Pos p, int pattern_len) {
     for (int i = 0; i < pattern_len; i++) {
         int tx = p.x + i;
         if (tx < 0 || tx >= RENDER_WIDTH) continue;
-        r->bd[RENDER_HEIGHT - p.y][tx].ch = L' ';
-        r->bd[RENDER_HEIGHT - p.y][tx].color = COLOR_DEFAULT;
+        r->bd[p.y - 1][tx].ch = L' ';
+        r->bd[p.y - 1][tx].color = COLOR_DEFAULT;
     }
 }
 
@@ -872,8 +864,8 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
             for (; row < RENDER_HEIGHT - 2; row++) {
                 if (row != REVERSED_INBOX_JUNCTION_HEIGHT)
                     for (int j = 1; j < RENDER_WIDTH - 1; j++) {
-                        r->bd[RENDER_HEIGHT - row - 2][j].ch = L' ';
-                        r->bd[RENDER_HEIGHT - row - 2][j].color = COLOR_DEFAULT;
+                        r->bd[row + 1][j].ch = L' ';
+                        r->bd[row + 1][j].color = COLOR_DEFAULT;
                     }
             }
             row = 0;
@@ -887,8 +879,8 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
             for (int j = 1; j < RENDER_WIDTH - 2; j++) {
                 if (buffer[j] == L'~') eol = 1;
                 if (eol == 1) buffer[j] = L' ';
-                r->bd[RENDER_HEIGHT - row - 2][j].ch = buffer[j];
-                r->bd[RENDER_HEIGHT - row - 2][j].color = COLOR_DEFAULT;
+                r->bd[row + 1][j].ch = buffer[j];
+                r->bd[row + 1][j].color = COLOR_DEFAULT;
                 if (!eol) {
                     update_screen(r);
                     usleep(delay / 50);
@@ -899,7 +891,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
             row++;
         } else {
             process_text_line(buffer, RENDER_WIDTH);
-            write_wstr(r->bd, RENDER_HEIGHT - row - 2, 1, buffer, wcslen(buffer), COLOR_DEFAULT);
+            write_wstr(r->bd, row + 1, 1, buffer, wcslen(buffer), COLOR_DEFAULT);
             update_screen(r);
             row++;
         }
@@ -929,7 +921,7 @@ void display_statistics(Render_Buffer* r) {
     for (int i = 0; i < STATISTIC_COUNT; i++) {
         wchar_t buffer[20];
         swprintf(buffer, 20, L"%d", get_statistic((enum StatisticID)i));
-        write_wstr(r->bd, RENDER_HEIGHT - row[i] - 1, col[i], buffer, wcslen(buffer), COLOR_DEFAULT);
+        write_wstr(r->bd, row[i], col[i], buffer, wcslen(buffer), COLOR_DEFAULT);
     }
 
     update_screen(r);
@@ -946,10 +938,10 @@ void display_achievements(Render_Buffer* r, int page) {
     clear_screen(r->pv);
     setup_render_buffer(r);
 
-    write_wstr(r->bd, RENDER_HEIGHT / 2 + 1, ACH_ARROW_PREV_X, L" ╱", 2, page == 0 ? COLOR_GRAY : COLOR_DEFAULT);
+    write_wstr(r->bd, RENDER_HEIGHT / 2 - 1, ACH_ARROW_PREV_X, L" ╱", 2, page == 0 ? COLOR_GRAY : COLOR_DEFAULT);
     write_wstr(r->bd, RENDER_HEIGHT / 2, ACH_ARROW_PREV_X, L" ╲", 2, page == 0 ? COLOR_GRAY : COLOR_DEFAULT);
 
-    write_wstr(r->bd, RENDER_HEIGHT / 2 + 1, ACH_ARROW_NEXT_X, L" ╲", 2, page == max_page ? COLOR_GRAY : COLOR_DEFAULT);
+    write_wstr(r->bd, RENDER_HEIGHT / 2 - 1, ACH_ARROW_NEXT_X, L" ╲", 2, page == max_page ? COLOR_GRAY : COLOR_DEFAULT);
     write_wstr(r->bd, RENDER_HEIGHT / 2, ACH_ARROW_NEXT_X, L" ╱", 2, page == max_page ? COLOR_GRAY : COLOR_DEFAULT);
 
     for (int i = page * MAX_ACH_PER_PAGE; i < ACHIEVEMENT_COUNT && i < MAX_ACH_PER_PAGE * (page + 1); i++) {
@@ -963,9 +955,9 @@ void display_achievements(Render_Buffer* r, int page) {
         } else
             swprintf(buffer, RENDER_WIDTH - 1, L"%hs: %hs (%d/%d)", title, "LOCKED", get_achievement_progress((enum AchievementID)i), get_achievement_max_progress((enum AchievementID)i));
 
-        write_wstr(r->bd, RENDER_HEIGHT - ACH_ENTRY_SPACING * (j + 2), ACH_X_OFFSET, buffer, wcslen(buffer), color);
+        write_wstr(r->bd, ACH_ENTRY_SPACING * (j + 2) - 1, ACH_X_OFFSET, buffer, wcslen(buffer), color);
         swprintf(buffer, RENDER_WIDTH - 1, L"└─ %hs", get_achievement_description((enum AchievementID)i));
-        write_wstr(r->bd, RENDER_HEIGHT - ACH_ENTRY_SPACING * (j + 2) - 1, ACH_X_OFFSET, buffer, wcslen(buffer), COLOR_DEFAULT);
+        write_wstr(r->bd, ACH_ENTRY_SPACING * (j + 2), ACH_X_OFFSET, buffer, wcslen(buffer), COLOR_DEFAULT);
     }
     char buffer[50];
     render_string(r, SPACE_TO_EXIT_DISPLAY_X_POS, SPACE_TO_EXIT_DISPLAY_Y_POS, " PRESS [SPACE] TO EXIT", 23);
@@ -998,10 +990,10 @@ void display_settings(Render_Buffer* r, int page) {
     clear_screen(r->pv);
     setup_render_buffer(r);
 
-    write_wstr(r->bd, RENDER_HEIGHT / 2 + 1, SETTINGS_ARROW_PREV_X, L" ╱", 2, page == 0 ? COLOR_GRAY : COLOR_DEFAULT);
+    write_wstr(r->bd, RENDER_HEIGHT / 2 - 1, SETTINGS_ARROW_PREV_X, L" ╱", 2, page == 0 ? COLOR_GRAY : COLOR_DEFAULT);
     write_wstr(r->bd, RENDER_HEIGHT / 2, SETTINGS_ARROW_PREV_X, L" ╲", 2, page == 0 ? COLOR_GRAY : COLOR_DEFAULT);
 
-    write_wstr(r->bd, RENDER_HEIGHT / 2 + 1, SETTINGS_ARROW_NEXT_X, L" ╲", 2, page == max_page ? COLOR_GRAY : COLOR_DEFAULT);
+    write_wstr(r->bd, RENDER_HEIGHT / 2 - 1, SETTINGS_ARROW_NEXT_X, L" ╲", 2, page == max_page ? COLOR_GRAY : COLOR_DEFAULT);
     write_wstr(r->bd, RENDER_HEIGHT / 2, SETTINGS_ARROW_NEXT_X, L" ╱", 2, page == max_page ? COLOR_GRAY : COLOR_DEFAULT);
 
     int first_setting_on_screen = page * MAX_SETTINGS_PER_PAGE;
@@ -1014,9 +1006,9 @@ void display_settings(Render_Buffer* r, int page) {
         int color = get_setting_color((enum SettingID)i);
 
         swprintf(buffer, RENDER_WIDTH - 1, L"%hs: [%d/%d]", title, get_setting_value((enum SettingID)i), get_setting_max_value((enum SettingID)i));
-        write_wstr(r->bd, RENDER_HEIGHT - SETTINGS_ENTRY_SPACING * (j + 2), SETTINGS_X_OFFSET, buffer, wcslen(buffer), color);
+        write_wstr(r->bd, SETTINGS_ENTRY_SPACING * (j + 2) - 1, SETTINGS_X_OFFSET, buffer, wcslen(buffer), color);
         swprintf(buffer, RENDER_WIDTH - 1, L"└─ %hs", get_setting_description((enum SettingID)i));
-        write_wstr(r->bd, RENDER_HEIGHT - SETTINGS_ENTRY_SPACING * (j + 2) - 1, SETTINGS_X_OFFSET, buffer, wcslen(buffer), COLOR_DEFAULT);
+        write_wstr(r->bd, SETTINGS_ENTRY_SPACING * (j + 2), SETTINGS_X_OFFSET, buffer, wcslen(buffer), COLOR_DEFAULT);
     }
     render_string(r, SPACE_TO_EXIT_DISPLAY_X_POS, SPACE_TO_EXIT_DISPLAY_Y_POS, " PRESS [SPACE] TO EXIT", 23);
     render_string(r, SETTINGS_GUI_TITLE_X, SETTINGS_GUI_TITLE_Y, "* SETTINGS *", 13);
@@ -1025,7 +1017,7 @@ void display_settings(Render_Buffer* r, int page) {
 
     int selected = first_setting_on_screen;
 
-    r->bd[RENDER_HEIGHT - SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2)][SETTINGS_POINTER_X].ch = SETTINGS_POINTER_DISPLAY;
+    r->bd[SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2) - 1][SETTINGS_POINTER_X].ch = SETTINGS_POINTER_DISPLAY;
     update_screen(r);
 
     bool left = false, right = false, up = false, down = false;
@@ -1039,7 +1031,7 @@ void display_settings(Render_Buffer* r, int page) {
         if (page != max_page && (USE_KEY('D') || USE_KEY('d'))) right = true;
         if (page != 0 && (USE_KEY('Q') || USE_KEY('q'))) left = true;
         if (up || down) {
-            int y = RENDER_HEIGHT - SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2);
+            int y = SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2) - 1;
             r->bd[y][SETTINGS_POINTER_X].ch = L' ';
             update_line(r, y);
             if (up)
@@ -1048,7 +1040,7 @@ void display_settings(Render_Buffer* r, int page) {
                 selected = min(selected + 1, last_setting_on_screen);
             up = false;
             down = false;
-            y = RENDER_HEIGHT - SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2);
+            y = SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2) - 1;
             r->bd[y][SETTINGS_POINTER_X].ch = SETTINGS_POINTER_DISPLAY;
             update_line(r, y);
         }
@@ -1057,7 +1049,7 @@ void display_settings(Render_Buffer* r, int page) {
                 int j = selected % MAX_SETTINGS_PER_PAGE;
                 const char* title = get_setting_name((enum SettingID)selected);
                 int color = get_setting_color((enum SettingID)selected);
-                int y = RENDER_HEIGHT - SETTINGS_ENTRY_SPACING * (j + 2);
+                int y = SETTINGS_ENTRY_SPACING * (j + 2) - 1;
                 swprintf(buffer, RENDER_WIDTH - 1, L"%hs: [%d/%d]", title, get_setting_value((enum SettingID)selected), get_setting_max_value((enum SettingID)selected));
                 write_wstr(r->bd, y, SETTINGS_X_OFFSET, buffer, RENDER_WIDTH - 2 - SETTINGS_X_OFFSET, color);
                 update_line(r, y);

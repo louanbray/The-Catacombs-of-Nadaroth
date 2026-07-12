@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include "../utils/game_status.h"
+#include "../utils/logger.h"
 
 #ifdef _WIN32
 #include <io.h>
@@ -229,6 +230,8 @@ void parse_sgr_mouse_event(const char* buffer, MouseEvent* event) {
     event->scroll_down = 0;
 
     if (sscanf(buffer, "\033[<%d;%d;%d%c", &button, &x, &y, &event_type) == 4) {
+        // x -= 1;
+        // y -= 1;
         // Check for scroll events (button 64 = scroll up, 65 = scroll down)
         if (button == 64) {
             event->scroll_up = 1;
