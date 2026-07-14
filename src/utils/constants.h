@@ -29,22 +29,33 @@
 /// @brief Render Constants
 #define RENDER_WIDTH 129
 #define RENDER_HEIGHT 41
+#define HUD_HEIGHT 4
+#define PLAY_HEIGHT_MAX (RENDER_HEIGHT - HUD_HEIGHT)
 
 #define RECENTER_X (RENDER_WIDTH / 2 + 1)
 #define RECENTER_Y (RENDER_HEIGHT / 2 - 1)
 
-#define RTW_X(x) (x - RENDER_WIDTH / 2)
-#define RTW_Y(y) (RENDER_HEIGHT / 2 - 2 - y)
-#define WTR_X(x) (x + RENDER_WIDTH / 2)
-#define WTR_Y(y) (RENDER_HEIGHT / 2 - 2 - y)
+#define RTW_X(x) ((x) - RENDER_WIDTH / 2)
+#define RTW_Y(y) (RENDER_HEIGHT / 2 - 2 - (y))
+#define WTR_X(x) ((x) + RENDER_WIDTH / 2)
+#define WTR_Y(y) (RENDER_HEIGHT / 2 - 2 - (y))
 
-#define ITR(xy) (xy - 1)
-#define RTI(xy) (xy + 1)
+#define ITR(xy) ((xy) - 1)
+#define RTI(xy) ((xy) + 1)
+
+#define WTI_X(x) (RTI(WTR_X((x))))
+#define WTI_Y(y) (RTI(WTR_Y((y))))
+#define ITW_X(x) (RTW_X(ITR((x))))
+#define ITW_Y(y) (RTW_Y(ITR((y))))
 
 #define PLAYBOX_MIN_OX -64
 #define PLAYBOX_MAX_OX 63
 #define PLAYBOX_MIN_OY -17
 #define PLAYBOX_MAX_OY 17
+
+#define CLAMP(val, min, max) ((val) < (min) ? (min) : ((val) > (max) ? (max) : (val)))
+#define RAND(max) (rand() % (max + 1))
+#define RAND_RANGE(min, max) ((min) + rand() % ((max) - (min) + 1))
 
 /// @brief Utils
 #define CHAR_TO_INT 49
@@ -54,6 +65,10 @@
 #define PLAYER_DESIGN_CAMO 11201
 #define PLAYER_DESIGN_BRAWLER 9632
 #define PLAYER_DESIGN_SHIELD 9960
+
+///@brief Projectile designs
+#define PLAYER_PROJECTILE_DESIGN L'○'
+#define ENEMY_PROJECTILE_DESIGN L'●'
 
 #define CHEST_KEY_DESIGN L'⚿'
 
@@ -174,8 +189,12 @@ typedef enum UsableItem {
 
 /// @brief chunk type (0,0) -> SPAWN
 typedef enum ChunkType {  //? MODIFY TO ADD LEVELS
+    // NOT GENERATED CHUNKS
     CHUNK_DEBUG,
+    CHUNK_SINGLE,
     CHUNK_SPAWN,
+
+    // GENERATED CHUNKS
     CHUNK_DEFAULT,
     CHUNK_DEFAULT2,
     CHUNK_TREASURE_ROOM,     // Some chests but you need to hunt for keys (Chest value random | chest number and concept need to be worked on)  //! Keys are not implemented
@@ -195,6 +214,8 @@ typedef enum ChunkType {  //? MODIFY TO ADD LEVELS
 /// @brief Every entity (>1 item linked)
 typedef enum EntityType {  //? MODIFY TO ADD ENTITY TYPES
     ENTITY_NULL,
+
+    // Basic Enemies
     ENTITY_ENEMY_BRONZE_1,
     ENTITY_ENEMY_BRONZE_2,
     ENTITY_ENEMY_SILVER_1,
@@ -203,11 +224,18 @@ typedef enum EntityType {  //? MODIFY TO ADD ENTITY TYPES
     ENTITY_ENEMY_GOLD_2,
     ENTITY_ENEMY_NADINO_1,
     ENTITY_ENEMY_NADINO_2,
+
+    // Chests
     ENTITY_BRONZE_CHEST,
     ENTITY_SILVER_CHEST,
     ENTITY_GOLD_CHEST,
     ENTITY_NADINO_CHEST,
+
+    // Star Gate
     ENTITY_STAR_GATE,
+
+    // Bosses
+    ENTITY_ENEMY_BOSS,
 
     // Other entity types...
     ENTITY_TYPE_COUNT  // This will automatically be the count of enum entries

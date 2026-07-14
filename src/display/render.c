@@ -41,7 +41,7 @@ typedef struct Render_Buffer {
 #define MAX_LINE 512
 
 // For the outline box
-#define JUNCTION_HEIGHT 4
+#define JUNCTION_HEIGHT HUD_HEIGHT
 #define REVERSED_INBOX_JUNCTION_HEIGHT (RENDER_HEIGHT - JUNCTION_HEIGHT - 2)
 
 #define HOTBAR_START ((RENDER_WIDTH + 1) / 2 - 10)
@@ -285,6 +285,11 @@ wchar_t render_get_cell_char(Render_Buffer* screen, int y, int x) {
     return screen->bd[y][x].ch;
 }
 
+void render_set_cell_char(Render_Buffer* screen, int y, int x, int c) {
+    if (GAME_PAUSED) return;
+    screen->bd[y][x].ch = c;
+}
+
 // Renders a string onto the render buffer at the specified coordinates.
 void render_string(Render_Buffer* screen, int x, int y, char* s, int len) {
     write_str(screen->bd, WTR_Y(y), WTR_X(x), s, len, COLOR_DEFAULT);
@@ -376,7 +381,6 @@ void render_timer(Render_Buffer* r) {
     wchar_t tmp[total_size];
     swprintf(tmp, total_size, L"      TIME: %dh %dm %ds", hours, minutes, timer);  // To erase previous chars when decreasing in size
     write_wstr(r->bd, INFO_ROW_MID, x_pos, tmp, total_size, COLOR_DEFAULT);
-    update_line(r, INFO_ROW_MID);
 }
 
 // Renders the player onto the board.
@@ -628,6 +632,7 @@ void setup_render_buffer(Render_Buffer* r) {
     r->dump = r->bd;
     r->bd = r->pv;
     r->pv = create_board();
+    clear_screen(r->pv);
     update_screen(r);
     lock_inputs();
     pause_game();
@@ -1033,7 +1038,7 @@ void display_settings(Render_Buffer* r, int page) {
         if (up || down) {
             int y = SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2) - 1;
             r->bd[y][SETTINGS_POINTER_X].ch = L' ';
-            update_line(r, y);
+            update_screen(r);
             if (up)
                 selected = max(selected - 1, first_setting_on_screen);
             else if (down)
@@ -1042,7 +1047,7 @@ void display_settings(Render_Buffer* r, int page) {
             down = false;
             y = SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2) - 1;
             r->bd[y][SETTINGS_POINTER_X].ch = SETTINGS_POINTER_DISPLAY;
-            update_line(r, y);
+            update_screen(r);
         }
         if (incr) {
             if (modify_setting_value((enum SettingID)selected, incr)) {
@@ -1052,7 +1057,7 @@ void display_settings(Render_Buffer* r, int page) {
                 int y = SETTINGS_ENTRY_SPACING * (j + 2) - 1;
                 swprintf(buffer, RENDER_WIDTH - 1, L"%hs: [%d/%d]", title, get_setting_value((enum SettingID)selected), get_setting_max_value((enum SettingID)selected));
                 write_wstr(r->bd, y, SETTINGS_X_OFFSET, buffer, RENDER_WIDTH - 2 - SETTINGS_X_OFFSET, color);
-                update_line(r, y);
+                update_screen(r);
             }
             incr = 0;
         }
@@ -1186,8 +1191,104 @@ void update_line(Render_Buffer* r, int row) {
     fflush(stdout);
 }
 
-// Mark rows as changed and update the screen.
-void update_screen(Render_Buffer* r) {
-    mark_changed_rows(r);
-    update_screen_(r);
+// // Mark rows as changed and update the screen.
+// void update_screen(Render_Buffer* r) {
+//     mark_changed_rows(r);
+//     update_screen_(r);
+// }
+#ifdef _WIN32
+
+static inline void append_ansi_w(wchar_t* dest, int* idx, const wchar_t* src) {
+    while (*src) {
+        dest[(*idx)++] = *src++;
+    }
 }
+
+// VERSION WINDOWS NATIVE (Vitesse maximale via l'API Win32)
+void update_screen(Render_Buffer* r) {
+    static wchar_t frame_buffer[RENDER_WIDTH * RENDER_HEIGHT * 16 + 4096];
+    int out_idx = 0;
+
+    append_ansi_w(frame_buffer, &out_idx, L"\033[H");
+
+    int current_color = -1;
+
+    for (int i = 0; i < RENDER_HEIGHT; i++) {
+        for (int j = 0; j < RENDER_WIDTH; j++) {
+            Cell curr = r->bd[i][j];
+
+            if (curr.color != current_color) {
+                append_ansi_w(frame_buffer, &out_idx, ansi_from_color(curr.color));
+                current_color = curr.color;
+            }
+
+            frame_buffer[out_idx++] = curr.ch;
+        }
+        frame_buffer[out_idx++] = L'\n';
+    }
+
+    append_ansi_w(frame_buffer, &out_idx, ansi_from_color(COLOR_DEFAULT));
+    frame_buffer[out_idx] = L'\0';
+
+    // On écrit directement dans le handle de la console Windows.
+    // Plus aucun conflit possible avec printf/fwrite, pas besoin de fflush, zéro latence.
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD written;
+    WriteConsoleW(hOut, frame_buffer, out_idx, &written, NULL);
+}
+
+#else
+// VERSION LINUX / WSL (Conversion UTF-8 manuelle ultra-rapide en RAM)
+static inline void append_char_utf8(char* dest, int* idx, wchar_t cp) {
+    if (cp < 0x80) {
+        dest[(*idx)++] = (char)cp;
+    } else if (cp < 0x800) {
+        dest[(*idx)++] = (char)((cp >> 6) | 0xC0);
+        dest[(*idx)++] = (char)((cp & 0x3F) | 0x80);
+    } else if (cp < 0x10000) {
+        dest[(*idx)++] = (char)((cp >> 12) | 0xE0);
+        dest[(*idx)++] = (char)(((cp >> 6) & 0x3F) | 0x80);
+        dest[(*idx)++] = (char)((cp & 0x3F) | 0x80);
+    } else if (cp < 0x110000) {
+        dest[(*idx)++] = (char)((cp >> 18) | 0xF0);
+        dest[(*idx)++] = (char)(((cp >> 12) & 0x3F) | 0x80);
+        dest[(*idx)++] = (char)(((cp >> 6) & 0x3F) | 0x80);
+        dest[(*idx)++] = (char)((cp & 0x3F) | 0x80);
+    }
+}
+
+static inline void append_ansi_utf8(char* dest, int* idx, const wchar_t* src) {
+    while (*src) {
+        dest[(*idx)++] = (char)*src++;
+    }
+}
+
+void update_screen(Render_Buffer* r) {
+    static char frame_buffer[RENDER_WIDTH * RENDER_HEIGHT * 32 + 4096];
+    int out_idx = 0;
+
+    append_ansi_utf8(frame_buffer, &out_idx, L"\033[H");
+
+    int current_color = -1;
+
+    for (int i = 0; i < RENDER_HEIGHT; i++) {
+        for (int j = 0; j < RENDER_WIDTH; j++) {
+            Cell curr = r->bd[i][j];
+
+            if (curr.color != current_color) {
+                append_ansi_utf8(frame_buffer, &out_idx, ansi_from_color(curr.color));
+                current_color = curr.color;
+            }
+
+            append_char_utf8(frame_buffer, &out_idx, curr.ch);
+        }
+        frame_buffer[out_idx++] = '\n';
+    }
+
+    append_ansi_utf8(frame_buffer, &out_idx, ansi_from_color(COLOR_DEFAULT));
+    frame_buffer[out_idx] = '\0';
+
+    fwrite(frame_buffer, sizeof(char), out_idx, stdout);
+    fflush(stdout);
+}
+#endif

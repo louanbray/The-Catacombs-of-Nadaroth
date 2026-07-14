@@ -320,6 +320,7 @@ static bool save_item_data(FILE* f, item* it) {
             fwrite(&e->attack_delay, sizeof(int), 1, f);
             fwrite(&e->attack_interval, sizeof(int), 1, f);
             fwrite(&e->can_drop, sizeof(bool), 1, f);
+            fwrite(&e->entity_type, sizeof(EntityType), 1, f);
             fwrite(&e->loot.key, sizeof(UsableItem), 1, f);
             fwrite(&e->loot.none, sizeof(int), 1, f);
             fwrite(&e->loot.bronze, sizeof(int), 1, f);
@@ -335,6 +336,7 @@ static bool save_item_data(FILE* f, item* it) {
                 fwrite(&zero, sizeof(int), 1, f);
             }
             fwrite(&zero_bool, sizeof(bool), 1, f);
+            fwrite(&zero, sizeof(EntityType), 1, f);
             fwrite(&zero, sizeof(UsableItem), 1, f);
             fwrite(&zero, sizeof(int), 1, f);
             fwrite(&zero, sizeof(int), 1, f);

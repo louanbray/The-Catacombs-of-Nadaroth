@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "../game_objects/entity.h"
+#include "logger.h"
 
 typedef struct dynarray {
     element* elt;
@@ -19,14 +20,14 @@ static int max(int n1, int n2) {
 }
 
 void print_dyn(dynarray* t) {
-    printf("len: %d, memlen: %d, elements: [", t->len, t->memlen);
+    LOG_S("len: %d, memlen: %d, elements: [", t->len, t->memlen);
     for (int i = 0; i < t->len; i++) {
-        printf("%p", (void*)t->elt[i]);
+        LOG_S("%p", (void*)t->elt[i]);
         if (i < t->len - 1) {
-            printf(", ");
+            LOG_S(", ");
         }
     }
-    printf("]\n");
+    LOG_S("]\n");
 }
 
 dynarray* create_dyn() {

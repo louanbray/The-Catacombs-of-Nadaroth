@@ -140,27 +140,19 @@ static unsigned int get_held_move_mask() {
            (left ? MOVE_WEST : MOVE_NONE) | (right ? MOVE_EAST : MOVE_NONE);
 }
 
-static bool apply_move_mask(Render_Buffer* screen, player* p, unsigned int mask) {
-    bool moved = false;
-
+static void apply_move_mask(Render_Buffer* screen, player* p, unsigned int mask) {
     if (mask & MOVE_NORTH) {
         move(screen, p, DIR_NORTH);
-        moved = true;
     }
     if (mask & MOVE_SOUTH) {
         move(screen, p, DIR_SOUTH);
-        moved = true;
     }
     if (mask & MOVE_WEST) {
         move(screen, p, DIR_WEST);
-        moved = true;
     }
     if (mask & MOVE_EAST) {
         move(screen, p, DIR_EAST);
-        moved = true;
     }
-
-    return moved;
 }
 
 static void process_held_movement(Render_Buffer* screen, player* p) {
@@ -179,9 +171,8 @@ static void process_held_movement(Render_Buffer* screen, player* p) {
     }
 
     if (mask != last_mask) {
-        if (apply_move_mask(screen, p, mask)) {
-            update_screen(screen);
-        }
+        apply_move_mask(screen, p, mask);
+
         last_mask = mask;
         repeat_start_time = now + HOLD_REPEAT_DELAY_MS;
         next_move_time = repeat_start_time;
@@ -193,9 +184,8 @@ static void process_held_movement(Render_Buffer* screen, player* p) {
     }
 
     if (now >= next_move_time) {
-        if (apply_move_mask(screen, p, mask)) {
-            update_screen(screen);
-        }
+        apply_move_mask(screen, p, mask);
+
         next_move_time += HOLD_REPEAT_INTERVAL_MS;
         if (next_move_time < now) {
             next_move_time = now + HOLD_REPEAT_INTERVAL_MS;
@@ -263,8 +253,6 @@ void compute_entry(Render_Buffer* screen, player* p, int entry) {
         default:
             return;
     }
-
-    update_screen(screen);
 }
 
 void interact(Render_Buffer* screen, player* p, int x, int y) {
@@ -325,8 +313,6 @@ void interact(Render_Buffer* screen, player* p, int x, int y) {
         render_score(screen, p);
         render_mental_health(screen, p);
     }
-
-    update_screen(screen);
 }
 
 void scroll_callback(Render_Buffer* screen, player* p, int x, int y, int direction) {
@@ -347,7 +333,6 @@ void scroll_callback(Render_Buffer* screen, player* p, int x, int y, int directi
 
     select_slot(hb, selected);
     render_hotbar(screen, hb);
-    update_screen(screen);
 }
 
 void* process_input_thread(void* arg) {
@@ -389,8 +374,11 @@ void handle_resume(ResumeState state, Render_Buffer* screen) {
     kill_all_projectiles(screen);
     clear_screen(get_board(screen));
     stop_projectile_system();
-
     clear_local_elements();
+    if (is_debug_mode()) {
+        destroy_asset_manager();
+        init_assets_system();
+    }
     init_local_elements();
 
     init_projectile_system(screen, PLAYER_L, SEED);
@@ -486,6 +474,8 @@ int main(int argc, char* argv[]) {
                 render_timer(screen);
                 accumulated_time -= full_seconds;
             }
+            //? MAIN UPDATE LOOP
+            update_screen(screen);
         }
 
         if (!is_game_running()) {
@@ -540,57 +530,49 @@ int main(int argc, char* argv[]) {
                 kill_all_projectiles(screen);
             } else if (USE_KEY('U') || USE_KEY('u')) {
                 render(screen, MAP_L);
-                update_screen(screen);
                 LOG_INFO("Screen re-rendered");
             } else if (USE_KEY('M') || USE_KEY('m')) {
                 modify_player_mental_health(PLAYER_L, 1);
                 render_mental_health(screen, PLAYER_L);
-                update_screen(screen);
                 LOG_INFO("Player mental health increased by 1");
             } else if (USE_KEY('L') || USE_KEY('l')) {
                 modify_player_mental_health(PLAYER_L, -1);
                 render_mental_health(screen, PLAYER_L);
-                update_screen(screen);
                 LOG_INFO("Player mental health decreased by 1");
             } else if (USE_KEY('<')) {
                 keyholder* k = get_player_keyholder(PLAYER_L);
                 set_keyholder_level(k, get_keyholder_level(k) - 1);
                 render_keyholder(screen, k);
-                update_screen(screen);
                 LOG_INFO("Player keyholder level decreased by 1");
             } else if (USE_KEY('>')) {
                 keyholder* k = get_player_keyholder(PLAYER_L);
                 keyholder_level_up(k);
                 render_keyholder(screen, k);
-                update_screen(screen);
                 LOG_INFO("Player keyholder level increased by 1");
             } else if (USE_KEY(';')) {
                 keyholder* k = get_player_keyholder(PLAYER_L);
                 add_keyholder_keys_of_rarity(k, RARITY_BRONZE, -1);
                 render_keyholder(screen, k);
-                update_screen(screen);
                 LOG_INFO("Player keyholder level decreased by 1");
             } else if (USE_KEY(':')) {
                 keyholder* k = get_player_keyholder(PLAYER_L);
                 add_keyholder_keys_of_rarity(k, RARITY_BRONZE, 1);
                 render_keyholder(screen, k);
-                update_screen(screen);
                 LOG_INFO("Player keyholder level increased by 1");
             } else if (USE_KEY('K') || USE_KEY('k')) {
                 simulate_projectile_hit(get_player_health(PLAYER_L), PLAYER_L, screen);
                 render_health(screen, PLAYER_L);
-                update_screen(screen);
                 LOG_INFO("Player damaged to death");
             } else if (USE_KEY('C') || USE_KEY('c')) {
                 heal_player(PLAYER_L, get_player_max_health(PLAYER_L));
                 render_health(screen, PLAYER_L);
-                update_screen(screen);
                 LOG_INFO("Player health restored to max");
             } else if (USE_KEY('F') || USE_KEY('f')) {
                 set_player_score(PLAYER_L, ScorePerPhase[get_player_phase(PLAYER_L)]);
                 render_score(screen, PLAYER_L);
-                update_screen(screen);
                 LOG_INFO("Player score set to phase score");
+            } else if (USE_KEY('!')) {
+                // debug function of the moment
             }
         }
 

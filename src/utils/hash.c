@@ -3,6 +3,8 @@
 #include <omp.h>
 #include <stdio.h>
 
+#include "logger.h"
+
 /// @brief Bucket list
 typedef struct list {
     int x, y;
@@ -193,12 +195,12 @@ void print_hm(hm* t) {
         list* l = t->hash_map[i];
 
         if (l != NULL) {
-            printf("hash: %d, (len: %d) [", i, t->nb_e);
+            LOG_S("hash: %d, (len: %d) [", i, t->nb_e);
             while (l != NULL) {
-                printf("x: %d, y: %d, chunk: %p | ", l->x, l->y, (void*)l->ck);
+                LOG_S("x: %d, y: %d, chunk: %p | ", l->x, l->y, (void*)l->ck);
                 l = l->next;
             }
-            printf("]\n");
+            LOG_S("]\n");
         }
     }
 }

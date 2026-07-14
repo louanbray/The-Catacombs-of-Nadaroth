@@ -5,13 +5,6 @@
 #include "../utils/game_status.h"
 #include "../utils/logger.h"
 
-#ifdef _WIN32
-#include <io.h>
-#else
-#include <fcntl.h>
-#include <unistd.h>
-#endif
-
 #define MAX_KEYS 256
 #define MAX_BUFFER_SIZE 1024
 #define CTRL_C 0x03  // CTRL+C character code
@@ -63,11 +56,11 @@ void restore_terminal_mode() {
         exit(EXIT_FAILURE);
     }
 #endif
-    wprintf(L"\33[?25h");                // Re-enable cursor visibility
-    wprintf(L"\033[?1003l\033[?1006l");  // Disable Mouse events
-    wprintf(L"\033[?2004l");             // Disable bracketed paste mode
-    wprintf(L"\033[H\033[J");            // Clear the screen
-    wprintf(L"\033[0m");                 // Reset color
+    printf("\33[?25h");                // Re-enable cursor visibility
+    printf("\033[?1003l\033[?1006l");  // Disable Mouse events
+    printf("\033[?2004l");             // Disable bracketed paste mode
+    printf("\033[H\033[J");            // Clear the screen
+    printf("\033[0m");                 // Reset color
     fflush(stdout);
 }
 
@@ -173,6 +166,12 @@ static ssize_t read_stdin_nonblocking(char* buf, size_t size) {
 #endif
 }
 
+#ifdef _WIN32
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#endif
+#endif
+
 void init_terminal() {
     setup_terminal_restoration();
 
@@ -182,19 +181,21 @@ void init_terminal() {
     setlocale(LC_ALL, "");
 
 #ifdef _WIN32
-    // Put stdout into wide-character mode so wprintf's Unicode output is
-    // passed through correctly instead of being mangled by the console's
-    // legacy codepage. IMPORTANT: once this is set, every subsequent write
-    // to stdout MUST go through a wide-character call (wprintf, putwchar,
-    // fputws) - mixing in printf/fputs/putchar on stdout after this point
-    // is undefined behavior.
-    _setmode(_fileno(stdout), _O_U16TEXT);
+    // On active le support natif des séquences ANSI/Echappement de Windows
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD dwMode = 0;
+    if (GetConsoleMode(hOut, &dwMode)) {
+        dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        SetConsoleMode(hOut, dwMode);
+    }
+    // PLUS DE _O_U16TEXT ICI ! On laisse le stdout en mode normal.
 #endif
 
-    wprintf(L"\33[?25l");                // Disable cursor
-    wprintf(L"\033[H\033[J");            // Clear
-    wprintf(L"\033[?1003h\033[?1006h");  // Enable mouse motion events
-    wprintf(L"\033[?2004h");             // Enable bracketed paste mode
+    // On repasse sur des printf simples (ASCII) beaucoup plus stables
+    printf("\33[?25l");                // Disable cursor
+    printf("\033[H\033[J");            // Clear
+    printf("\033[?1003h\033[?1006h");  // Enable mouse motion events
+    printf("\033[?2004h");             // Enable bracketed paste mode
     fflush(stdout);
 }
 

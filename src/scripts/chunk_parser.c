@@ -55,6 +55,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                     elt->attack_interval = entityFile->specs.specs[6];
 
                     elt->can_drop = (bool)entityFile->specs.specs[7];
+                    elt->entity_type = entry->entity_type;
 
                     if (elt->can_drop) {
                         elt->loot = (lootable){

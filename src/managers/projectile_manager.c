@@ -11,6 +11,7 @@
 #include "../utils/win_compat.h"
 #include "achievements_manager.h"
 #include "audio_manager.h"
+#include "behaviour_manager.h"
 #include "input_manager.h"
 #include "loot_manager.h"
 #include "statistics_manager.h"
@@ -24,8 +25,7 @@
 
 #define NADINO_ENEMY_MIN_SCORE 71
 
-#define PLAYER_PROJECTILE_DESIGN L'○'
-#define ENEMY_PROJECTILE_DESIGN L'●'
+#define XSPACING 2
 
 static unsigned int projectile_rng_seed = 0;
 static int total_enemies = 0;
@@ -36,21 +36,14 @@ typedef struct {
     player* p;
 } InitThreadArgs;
 
-typedef struct projectile_data {
-    int x0, y0, damage;
-    player* p;
-    Render_Buffer* screen;
-} projectile_data;
-
-typedef void (*ProjectileCallback)(int x, int y, projectile_data* data);
-
 typedef struct Projectile {
     int x, y;                        // Current position
     int x1, y1;                      // Target position
     int dx, dy;                      // Absolute differences
     int sx, sy;                      // Step directions
     int err;                         // Error term
-    int from, from_id;               // Character to ignore
+    unsigned int from;               // Character to ignore
+    int from_id;                     // Character to ignore
     int frame, rate;                 // Animation frame and rate
     int range;                       // Maximum range (-1 for unlimited)
     int distance_traveled;           // Distance traveled so far
@@ -78,10 +71,10 @@ void kill_all_projectiles(Render_Buffer* r) {
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         Projectile* p = &projectiles[i];
         if (p->active) {
-            wchar_t c = render_get_cell_char(r, RENDER_HEIGHT - p->y, p->x * 2 - 1);
+            unsigned int c = render_get_cell_char(r, ITR(p->y), ITR(p->x * XSPACING));
 
-            if (c == L' ') {
-                wprintf(L"\033[%d;%dH ", p->y, p->x * 2);
+            if (c == L' ' || c == p->design) {
+                render_set_cell_char(r, ITR(p->y), ITR(p->x * XSPACING), L' ');
             }
         }
         p->active = false;
@@ -89,10 +82,19 @@ void kill_all_projectiles(Render_Buffer* r) {
     pthread_mutex_unlock(&projectile_mutex);
 }
 
+static void draw_ppos(Render_Buffer* r, Projectile* p, unsigned int character) {
+    render_set_cell_char(r, ITR(p->y), ITR(p->x * XSPACING), character);
+}
+
+static void draw_ppos_if_nothing_here(Render_Buffer* r, Projectile* p, unsigned int character) {
+    unsigned int c = render_get_cell_char(r, ITR(p->y), ITR(p->x * XSPACING));
+    bool nothing = c == L' ' || c == p->design;
+    if (nothing) render_set_cell_char(r, ITR(p->y), ITR(p->x * XSPACING), character);
+}
+
 // Bresenham's Line Algorithm
 void update_projectiles(Render_Buffer* r) {
     pthread_mutex_lock(&projectile_mutex);
-
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (!projectiles[i].active) continue;
 
@@ -102,13 +104,10 @@ void update_projectiles(Render_Buffer* r) {
         if (p->frame != p->rate) continue;
         p->frame = 0;
 
-        int speed = 2;
+        unsigned int c = render_get_cell_char(r, ITR(p->y), ITR(p->x * XSPACING));
+        bool nothing = c == L' ' || c == p->design;
 
-        wchar_t c = render_get_cell_char(r, ITR(p->y), ITR(p->x * speed));
-
-        if (c == L' ') {
-            wprintf(L"\033[%d;%dH ", p->y, p->x * speed);
-        }
+        if (nothing) draw_ppos(r, p, L' ');
 
         // Check if range limit is exceeded (only if range >= 0)
         bool range_exceeded = false;
@@ -116,20 +115,20 @@ void update_projectiles(Render_Buffer* r) {
             range_exceeded = true;
         }
 
-        if ((c != p->from || !p->home) && (((p->x == p->x1 && p->y == p->y1) && !p->infinity) || c != L' ' || range_exceeded)) {
+        if ((c != p->from || !p->home) && (((p->x == p->x1 && p->y == p->y1) && !p->infinity) || !nothing || range_exceeded)) {
             p->active = false;
             if (p->design == PLAYER_PROJECTILE_DESIGN) {
                 total_player_projectiles--;
                 total_player_projectiles = total_player_projectiles < 0 ? 0 : total_player_projectiles;
             }
             if (p->callback) {
-                p->callback(p->x * speed - RECENTER_X, RECENTER_Y - p->y, p->callback_data);
+                p->callback(p->x * XSPACING - RECENTER_X, RECENTER_Y - p->y, p->callback_data);
             }
 
             continue;
         }
 
-        int e2 = speed * p->err;
+        int e2 = XSPACING * p->err;
         if (e2 >= p->dy) {
             p->err += p->dy;
             p->x += p->sx;
@@ -141,12 +140,10 @@ void update_projectiles(Render_Buffer* r) {
             p->distance_traveled++;  // Increment distance when moving vertically
         }
 
-        c = render_get_cell_char(r, ITR(p->y), ITR(p->x * speed));
-
-        if (c == L' ') {
-            if (p->home)
-                p->home = false;
-            wprintf(L"\033[%d;%dH%lc", p->y, p->x * speed, p->design);
+        c = render_get_cell_char(r, ITR(p->y), ITR(p->x * XSPACING));
+        if (c == L' ' || c == p->design) {
+            if (p->home) p->home = false;
+            draw_ppos(r, p, p->design);
         }
     }
 
@@ -215,8 +212,6 @@ void projectile_callback(int x, int y, projectile_data* data) {
         default:
             break;
     }
-
-    update_screen(data->screen);
     free(data);
 }
 
@@ -276,25 +271,24 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
             lock_inputs();
         }
     }
-    update_screen(data->screen);
+
     free(data);
 }
 
 void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsigned int design, int range, bool infinity, ProjectileCallback callback, projectile_data* callback_data) {
     pthread_mutex_lock(&projectile_mutex);
-    int speed = 2;
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (!projectiles[i].active) {
             projectiles[i] = (Projectile){
-                .x = x0 / speed,
+                .x = x0 / XSPACING,
                 .y = y0,
-                .x1 = x1 / speed,
+                .x1 = x1 / XSPACING,
                 .y1 = y1,
-                .dx = abs(x1 - x0) / speed,
+                .dx = abs(x1 - x0) / XSPACING,
                 .dy = -abs(y1 - y0),
                 .sx = x0 < x1 ? 1 : -1,
                 .sy = y0 < y1 ? 1 : -1,
-                .err = (abs(x1 - x0) / speed) + (-abs(y1 - y0)),
+                .err = (abs(x1 - x0) / XSPACING) + (-abs(y1 - y0)),
                 .from = from,
                 .frame = 0,
                 .rate = rate,
@@ -306,37 +300,11 @@ void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsign
                 .infinity = infinity,
                 .callback = callback,
                 .callback_data = callback_data};
+            draw_ppos_if_nothing_here(callback_data->screen, &projectiles[i], projectiles[i].design);
             break;
         }
     }
     pthread_mutex_unlock(&projectile_mutex);
-}
-
-void enemy_attack_projectile(Render_Buffer* r, player* p, item* brain) {
-    int x = get_item_x(brain) + RECENTER_X;
-    int y = -get_item_y(brain) + RECENTER_Y;
-
-    if (!is_player_aggroed(p, x, y)) return;
-
-    projectile_data* p_data = malloc(sizeof(projectile_data));
-    p_data->x0 = x;
-    p_data->y0 = y;
-    p_data->damage = ((enemy*)get_item_spec(brain))->damage;
-    p_data->p = p;
-    p_data->screen = r;
-
-    spawn_projectile(
-        x,
-        y,
-        get_player_x(p) + RECENTER_X,
-        -get_player_y(p) + RECENTER_Y,
-        get_item_display(brain),
-        ((enemy*)get_item_spec(brain))->speed,
-        ENEMY_PROJECTILE_DESIGN,  // OR L'◈' OR L'✦'
-        -1,
-        ((enemy*)get_item_spec(brain))->infinity,
-        enemy_attack_callback,
-        p_data);
 }
 
 void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
@@ -423,8 +391,10 @@ void* projectile_loop(void* args) {
                 enemy_attack_timers[i]--;
 
                 if (enemy_attack_timers[i] <= 0) {
-                    enemy_attack_projectile(r, p, brain);
-                    enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % ((enemy*)get_item_spec(brain))->attack_interval + ((enemy*)get_item_spec(brain))->attack_delay;  // delay ~> delay+interval frames
+                    enemy* enemy_brain = (enemy*)get_item_spec(brain);
+                    attack_fn attack = get_attack_fn(enemy_brain->entity_type);
+                    attack(r, p, brain, &enemy_attack_timers[i]);
+                    if (enemy_attack_timers[i] == -1) enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % enemy_brain->attack_interval + enemy_brain->attack_delay;  // delay ~> delay+interval frames
                 }
             }
         }

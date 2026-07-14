@@ -154,6 +154,8 @@ void play_cinematic(Render_Buffer* screen, const char* filename, int delay);
 /// @return char at these coordinates
 wchar_t render_get_cell_char(Render_Buffer* screen, int row, int col);
 
+void render_set_cell_char(Render_Buffer* screen, int y, int x, int c);
+
 /**
  * @brief Renders the player's current score on the screen
  *

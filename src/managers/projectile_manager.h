@@ -7,6 +7,14 @@ typedef struct Render_Buffer Render_Buffer;
 typedef struct player player;
 typedef struct item item;
 
+typedef struct projectile_data {
+    int x0, y0, damage;
+    player* p;
+    Render_Buffer* screen;
+} projectile_data;
+
+typedef void (*ProjectileCallback)(int x, int y, projectile_data* data);
+
 /**
  * Spawn a player projectile toward the given target coordinates.
  *
@@ -78,4 +86,6 @@ void stop_projectile_system();
  */
 void restart_projectile_system(Render_Buffer* screen, player* p, int seed);
 
+void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsigned int design, int range, bool infinity, ProjectileCallback callback, projectile_data* callback_data);
+void enemy_attack_callback(int x, int y, projectile_data* data);
 #endif

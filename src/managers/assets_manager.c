@@ -317,6 +317,7 @@ void init_assets_system() {
     }
 
     // Load entity files
+    // ---- Basic enemies ----
     add_entity_file("assets/entities/data/enemy_bronze_1.dodjo", ENTITY_ENEMY_BRONZE_1);
     add_entity_file("assets/entities/data/enemy_bronze_2.dodjo", ENTITY_ENEMY_BRONZE_2);
     add_entity_file("assets/entities/data/enemy_silver_1.dodjo", ENTITY_ENEMY_SILVER_1);
@@ -325,16 +326,24 @@ void init_assets_system() {
     add_entity_file("assets/entities/data/enemy_gold_2.dodjo", ENTITY_ENEMY_GOLD_2);
     add_entity_file("assets/entities/data/enemy_nadino_1.dodjo", ENTITY_ENEMY_NADINO_1);
     add_entity_file("assets/entities/data/enemy_nadino_2.dodjo", ENTITY_ENEMY_NADINO_2);
+    // ---- Bosses
+    add_entity_file("assets/entities/data/enemy_nadino_2.dodjo", ENTITY_ENEMY_BOSS);
+    // ---- Chests ----
     add_entity_file("assets/entities/data/bronze_chest.dodjo", ENTITY_BRONZE_CHEST);
     add_entity_file("assets/entities/data/silver_chest.dodjo", ENTITY_SILVER_CHEST);
     add_entity_file("assets/entities/data/gold_chest.dodjo", ENTITY_GOLD_CHEST);
     add_entity_file("assets/entities/data/nadino_chest.dodjo", ENTITY_NADINO_CHEST);
+    // ---- Others ----
     add_entity_file("assets/entities/data/star_gate.dodjo", ENTITY_STAR_GATE);
     // Add more entity files here...
 
     // Load chunk files
+    // ---- Not Generated Chunks ----
     add_chunk_file("assets/chunks/debug.dodjo", CHUNK_DEBUG);
+    add_chunk_file("assets/chunks/single.dodjo", CHUNK_SINGLE);
     add_chunk_file("assets/chunks/spawn.dodjo", CHUNK_SPAWN);
+
+    // ---- Generated Chunks ----
     add_chunk_file("assets/chunks/default.dodjo", CHUNK_DEFAULT);
     add_chunk_file("assets/chunks/default2.dodjo", CHUNK_DEFAULT2);
     add_chunk_file("assets/chunks/treasure_room_1.dodjo", CHUNK_TREASURE_ROOM);

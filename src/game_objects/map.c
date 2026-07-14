@@ -5,6 +5,7 @@
 
 #include "../managers/achievements_manager.h"
 #include "../managers/statistics_manager.h"
+#include "../utils/logger.h"
 
 typedef struct map {
     hm* hashmap;
@@ -130,10 +131,10 @@ void destroy_chunk(map* m, chunk* ck) {
 
 void print_chunk(chunk* ck) {
     chunk_link lk = get_chunk_links(ck);
-    printf("CHUNK: %p [x: %d, y: %d, type: %d, element: %p]\n", (void*)ck,
-           get_chunk_x(ck), get_chunk_y(ck), get_chunk_type(ck), (void*)get_chunk_furniture_list(ck));
-    printf("link: [%p, %p, %p, %p, %p]\n\n",
-           (void*)lk[0], (void*)lk[1], (void*)lk[2], (void*)lk[3], (void*)lk[4]);
+    LOG_S("CHUNK: %p [x: %d, y: %d, type: %d, element: %p]\n", (void*)ck,
+          get_chunk_x(ck), get_chunk_y(ck), get_chunk_type(ck), (void*)get_chunk_furniture_list(ck));
+    LOG_S("link: [%p, %p, %p, %p, %p]\n\n",
+          (void*)lk[0], (void*)lk[1], (void*)lk[2], (void*)lk[3], (void*)lk[4]);
 }
 
 void print_map(map* m) {

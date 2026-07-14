@@ -42,6 +42,7 @@ typedef struct enemy {
     int attack_delay, attack_interval;
     bool can_drop;
     lootable loot;
+    EntityType entity_type;
 } enemy;
 
 /// @brief Create item using given parameters
