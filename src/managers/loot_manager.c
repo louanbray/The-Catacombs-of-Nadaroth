@@ -77,12 +77,10 @@ item* generate_loot(lootable* loot) {
         return NULL;
     }
 
-    Color target_color = get_color_for_rarity(rolled_rarity);
-
     int match_count = 0;
     for (int i = 0; i < length; i++) {
         item* it = get_dyn(table, i);
-        if (get_item_color(it) == target_color) {
+        if (get_usable_item_rarity(get_item_usable_type(it)) == rolled_rarity) {
             match_count++;
         }
     }
@@ -93,7 +91,7 @@ item* generate_loot(lootable* loot) {
         int current_match = 0;
         for (int i = 0; i < length; i++) {
             item* it = get_dyn(table, i);
-            if (get_item_color(it) == target_color) {
+            if (get_usable_item_rarity(get_item_usable_type(it)) == rolled_rarity) {
                 if (current_match == random_match_index) {
                     loot_item = it;
                     break;
@@ -114,25 +112,24 @@ item* generate_loot(lootable* loot) {
 void init_loot_tables() {
     create_loot_tables();
 
-    // BRONZE LOOT
+    // ==== Chests Loot Table ====
+    // ---- BRONZE LOOT ----
     add_loot_to_loot_table(L'B', USABLE_ITEM_BASIC_BOW, LOOT_TABLE_CHEST, RARITY_BRONZE);
     add_loot_to_loot_table(L'O', USABLE_ITEM_ONION_RING, LOOT_TABLE_CHEST, RARITY_BRONZE);
-
-    // SILVER LOOT
+    // ---- SILVER LOOT ----
     add_loot_to_loot_table(L'B', USABLE_ITEM_ADVANCED_BOW, LOOT_TABLE_CHEST, RARITY_SILVER);
     add_loot_to_loot_table(L'S', USABLE_ITEM_STOCKFISH, LOOT_TABLE_CHEST, RARITY_SILVER);
     add_loot_to_loot_table(L'✧', USABLE_ITEM_BOMB, LOOT_TABLE_CHEST, RARITY_SILVER);
-
-    // GOLD LOOT
+    // ---- GOLD LOOT ----
     add_loot_to_loot_table(L'B', USABLE_ITEM_SUPER_BOW, LOOT_TABLE_CHEST, RARITY_GOLD);
     add_loot_to_loot_table(L'G', USABLE_ITEM_GOLDEN_APPLE, LOOT_TABLE_CHEST, RARITY_GOLD);
     // add_loot_to_loot_table(68, SCHOOL_DISHES, RARITY_GOLD);
-
-    // NADINO LOOT
-    // add_loot_to_loot_table(70, FORGOTTEN_DISH, RARITY_NADINO);
+    // ---- NADINO LOOT ----
     add_loot_to_loot_table(L'B', USABLE_ITEM_NADINO_BOW, LOOT_TABLE_CHEST, RARITY_NADINO);
+    // add_loot_to_loot_table(70, FORGOTTEN_DISH, RARITY_NADINO);
 
-    // Keys
+    // ---- Enemies Loot Table ----
+    // ---- Keys ----
     add_loot_to_loot_table(CHEST_KEY_DESIGN, USABLE_ITEM_BRONZE_KEY, LOOT_TABLE_ENEMY_KEY, RARITY_BRONZE);
     add_loot_to_loot_table(CHEST_KEY_DESIGN, USABLE_ITEM_SILVER_KEY, LOOT_TABLE_ENEMY_KEY, RARITY_SILVER);
     add_loot_to_loot_table(CHEST_KEY_DESIGN, USABLE_ITEM_GOLD_KEY, LOOT_TABLE_ENEMY_KEY, RARITY_GOLD);

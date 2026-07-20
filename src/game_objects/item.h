@@ -96,6 +96,14 @@ int get_item_index(item* item);
 UsableItem get_item_usable_type(item* i);
 
 /**
+ * @brief Get the rarity of an usable item.
+ *
+ * @param uitem UsableItem
+ * @return Rarity if set else RARITY_NONE
+ */
+Rarity get_usable_item_rarity(UsableItem uitem);
+
+/**
  * @brief Get an item's color
  *
  * @param item Pointer to the item

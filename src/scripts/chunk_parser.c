@@ -4,6 +4,7 @@
 
 #include "../game_objects/entity.h"
 #include "../managers/assets_manager.h"
+#include "../utils/logger.h"
 
 /// @brief Read and parse the given file using the dodjo format to update the chunk decorations
 /// @param c chunk
@@ -33,7 +34,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
             // Entity with multiple parts
             EntityAssetFile* entityFile = get_entity_file(entry->entity_type);
             if (entityFile == NULL) {
-                fprintf(stderr, "Error: Unable to load entity file for type %d\n", entry->entity_type);
+                LOG_ERROR("Unable to load entity file for type %d\n", entry->entity_type);
                 continue;
             }
 

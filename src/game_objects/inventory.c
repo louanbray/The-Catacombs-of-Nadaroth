@@ -41,7 +41,7 @@ keyholder* create_keyholder() {
 }
 
 Rarity get_key_rarity(UsableItem key) {
-    if (key <= USABLE_ITEM_BOWS_END || key >= USABLE_ITEM_KEYS_END) return -1;
+    if (key <= USABLE_ITEM_BOWS_END || key >= USABLE_ITEM_KEYS_END) return RARITY_NONE;
     UsableItemAssetFile* uif = get_usable_item_file(key);
     return uif->specs.specs[0];
 }
@@ -91,10 +91,10 @@ void add_keyholder_keys_of_rarity(keyholder* k, Rarity rarity, int nb) {
     k->key_nb[rarity] = new_nb > 0 ? new_nb : 0;
 }
 
-void set_keyholder_level(keyholder* k, int level) {
+void set_keyholder_level(keyholder* k, KeyHolderLevel level) {
     if (!k) return;
-    if (level > KEYHOLDER_MAX_LEVEL) level = KEYHOLDER_MAX_LEVEL - 1;
-    if (level < 0) level = KEYHOLDER_LOCKED;
+    if (level > KEYHOLDER_LEVEL_COUNT) level = KEYHOLDER_LEVEL_COUNT - 1;
+    if (level < KEYHOLDER_LOCKED) level = KEYHOLDER_LOCKED;
     k->level = level;
 }
 
@@ -136,7 +136,7 @@ bool keyholder_has_key_of_rarity(keyholder* k, Rarity rarity) {
 
 void keyholder_level_up(keyholder* k) {
     if (!k) return;
-    if (k->level + 1 < KEYHOLDER_MAX_LEVEL) k->level++;
+    if (k->level < KEYHOLDER_LEVEL_COUNT - 1) k->level++;
 }
 
 bool is_hotbar_full(hotbar* h) {

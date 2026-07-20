@@ -297,7 +297,7 @@ typedef enum KeyHolderLevel {
     KEYHOLDER_SILVER,
     KEYHOLDER_GOLD,
     KEYHOLDER_NADINO,
-    KEYHOLDER_MAX_LEVEL
+    KEYHOLDER_LEVEL_COUNT
 } KeyHolderLevel;
 
 static const int ScorePerPhase[] = {0, 25, 75, 210, 630, 0, 0};  //! TEMPORARY (1870 removed)

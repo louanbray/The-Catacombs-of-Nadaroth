@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "../utils/logger.h"
+
 static AssetManager* asset_manager = NULL;
 
 /**
@@ -312,7 +314,7 @@ void destroy_asset_manager() {
 void init_assets_system() {
     asset_manager = create_asset_manager();
     if (!asset_manager) {
-        fprintf(stderr, "Failed to create asset manager\n");
+        LOG_ERROR("Failed to create asset manager\n");
         exit(1);
     }
 
@@ -326,7 +328,7 @@ void init_assets_system() {
     add_entity_file("assets/entities/data/enemy_gold_2.dodjo", ENTITY_ENEMY_GOLD_2);
     add_entity_file("assets/entities/data/enemy_nadino_1.dodjo", ENTITY_ENEMY_NADINO_1);
     add_entity_file("assets/entities/data/enemy_nadino_2.dodjo", ENTITY_ENEMY_NADINO_2);
-    // ---- Bosses
+    // ---- Bosses ----
     add_entity_file("assets/entities/data/enemy_nadino_2.dodjo", ENTITY_ENEMY_BOSS);
     // ---- Chests ----
     add_entity_file("assets/entities/data/bronze_chest.dodjo", ENTITY_BRONZE_CHEST);
@@ -342,7 +344,6 @@ void init_assets_system() {
     add_chunk_file("assets/chunks/debug.dodjo", CHUNK_DEBUG);
     add_chunk_file("assets/chunks/single.dodjo", CHUNK_SINGLE);
     add_chunk_file("assets/chunks/spawn.dodjo", CHUNK_SPAWN);
-
     // ---- Generated Chunks ----
     add_chunk_file("assets/chunks/default.dodjo", CHUNK_DEFAULT);
     add_chunk_file("assets/chunks/default2.dodjo", CHUNK_DEFAULT2);
@@ -355,23 +356,26 @@ void init_assets_system() {
     add_chunk_file("assets/chunks/random_chunk_nadinhard.dodjo", CHUNK_RANDOM_NADINHARD);
     add_chunk_file("assets/chunks/escape_room_1.dodjo", CHUNK_ESCAPE_ROOM_1);
     add_chunk_file("assets/chunks/escape_room_2.dodjo", CHUNK_ESCAPE_ROOM_2);
-
     // Add more chunk files here...
 
-    // Load usable item files
+    // Load usable item files (First spec=rarity)
+    // ---- Bows ----
     add_usable_item_file("assets/items/data/basic_bow.dodjo", USABLE_ITEM_BASIC_BOW);
     add_usable_item_file("assets/items/data/advanced_bow.dodjo", USABLE_ITEM_ADVANCED_BOW);
     add_usable_item_file("assets/items/data/super_bow.dodjo", USABLE_ITEM_SUPER_BOW);
     add_usable_item_file("assets/items/data/nadino_bow.dodjo", USABLE_ITEM_NADINO_BOW);
+    // ---- Keys ----
     add_usable_item_file("assets/items/data/bronze_key.dodjo", USABLE_ITEM_BRONZE_KEY);
     add_usable_item_file("assets/items/data/silver_key.dodjo", USABLE_ITEM_SILVER_KEY);
     add_usable_item_file("assets/items/data/gold_key.dodjo", USABLE_ITEM_GOLD_KEY);
     add_usable_item_file("assets/items/data/nadino_key.dodjo", USABLE_ITEM_NADINO_KEY);
+    // ---- Consumables ----
     add_usable_item_file("assets/items/data/onion_ring.dodjo", USABLE_ITEM_ONION_RING);
     add_usable_item_file("assets/items/data/stockfish.dodjo", USABLE_ITEM_STOCKFISH);
     add_usable_item_file("assets/items/data/school_dishes.dodjo", USABLE_ITEM_SCHOOL_DISHES);
     add_usable_item_file("assets/items/data/golden_apple.dodjo", USABLE_ITEM_GOLDEN_APPLE);
-    add_usable_item_file("assets/items/data/bomb.dodjo", USABLE_ITEM_BOMB);
     add_usable_item_file("assets/items/data/forgotten_dish.dodjo", USABLE_ITEM_FORGOTTEN_DISH);
+    // ---- Others ----
+    add_usable_item_file("assets/items/data/bomb.dodjo", USABLE_ITEM_BOMB);
     // Add more usable item files here...
 }

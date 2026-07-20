@@ -83,7 +83,7 @@ KeyHolderLevel get_keyholder_level(keyholder* k);
 /// @brief Set the keyholder level
 /// @param k keyholder
 /// @param level KeyHolderLevel
-void set_keyholder_level(keyholder* k, int level);
+void set_keyholder_level(keyholder* k, KeyHolderLevel level);
 
 /// @brief Returns true if there is at least one key of said rarity in the keyholder
 /// @param k

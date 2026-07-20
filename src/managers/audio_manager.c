@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../utils/logger.h"
+
 #define MAX_AUDIO_CHANNEL 4
 
 static Mix_Music* current_music = NULL;
@@ -59,7 +61,7 @@ void play_sound_effect_by_id(AudioID audio_id) {
         Mix_HaltChannel(0);
         channel = Mix_PlayChannel(0, effect, 0);
         if (channel == -1) {
-            fprintf(stderr, "Failed to play sound effect %d even after overriding a channel: %s\n", audio_id, Mix_GetError());
+            LOG_ERROR("Failed to play sound effect %d even after overriding a channel: %s\n", audio_id, Mix_GetError());
         }
     }
 }

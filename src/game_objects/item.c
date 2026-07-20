@@ -1,5 +1,6 @@
 #include "item.h"
 
+#include "../managers/assets_manager.h"
 typedef struct item {
     int x, y;
     ItemType type;
@@ -63,6 +64,12 @@ void* get_item_spec(item* i) {
 
 UsableItem get_item_usable_type(item* i) {
     return i->usable_item;
+}
+
+Rarity get_usable_item_rarity(UsableItem uitem) {
+    UsableItemAssetFile* uif = get_usable_item_file(uitem);
+    if (uif == NULL || uif->specs.spec_count == 0) return RARITY_NONE;
+    return uif->specs.specs[0];
 }
 
 Color get_item_color(item* i) {

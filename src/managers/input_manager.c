@@ -33,7 +33,7 @@ void save_original_mode() {
 #ifdef _WIN32
     hStdin = GetStdHandle(STD_INPUT_HANDLE);
     if (hStdin == INVALID_HANDLE_VALUE || !GetConsoleMode(hStdin, &original_console_mode)) {
-        fprintf(stderr, "GetConsoleMode failed (err %lu)\n", GetLastError());
+        LOG_ERROR("GetConsoleMode failed (err %lu)\n", GetLastError());
         exit(EXIT_FAILURE);
     }
 #else
@@ -59,7 +59,8 @@ void restore_terminal_mode() {
     printf("\33[?25h");                // Re-enable cursor visibility
     printf("\033[?1003l\033[?1006l");  // Disable Mouse events
     printf("\033[?2004l");             // Disable bracketed paste mode
-    printf("\033[H\033[J");            // Clear the screen
+    printf("\033[?1049l");             // back to normal terminal
+    printf("\033[H\033[2J");           // Clear the screen
     printf("\033[0m");                 // Reset color
     fflush(stdout);
 }
@@ -76,7 +77,6 @@ void setup_terminal_restoration() {
     save_original_mode();
     atexit(restore_terminal_mode);  // Ensure restoration on normal exit
 #ifdef _WIN32
-    // On enregistre le handler Windows
     SetConsoleCtrlHandler(windows_ctrl_c_handler, TRUE);
 #endif
     // Note: SIGINT is disabled at the terminal level (ISIG flag / raw mode)
@@ -95,7 +95,7 @@ void set_raw_mode() {
     mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT);
     mode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
     if (!SetConsoleMode(hStdin, mode)) {
-        fprintf(stderr, "SetConsoleMode (input) failed (err %lu)\n", GetLastError());
+        LOG_ERROR("SetConsoleMode (input) failed (err %lu)\n", GetLastError());
         exit(EXIT_FAILURE);
     }
 
@@ -181,19 +181,17 @@ void init_terminal() {
     setlocale(LC_ALL, "");
 
 #ifdef _WIN32
-    // On active le support natif des séquences ANSI/Echappement de Windows
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
     if (GetConsoleMode(hOut, &dwMode)) {
         dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
         SetConsoleMode(hOut, dwMode);
     }
-    // PLUS DE _O_U16TEXT ICI ! On laisse le stdout en mode normal.
 #endif
 
-    // On repasse sur des printf simples (ASCII) beaucoup plus stables
+    printf("\033[?1049h");             // alternate buffer
+    printf("\033[2J\033[H");           // clear
     printf("\33[?25l");                // Disable cursor
-    printf("\033[H\033[J");            // Clear
     printf("\033[?1003h\033[?1006h");  // Enable mouse motion events
     printf("\033[?2004h");             // Enable bracketed paste mode
     fflush(stdout);
@@ -383,7 +381,7 @@ void process_input(player** p, Render_Buffer* screen,
 
             input_buffer_length += bytes_read;
         } else {
-            fprintf(stderr, "Input buffer overflow\n");
+            LOG_ERROR("Input buffer overflow\n");
 
             input_buffer_length = 0;  // Clear the buffer in case of overflow
 

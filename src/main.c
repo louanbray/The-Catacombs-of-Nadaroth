@@ -261,7 +261,7 @@ void interact(Render_Buffer* screen, player* p, int x, int y) {
     bool destroy = false;
 
     item* it = get_selected_item(hb);
-    if (it != NULL) {
+    if (it != NULL && !chest_opened) {  //? Prevents doing two actions at the same time
         UsableItem type = get_item_usable_type(it);
         if (type == USABLE_ITEM_NOT_USABLE) return;
 
@@ -299,7 +299,6 @@ void interact(Render_Buffer* screen, player* p, int x, int y) {
                 }
                 break;
             default:
-                if (chest_opened) break;
                 return;
         }
     }
@@ -383,7 +382,8 @@ void handle_resume(ResumeState state, Render_Buffer* screen) {
 
     init_projectile_system(screen, PLAYER_L, SEED);
 
-    if ((state == RESUME_RESET && get_setting_value(SETTING_SKIP_PLAYER_CUSTOM_ON_RESET)) || (state == RESUME_NEW_GAME && get_setting_value(SETTING_SKIP_PLAYER_CUSTOM_ON_NEW_GAME))) {
+    if ((state == RESUME_RESET && get_setting_value(SETTING_SKIP_PLAYER_CUSTOM_ON_RESET)) ||
+        (state == RESUME_NEW_GAME && get_setting_value(SETTING_SKIP_PLAYER_CUSTOM_ON_NEW_GAME))) {
         set_player_color(PLAYER_L, player_color);
         set_player_class(PLAYER_L, player_class);
     }

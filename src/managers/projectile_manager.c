@@ -432,7 +432,7 @@ static void start_projectile_thread(Render_Buffer* r, player* p, int seed, bool 
     }
 
     if (pthread_create(&projectile_thread, NULL, projectile_loop, input_args) != 0) {
-        fprintf(stderr, "Failed to create projectile thread\n");
+        LOG_ERROR("Failed to create projectile thread\n");
         exit(EXIT_FAILURE);
     }
     projectile_thread_running = true;
@@ -445,6 +445,7 @@ void init_projectile_system(Render_Buffer* r, player* p, int seed) {
 
 void stop_projectile_system(void) {
     if (!projectile_thread_running) {
+        LOG_INFO("Can't stop projectile system : already stopped");
         return;
     }
 
@@ -453,6 +454,7 @@ void stop_projectile_system(void) {
     pthread_join(projectile_thread, NULL);
     projectile_thread_running = false;
     projectile_thread_stop = false;
+    LOG_INFO("Stopped projectile system");
 }
 
 void restart_projectile_system(Render_Buffer* r, player* p, int seed) {
