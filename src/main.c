@@ -1,9 +1,6 @@
 #include <errno.h>
 #include <pthread.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <time.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -13,15 +10,7 @@
 #include "game_objects/entity.h"
 #include "game_objects/map.h"
 #include "game_objects/player.h"
-#include "managers/achievements_manager.h"
-#include "managers/assets_manager.h"
-#include "managers/audio_manager.h"
-#include "managers/input_manager.h"
-#include "managers/loot_manager.h"
-#include "managers/projectile_manager.h"
-#include "managers/save_manager.h"
-#include "managers/settings_manager.h"
-#include "managers/statistics_manager.h"
+#include "managers/managers.h"
 #include "scripts/player_handler.h"
 #include "utils/game_status.h"
 #include "utils/logger.h"
