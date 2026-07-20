@@ -10,7 +10,7 @@
 
 #include "../display/render.h"  // update_screen, setup_render_buffer, finalize_render_buffer, USE_KEY, KEY_PRESSED
 #include "../managers/input_manager.h"
-#include "../utils/win_compat.h"
+#include "../utils/sys_platform.h"
 
 // ----- Types internes -----
 typedef struct {
@@ -525,7 +525,7 @@ int* display_interface_with_interactions_main(Render_Buffer* r, const char* visu
             }
         }
         if (!any_action) {
-            usleep(16000);  // ~60 fps idle
+            sys_sleep_ms(16);  // ~60 fps idle
             continue;
         }
 
@@ -567,8 +567,7 @@ int* display_interface_with_interactions_main(Render_Buffer* r, const char* visu
 
         // update changed rows and push to terminal
         update_screen(r);
-        // small debounce
-        usleep(80000);
+        sys_sleep_ms(50);
     }
 
     *out_selected_indices = set->anim_count;

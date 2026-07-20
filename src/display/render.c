@@ -18,7 +18,7 @@
 #include "../utils/dynarray.h"
 #include "../utils/game_status.h"
 #include "../utils/logger.h"
-#include "../utils/win_compat.h"
+#include "../utils/sys_platform.h"
 
 typedef struct Cell {
     wchar_t ch;
@@ -649,7 +649,7 @@ void display_item_description(Render_Buffer* r, void* it) {
     render_string(r, SPACE_TO_EXIT_DISPLAY_X_POS, SPACE_TO_EXIT_DISPLAY_Y_POS, " PRESS [SPACE] TO EXIT", 23);
 
     update_screen(r);
-    while (!USE_KEY('e') && !USE_KEY('E') && !USE_KEY('\n') && !USE_KEY(' '));
+    while (!USE_KEY('e') && !USE_KEY('E') && !USE_KEY('\n') && !USE_KEY(' ')) sys_sleep_ms(50);
 
     finalize_render_buffer(r);
 }
@@ -753,7 +753,7 @@ void display_interface(Render_Buffer* r, const char* filename) {
 
     update_screen(r);
 
-    while (!USE_KEY('\n') && !USE_KEY(' '));
+    while (!USE_KEY('\n') && !USE_KEY(' ')) sys_sleep_ms(50);
 
     finalize_render_buffer(r);
 }
@@ -786,7 +786,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
             row = 0;
             update_screen(r);
             for (int i = 0; i < timeout; i++) {
-                usleep(delay);
+                sys_sleep_ms(delay);
                 if (!is_game_running() || KEY_PRESSED(' ')) break;
             }
         } else if (buffer[0] == L'%') {
@@ -798,7 +798,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
                 r->bd[row + 1][j].color = COLOR_DEFAULT;
                 if (!eol) {
                     update_screen(r);
-                    usleep(delay / 50);
+                    sys_sleep_ms(delay / 50);
                 }
                 if (!is_game_running() || KEY_PRESSED(' ')) break;
             }
@@ -841,7 +841,7 @@ void display_statistics(Render_Buffer* r) {
 
     update_screen(r);
 
-    while (!USE_KEY('T') && !USE_KEY('t') && !USE_KEY('\n') && !USE_KEY(' '));
+    while (!USE_KEY('T') && !USE_KEY('t') && !USE_KEY('\n') && !USE_KEY(' ')) sys_sleep_ms(50);
 
     finalize_render_buffer(r);
 }
@@ -885,6 +885,7 @@ void display_achievements(Render_Buffer* r, int page) {
     while (!USE_KEY('A') && !USE_KEY('a') && !USE_KEY('\n') && !USE_KEY(' ') && !left && !right) {
         if (page != max_page && (USE_KEY('D') || USE_KEY('d'))) right = true;
         if (page != 0 && (USE_KEY('Q') || USE_KEY('q'))) left = true;
+        sys_sleep_ms(50);
     }
 
     if (left || right)
@@ -971,6 +972,7 @@ void display_settings(Render_Buffer* r, int page) {
             }
             incr = 0;
         }
+        sys_sleep_ms(50);
     }
 
     if (left || right)
@@ -1075,8 +1077,7 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
             state = RESUME_NEW_GAME;
             break;
         }
-        struct timespec ts = {.tv_sec = 0, .tv_nsec = 50000000};
-        nanosleep(&ts, NULL);
+        sys_sleep_ms(50);
     }
 
     if (!no_refresh)

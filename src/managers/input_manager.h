@@ -15,7 +15,6 @@
 #include <fcntl.h>
 #include <io.h>
 #include <windows.h>
-#define usleep(us) Sleep((us) / 1000 + ((us) % 1000 != 0 ? 1 : 0))
 #else
 #include <fcntl.h>
 #include <termios.h>

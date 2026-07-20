@@ -78,7 +78,7 @@
 #define HOTBAR_SIZE 9
 
 /// @brief Cinematics
-#define CINEMATIC_FRAME_DELAY 1000000
+#define CINEMATIC_FRAME_DELAY 1000  // ms
 
 #define MAX_MENTAL_HEALTH 4
 

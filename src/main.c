@@ -1,5 +1,7 @@
+#include <errno.h>
 #include <pthread.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <time.h>
 
@@ -23,39 +25,15 @@
 #include "scripts/player_handler.h"
 #include "utils/game_status.h"
 #include "utils/logger.h"
+#include "utils/sys_platform.h"
 
 static unsigned int SEED;
 static map* MAP_L;
 static player* PLAYER_L;
 static hotbar* HOTBAR_L;
 
-#include <errno.h>
-#include <sys/stat.h>
-
-#ifdef _WIN32
-#include <direct.h>
-#include <timeapi.h>
-#define MKDIR(path) _mkdir(path)
-#else
-#include <sys/types.h>
-#define MKDIR(path) mkdir(path, 0755)
-#endif
-
-bool directory_exists(const char* path) {
-    struct stat st;
-
-    if (stat(path, &st) != 0)
-        return false;
-
-#ifdef _WIN32
-    return (st.st_mode & _S_IFDIR) != 0;
-#else
-    return S_ISDIR(st.st_mode);
-#endif
-}
-
 bool create_dir_if_not_exists(const char* path) {
-    if (MKDIR(path) == 0)
+    if (mkdir(path) == 0)
         return true;
 
     if (errno == EEXIST)
@@ -507,12 +485,7 @@ int main(int argc, char* argv[]) {
 #endif
 
         if (GAME_PAUSED) {
-#ifdef _WIN32
-            Sleep(16);
-#else
-            struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666667};
-            nanosleep(&ts, NULL);
-#endif
+            sys_sleep_ms(16);
             continue;
         }
 
@@ -592,22 +565,12 @@ int main(int argc, char* argv[]) {
 
         // Time for this frame
         double execution_time = (loop_end.tv_sec - current_time.tv_sec) + (loop_end.tv_usec - current_time.tv_usec) / 1000000.0;
-
         double target_frame_time = 1.0 / 60.0;  // (60 FPS)
 
         if (execution_time < target_frame_time) {
             double remaining_time = target_frame_time - execution_time;
-#ifdef _WIN32
-            DWORD sleep_ms = (DWORD)(remaining_time * 1000.0);
-            if (sleep_ms > 0) {
-                Sleep(sleep_ms);
-            }
-#else
-            struct timespec ts;
-            ts.tv_sec = (time_t)remaining_time;
-            ts.tv_nsec = (long)((remaining_time - ts.tv_sec) * 1000000000.0);
-            nanosleep(&ts, NULL);
-#endif
+            int sleep_ms = (int)(remaining_time * 1000.0);
+            if (sleep_ms > 0) sys_sleep_ms(sleep_ms);
         }
     }
 

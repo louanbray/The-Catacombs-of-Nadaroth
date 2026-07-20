@@ -4,6 +4,7 @@
 
 #include "../utils/game_status.h"
 #include "../utils/logger.h"
+#include "../utils/sys_platform.h"
 
 #define MAX_KEYS 256
 #define MAX_BUFFER_SIZE 1024
@@ -371,7 +372,7 @@ void process_input(player** p, Render_Buffer* screen,
         ssize_t bytes_read = read_stdin_nonblocking(buffer, sizeof(buffer));
 
         if (bytes_read <= 0) {
-            usleep(1000);  // Prevent CPU saturation
+            sys_sleep_ms(1);  // Prevent CPU saturation
             continue;
         }
 

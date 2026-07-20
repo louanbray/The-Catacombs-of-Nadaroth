@@ -8,7 +8,7 @@
 #include "../utils/constants.h"
 #include "../utils/game_status.h"
 #include "../utils/logger.h"
-#include "../utils/win_compat.h"
+#include "../utils/sys_platform.h"
 #include "achievements_manager.h"
 #include "audio_manager.h"
 #include "behaviour_manager.h"
