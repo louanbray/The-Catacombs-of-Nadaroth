@@ -34,6 +34,7 @@ static hotbar* HOTBAR_L;
 
 #ifdef _WIN32
 #include <direct.h>
+#include <timeapi.h>
 #define MKDIR(path) _mkdir(path)
 #else
 #include <sys/types.h>
@@ -66,6 +67,9 @@ bool create_dir_if_not_exists(const char* path) {
 /// @brief
 /// Initialize global game state and core subsystems.
 void init_game_system() {
+#ifdef _WIN32
+    timeBeginPeriod(1);
+#endif
     init_logger();  // Initialize logger first
     srand(SEED);
     init_terminal();
@@ -256,6 +260,7 @@ void compute_entry(Render_Buffer* screen, player* p, int entry) {
 }
 
 void interact(Render_Buffer* screen, player* p, int x, int y) {
+    x += GAME_PADDING / 2;
     hotbar* hb = get_player_hotbar(p);
     bool chest_opened = check_lootable_interaction(p, x, y);
     bool destroy = false;
@@ -401,22 +406,23 @@ void handle_resume(ResumeState state, Render_Buffer* screen) {
 /// @brief Where it all begins
 /// @return I dream of a 0
 int main(int argc, char* argv[]) {
+    // ------------------- Create player directory -------------------
     create_dir_if_not_exists("data");
-    SEED = (unsigned int)time(NULL);
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-seed") == 0 && i + 1 < argc) {
-            SEED = (unsigned int)atoi(argv[i + 1]);
-            break;
-        }
-    }
-    init_game_system();
 
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-debug") == 0) {
+    // ------------------- Parse arguments -------------------
+    SEED = (unsigned int)time(NULL);
+    for (int i = 1; i < argc; ++i) {
+        const char* arg = argv[i];
+
+        if (strcmp(arg, "-debug") == 0) {
             set_debug_mode(1);
-            break;
+        } else if (strcmp(arg, "-seed") == 0 && i + 1 < argc) {
+            SEED = (unsigned int)strtoul(argv[++i], NULL, 10);
         }
     }
+
+    // ------------------- Pre Init -------------------
+    init_game_system();
 
     if (init_audio() != 0) exit(EXIT_FAILURE);
     play_bgm("assets/audio/background.mp3", 1);
@@ -425,8 +431,6 @@ int main(int argc, char* argv[]) {
     Render_Buffer* screen = create_screen();
 
     init_local_elements();
-
-    init_projectile_system(screen, PLAYER_L, SEED);
 
     // ------------------- Start input processing thread -------------------
     pthread_t input_thread;
@@ -445,6 +449,9 @@ int main(int argc, char* argv[]) {
         display_interface(screen, "assets/interfaces/structures/help.dodjo");
         play_cinematic(screen, "assets/cinematics/oblivion.dodjo", CINEMATIC_FRAME_DELAY);
     }
+
+    // ------------------- Post init -------------------
+    init_projectile_system(screen, PLAYER_L, SEED);
 
     render(screen, MAP_L);
     update_screen(screen);
@@ -495,14 +502,17 @@ int main(int argc, char* argv[]) {
         }
 
 #ifdef _WIN32
-        if (!GAME_PAUSED || is_debug_mode()) {
-            process_held_movement(screen, PLAYER_L);
-        }
+        if (!GAME_PAUSED || is_debug_mode()) process_held_movement(screen, PLAYER_L);
+        if (GAME_PAUSED && is_debug_mode()) update_screen(screen);
 #endif
 
         if (GAME_PAUSED) {
-            struct timespec ts = {.tv_sec = 0, .tv_nsec = 1000000};
+#ifdef _WIN32
+            Sleep(16);
+#else
+            struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666667};
             nanosleep(&ts, NULL);
+#endif
             continue;
         }
 
@@ -576,9 +586,29 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // Cap the loop to ~1000 iterations/sec to avoid burning a CPU core
-        struct timespec ts = {.tv_sec = 0, .tv_nsec = 1000000};
-        nanosleep(&ts, NULL);
+        // Cap the loop to ~60 iterations/sec to avoid burning a CPU core
+        struct timeval loop_end;
+        gettimeofday(&loop_end, NULL);
+
+        // Time for this frame
+        double execution_time = (loop_end.tv_sec - current_time.tv_sec) + (loop_end.tv_usec - current_time.tv_usec) / 1000000.0;
+
+        double target_frame_time = 1.0 / 60.0;  // (60 FPS)
+
+        if (execution_time < target_frame_time) {
+            double remaining_time = target_frame_time - execution_time;
+#ifdef _WIN32
+            DWORD sleep_ms = (DWORD)(remaining_time * 1000.0);
+            if (sleep_ms > 0) {
+                Sleep(sleep_ms);
+            }
+#else
+            struct timespec ts;
+            ts.tv_sec = (time_t)remaining_time;
+            ts.tv_nsec = (long)((remaining_time - ts.tv_sec) * 1000000000.0);
+            nanosleep(&ts, NULL);
+#endif
+        }
     }
 
     // ------------------- Stop input thread -------------------
@@ -604,6 +634,10 @@ int main(int argc, char* argv[]) {
 
     LOG_INFO("Game session ended normally");
     close_logger();
+
+#ifdef _WIN32
+    timeEndPeriod(1);
+#endif
 
     return EXIT_SUCCESS;
 }

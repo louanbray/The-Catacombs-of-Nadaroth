@@ -26,10 +26,13 @@
 #define NADINO_ENEMY_MIN_SCORE 71
 
 #define XSPACING 2
+//? As the projectiles uses x/2, used to work with odd coordinates
+#define PADDING_X ((GAME_PADDING / 2) % 2)
 
 static unsigned int projectile_rng_seed = 0;
 static int total_enemies = 0;
 static int total_player_projectiles = 0;
+static int tracked_enemy_count = -1;
 
 typedef struct {
     Render_Buffer* r;
@@ -71,10 +74,10 @@ void kill_all_projectiles(Render_Buffer* r) {
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         Projectile* p = &projectiles[i];
         if (p->active) {
-            unsigned int c = render_get_cell_char(r, ITR(p->y), ITR(p->x * XSPACING));
+            unsigned int c = render_get_cell_char(r, ITR(p->y), ITR(p->x * XSPACING + PADDING_X));
 
             if (c == L' ' || c == p->design) {
-                render_set_cell_char(r, ITR(p->y), ITR(p->x * XSPACING), L' ');
+                render_set_cell_char(r, ITR(p->y), ITR(p->x * XSPACING + PADDING_X), L' ');
             }
         }
         p->active = false;
@@ -83,13 +86,13 @@ void kill_all_projectiles(Render_Buffer* r) {
 }
 
 static void draw_ppos(Render_Buffer* r, Projectile* p, unsigned int character) {
-    render_set_cell_char(r, ITR(p->y), ITR(p->x * XSPACING), character);
+    render_set_cell_char(r, ITR(p->y), ITR(p->x * XSPACING + PADDING_X), character);
 }
 
 static void draw_ppos_if_nothing_here(Render_Buffer* r, Projectile* p, unsigned int character) {
-    unsigned int c = render_get_cell_char(r, ITR(p->y), ITR(p->x * XSPACING));
+    unsigned int c = render_get_cell_char(r, ITR(p->y), ITR(p->x * XSPACING + PADDING_X));
     bool nothing = c == L' ' || c == p->design;
-    if (nothing) render_set_cell_char(r, ITR(p->y), ITR(p->x * XSPACING), character);
+    if (nothing) render_set_cell_char(r, ITR(p->y), ITR(p->x * XSPACING + PADDING_X), character);
 }
 
 // Bresenham's Line Algorithm
@@ -104,7 +107,7 @@ void update_projectiles(Render_Buffer* r) {
         if (p->frame != p->rate) continue;
         p->frame = 0;
 
-        unsigned int c = render_get_cell_char(r, ITR(p->y), ITR(p->x * XSPACING));
+        unsigned int c = render_get_cell_char(r, ITR(p->y), ITR(p->x * XSPACING + PADDING_X));
         bool nothing = c == L' ' || c == p->design;
 
         if (nothing) draw_ppos(r, p, L' ');
@@ -122,7 +125,7 @@ void update_projectiles(Render_Buffer* r) {
                 total_player_projectiles = total_player_projectiles < 0 ? 0 : total_player_projectiles;
             }
             if (p->callback) {
-                p->callback(p->x * XSPACING - RECENTER_X, RECENTER_Y - p->y, p->callback_data);
+                p->callback(p->x * XSPACING + PADDING_X - RECENTER_X, RECENTER_Y - p->y, p->callback_data);
             }
 
             continue;
@@ -140,7 +143,7 @@ void update_projectiles(Render_Buffer* r) {
             p->distance_traveled++;  // Increment distance when moving vertically
         }
 
-        c = render_get_cell_char(r, ITR(p->y), ITR(p->x * XSPACING));
+        c = render_get_cell_char(r, ITR(p->y), ITR(p->x * XSPACING + PADDING_X));
         if (c == L' ' || c == p->design) {
             if (p->home) p->home = false;
             draw_ppos(r, p, p->design);
@@ -310,7 +313,7 @@ void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsign
 void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
     if (get_difficulty() == DIFFICULTY_HARD && total_player_projectiles >= 1) return;
     player_update_weapon(p);
-    int x = get_player_x(p) + RECENTER_X;
+    int x = get_player_x(p) + RECENTER_X - PADDING_X;
     int y = -get_player_y(p) + RECENTER_Y;
 
     if (x == target_x && y == target_y) return;
@@ -346,7 +349,6 @@ void* projectile_loop(void* args) {
     int* enemy_attack_timers = NULL;
     chunk* current_chunk = NULL;
     int* enemy_ids = NULL;
-    int tracked_enemy_count = -1;
 
     struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666667};  // 60 FPS
 
@@ -484,4 +486,5 @@ void add_total_enemies(player* p) {
 
 void reset_total_enemies() {
     total_enemies = 0;
+    tracked_enemy_count = -1;
 }

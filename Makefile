@@ -23,7 +23,7 @@ ifeq ($(OS),Windows_NT)
     EXECUTABLE = outDebug.exe
     RELEASE_EXECUTABLE = outRelease.exe
     PLATFORM_CFLAGS = -DWIN32 -D_WIN32 -D__USE_MINGW_ANSI_STDIO=1
-    LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread -lz
+    LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread -lz -lwinmm
     OPENMP = -fopenmp
     RM = C:/msys64/usr/bin/rm -f
 	RMDIR = C:/msys64/usr/bin/rm -rf

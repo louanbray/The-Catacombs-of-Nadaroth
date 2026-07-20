@@ -44,19 +44,20 @@ typedef struct Render_Buffer {
 #define JUNCTION_HEIGHT HUD_HEIGHT
 #define REVERSED_INBOX_JUNCTION_HEIGHT (RENDER_HEIGHT - JUNCTION_HEIGHT - 2)
 
-#define HOTBAR_START ((RENDER_WIDTH + 1) / 2 - 10)
-#define HOTBAR_END ((RENDER_WIDTH + 1) / 2 + 10)
+#define HOTBAR_SPACING 4
+#define HOTBAR_START ((RENDER_WIDTH + 1) / 2 - (5 * HOTBAR_SPACING))
+#define HOTBAR_END ((RENDER_WIDTH + 1) / 2 + (5 * HOTBAR_SPACING))
 
-#define KEYHOLDER_START ((RENDER_WIDTH + 1) / 2 + 20)
+#define KEYHOLDER_START (HOTBAR_END + 6)
 
 #define TITLE_ERASE_START (RENDER_WIDTH / 2 - 10)
 #define MAX_TITLE_SIZE 20
 
-#define CHUNK_DISPLAY_X_POS 115
-#define TIMER_DISPLAY_X_POS 110
+#define CHUNK_DISPLAY_X_POS (RENDER_WIDTH - 14)
+#define TIMER_DISPLAY_X_POS (RENDER_WIDTH - 19)
 #define SCORE_DISPLAY_X_POS 9
 #define MENTAL_HEALTH_DIPLAY_X_POS 17
-#define HOTBAR_DISPLAY_X_POS 57
+#define HOTBAR_DISPLAY_X_POS (HOTBAR_START + HOTBAR_SPACING)
 
 // Item Description GUI
 #define TITLE_DISPLAY_X_POS -13
@@ -222,7 +223,7 @@ void clear_screen(board b) {
 void default_screen(board b) {
     clear_screen(b);
     for (int j = HOTBAR_START; j < HOTBAR_END; j++)
-        if (j % 2 == 0) b[INFO_ROW_TOP][j].ch = L'⎹';
+        if (j % HOTBAR_SPACING == 0) b[INFO_ROW_TOP][j].ch = L'⎹';
 
     write_wstr(b, INFO_ROW_TOP, 2, L"HEALTH: ", 9, COLOR_DEFAULT);
     write_wstr(b, INFO_ROW_BOTTOM, 2, L"SCORE: ", 8, COLOR_DEFAULT);
@@ -475,7 +476,7 @@ void render_hotbar(Render_Buffer* r, hotbar* h) {
             r->bd[INFO_ROW_MID][display].ch = L' ';
         r->bd[INFO_ROW_MID][display].color = COLOR_DEFAULT;
 
-        display += 2;
+        display += HOTBAR_SPACING;
     }
 }
 
@@ -517,97 +518,6 @@ void render_from_player(Render_Buffer* r, player* p) {
     render_mental_health(r, p);
     render_timer(r);
     render_keyholder(r, get_player_keyholder(p));
-}
-#pragma endregion
-
-//
-// UPDATE SCREEN FUNCTIONS
-//
-#pragma region ScreenUpdate
-void update_line_(Render_Buffer* r, int row) {
-    if (!r->rc[row]) return;
-    int screen_row = row + 1;
-    r->rc[row] = 0;
-
-    int start = -1;
-    int current_color = -1;
-
-    wchar_t buffer[RENDER_WIDTH + 1] = {0};
-    for (int i = 0; i < RENDER_WIDTH; i++)
-        buffer[i] = L' ';
-    buffer[RENDER_WIDTH] = L'\0';
-
-    wchar_t line_output[4096];
-    int out_idx = 0;
-
-    for (int j = 0; j < RENDER_WIDTH; j++) {
-        Cell curr = r->bd[row][j];
-        Cell prev = r->pv[row][j];
-
-        if (curr.ch != prev.ch || curr.color != prev.color) {
-            if (start == -1) {
-                start = j;
-                current_color = curr.color;
-            } else if (curr.color != current_color) {
-                buffer[j] = L'\0';
-
-                out_idx += swprintf(&line_output[out_idx], 4096 - out_idx,
-                                    L"\033[%d;%dH%ls%ls",
-                                    screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
-
-                start = j;
-                current_color = curr.color;
-            }
-
-            r->pv[row][j] = curr;
-            buffer[j] = curr.ch;
-        } else if (start != -1) {
-            buffer[j] = L'\0';
-
-            out_idx += swprintf(&line_output[out_idx], 4096 - out_idx,
-                                L"\033[%d;%dH%ls%ls",
-                                screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
-            start = -1;
-        }
-    }
-
-    if (start != -1) {
-        buffer[RENDER_WIDTH] = L'\0';
-        out_idx += swprintf(&line_output[out_idx], 4096 - out_idx,
-                            L"\033[%d;%dH%ls%ls",
-                            screen_row, start + 1, ansi_from_color(current_color), &buffer[start]);
-    }
-
-    out_idx += swprintf(&line_output[out_idx], 4096 - out_idx,
-                        L"\033[%d;%dH%ls",
-                        screen_row, RENDER_WIDTH, ansi_from_color(COLOR_DEFAULT));
-
-    wprintf(L"%ls", line_output);
-}
-
-// This function outputs only modified parts of the screen.
-// It now also takes into account cell color changes.
-void update_screen_(Render_Buffer* r) {
-    for (int i = RENDER_HEIGHT - 1; i >= 0; i--) {
-        if (r->rc[i])
-            update_line_(r, i);
-    }
-    fflush(stdout);
-}
-
-// Marks rows that have changed.
-void mark_changed_rows(Render_Buffer* r) {
-#pragma omp parallel for
-    for (int i = 0; i < RENDER_HEIGHT; i++) {
-        int changed = 0;
-        for (int j = 0; j < RENDER_WIDTH; j++) {
-            if (r->bd[i][j].ch != r->pv[i][j].ch || r->bd[i][j].color != r->pv[i][j].color) {
-                changed = 1;
-                break;
-            }
-        }
-        r->rc[i] = changed;
-    }
 }
 #pragma endregion
 
@@ -1184,57 +1094,73 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
 
 #pragma endregion
 
-// Mark rows as changed and update the screen.
-void update_line(Render_Buffer* r, int row) {
-    mark_changed_rows(r);
-    update_line_(r, row);
-    fflush(stdout);
-}
-
-// // Mark rows as changed and update the screen.
-// void update_screen(Render_Buffer* r) {
-//     mark_changed_rows(r);
-//     update_screen_(r);
-// }
+#pragma region ScreenUpdate
 #ifdef _WIN32
 
-static inline void append_ansi_w(wchar_t* dest, int* idx, const wchar_t* src) {
-    while (*src) {
-        dest[(*idx)++] = *src++;
-    }
-}
+static const WORD WIN32_COLOR_LOOKUP[] = {
+    [COLOR_DEFAULT] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE,
+    [COLOR_RED] = FOREGROUND_RED,
+    [COLOR_CYAN_BOLD] = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+    [COLOR_CYAN] = FOREGROUND_GREEN | FOREGROUND_BLUE,
+    [COLOR_YELLOW] = FOREGROUND_RED | FOREGROUND_GREEN,
+    [COLOR_MAGENTA_BOLD] = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+    [COLOR_MAGENTA] = FOREGROUND_RED | FOREGROUND_BLUE,
+    [COLOR_GREEN] = FOREGROUND_GREEN,
+    [COLOR_GRAY] = FOREGROUND_INTENSITY,
+};
 
-// VERSION WINDOWS NATIVE (Vitesse maximale via l'API Win32)
+static HANDLE hOut = INVALID_HANDLE_VALUE;
+
+// Uses Windows API
 void update_screen(Render_Buffer* r) {
-    static wchar_t frame_buffer[RENDER_WIDTH * RENDER_HEIGHT * 16 + 4096];
-    int out_idx = 0;
+    static CHAR_INFO bufferA[RENDER_WIDTH * RENDER_HEIGHT];
+    static CHAR_INFO bufferB[RENDER_WIDTH * RENDER_HEIGHT];
+    static CHAR_INFO* cur = bufferA;
+    static CHAR_INFO* prev = bufferB;
+    static BOOL first_frame = TRUE;
 
-    append_ansi_w(frame_buffer, &out_idx, L"\033[H");
+    if (hOut == INVALID_HANDLE_VALUE) {
+        hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    }
 
-    int current_color = -1;
+    int minRow = RENDER_HEIGHT, maxRow = -1;
+    int minCol = RENDER_WIDTH, maxCol = -1;
 
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         for (int j = 0; j < RENDER_WIDTH; j++) {
-            Cell curr = r->bd[i][j];
+            int idx = i * RENDER_WIDTH + j;
+            const Cell* c = &r->bd[i][j];
 
-            if (curr.color != current_color) {
-                append_ansi_w(frame_buffer, &out_idx, ansi_from_color(curr.color));
-                current_color = curr.color;
+            WORD attr = WIN32_COLOR_LOOKUP[c->color];
+            wchar_t ch = c->ch;
+
+            if (first_frame ||
+                ch != prev[idx].Char.UnicodeChar ||
+                attr != prev[idx].Attributes) {
+                if (i < minRow) minRow = i;
+                if (i > maxRow) maxRow = i;
+                if (j < minCol) minCol = j;
+                if (j > maxCol) maxCol = j;
             }
 
-            frame_buffer[out_idx++] = curr.ch;
+            cur[idx].Char.UnicodeChar = ch;
+            cur[idx].Attributes = attr;
         }
-        frame_buffer[out_idx++] = L'\n';
     }
 
-    append_ansi_w(frame_buffer, &out_idx, ansi_from_color(COLOR_DEFAULT));
-    frame_buffer[out_idx] = L'\0';
+    if (maxRow >= 0) {
+        COORD buffer_size = {(SHORT)RENDER_WIDTH, (SHORT)RENDER_HEIGHT};
+        COORD buffer_coord = {(SHORT)minCol, (SHORT)minRow};
+        SMALL_RECT write_region = {
+            (SHORT)minCol, (SHORT)minRow, (SHORT)maxCol, (SHORT)maxRow};
 
-    // On écrit directement dans le handle de la console Windows.
-    // Plus aucun conflit possible avec printf/fwrite, pas besoin de fflush, zéro latence.
-    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    DWORD written;
-    WriteConsoleW(hOut, frame_buffer, out_idx, &written, NULL);
+        WriteConsoleOutputW(hOut, cur, buffer_size, buffer_coord, &write_region);
+    }
+
+    CHAR_INFO* tmp = cur;
+    cur = prev;
+    prev = tmp;
+    first_frame = FALSE;
 }
 
 #else
@@ -1288,7 +1214,7 @@ void update_screen(Render_Buffer* r) {
     append_ansi_utf8(frame_buffer, &out_idx, ansi_from_color(COLOR_DEFAULT));
     frame_buffer[out_idx] = '\0';
 
-    fwrite(frame_buffer, sizeof(char), out_idx, stdout);
-    fflush(stdout);
+    write(STDOUT_FILENO, frame_buffer, out_idx);
 }
 #endif
+#pragma endregion

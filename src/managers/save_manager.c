@@ -405,6 +405,7 @@ static item* load_item_data(FILE* f, chunk* c, dynarray* items_array) {
         fread(&e->attack_delay, sizeof(int), 1, f);
         fread(&e->attack_interval, sizeof(int), 1, f);
         fread(&e->can_drop, sizeof(bool), 1, f);
+        fread(&e->entity_type, sizeof(EntityType), 1, f);
         fread(&e->loot.key, sizeof(UsableItem), 1, f);
         fread(&e->loot.none, sizeof(int), 1, f);
         fread(&e->loot.bronze, sizeof(int), 1, f);
