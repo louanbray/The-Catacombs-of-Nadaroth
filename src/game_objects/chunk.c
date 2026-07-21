@@ -171,7 +171,7 @@ void fill_furniture(chunk* c, ChunkType type) {
 }
 
 void decorate(chunk* c, int x, int y) {
-    int type = is_debug_mode() ? CHUNK_SINGLE : CHUNK_SPAWN;
+    int type = is_debug_mode() ? CHUNK_DEBUG : CHUNK_SPAWN;
     int spawn_x = 1;  //! TO CENTER THE PLAYER
     int spawn_y = is_debug_mode() ? -5 : 0;
     if (x != 0 || y != 0) type = RAND_RANGE(CHUNK_SPAWN + 1, CHUNK_TYPE_COUNT - 1);

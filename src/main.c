@@ -74,6 +74,7 @@ void move(Render_Buffer* screen, player* p, int dir) {
             render_player(screen, p);
             break;
     }
+    fog_of_war_set_origin(get_player_x(p), get_player_y(p));
 }
 
 #ifdef _WIN32
@@ -421,6 +422,7 @@ int main(int argc, char* argv[]) {
     init_projectile_system(screen, PLAYER_L, SEED);
 
     render(screen, MAP_L);
+    fog_of_war_enable();
     update_screen(screen);
 
     increment_statistic(STAT_GAME_STARTED, 1);
@@ -433,9 +435,9 @@ int main(int argc, char* argv[]) {
     for (;;) {
         gettimeofday(&current_time, NULL);
 
-        if (GAME_PAUSED || need_reset())
+        if (GAME_PAUSED || need_reset()) {
             start_time = current_time;
-        else {
+        } else {
             double elapsed = (current_time.tv_sec - start_time.tv_sec) + (current_time.tv_usec - start_time.tv_usec) / 1000000.0;
             add_time_played((struct timeval){.tv_sec = (long)elapsed, .tv_usec = (long)((elapsed - (long)elapsed) * 1000000)});
             accumulated_time += elapsed;
@@ -482,12 +484,6 @@ int main(int argc, char* argv[]) {
             display_item_description(screen, get_selected_item(HOTBAR_L));
         } else if (USE_KEY(' ')) {
             handle_resume(pause_menu(screen, PLAYER_L, MAP_L, HOTBAR_L), screen);
-        } else if (USE_KEY('H') || USE_KEY('h')) {
-            display_interface(screen, "assets/interfaces/structures/help.dodjo");
-        } else if (USE_KEY('A') || USE_KEY('a')) {
-            display_achievements(screen, 0);
-        } else if (USE_KEY('T') || USE_KEY('t')) {
-            display_statistics(screen);
         }
 
         if (is_debug_mode()) {

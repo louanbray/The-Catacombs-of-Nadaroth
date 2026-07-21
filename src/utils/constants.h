@@ -116,6 +116,7 @@ TODO LIST:
   => better rating = better opportunities for next acts (so bad rating = harder time going forward).
 ! If diff = easy : possibility to restart an act to up your rating else if diff = hard : f you and start over.
 ! Add autosave [when?] (current game) and 5 local saves (diff games). + cross plateform (movement)
+! Add glitch % MH
 
 Bonne chance à moi
 */

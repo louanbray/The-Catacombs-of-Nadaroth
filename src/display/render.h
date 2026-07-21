@@ -269,4 +269,9 @@ void finalize_render_buffer_silent(Render_Buffer* r);
  * @param file Pointer to an already opened file
  */
 void read_text_into_render(Render_Buffer* r, FILE* file);
+void set_glitch(int frame_nb, int chance);
+void fog_of_war_setup(int vision_radius, int fog_radius);
+void fog_of_war_set_origin(int x, int y);
+void fog_of_war_enable();
+void fog_of_war_disable();
 #endif

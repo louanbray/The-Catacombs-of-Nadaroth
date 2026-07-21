@@ -26,6 +26,13 @@ typedef struct Render_Buffer {
     int* rc;     // row changed flags
 } Render_Buffer;
 
+static bool FOG_OF_WAR = false;
+static bool IN_MENU = false;
+static int FOG_OF_WAR_ORIGIN_X = WTR_X(0);
+static int FOG_OF_WAR_ORIGIN_Y = WTR_Y(0);
+static int FOG_OF_WAR_CLEAR_VISION_RADIUS = (6 * 6);  // 6
+static int FOG_OF_WAR_FOG_RADIUS = (9 * 9);           // 9
+
 #define INFO_ROW_BOTTOM (RENDER_HEIGHT - 2)
 #define INFO_ROW_MID (RENDER_HEIGHT - 3)
 #define INFO_ROW_TOP (RENDER_HEIGHT - 4)
@@ -492,6 +499,23 @@ void render_keyholder(Render_Buffer* r, keyholder* k) {
     }
 }
 
+void fog_of_war_setup(int vision_radius, int fog_radius) {
+    FOG_OF_WAR_CLEAR_VISION_RADIUS = vision_radius * vision_radius;
+    FOG_OF_WAR_FOG_RADIUS = fog_radius * fog_radius;
+}
+void fog_of_war_set_origin(int x, int y) {
+    FOG_OF_WAR_ORIGIN_X = WTR_X(x);
+    FOG_OF_WAR_ORIGIN_Y = WTR_Y(y);
+}
+
+void fog_of_war_enable() {
+    FOG_OF_WAR = true;
+}
+
+void fog_of_war_disable() {
+    FOG_OF_WAR = false;
+}
+
 // Overall render function starting from the map.
 void render(Render_Buffer* r, map* m) {
     player* p = get_player(m);
@@ -531,6 +555,7 @@ wchar_t* fgetws_from_string(wchar_t* buffer, int size, const char** source) {
 
 // Prepares the render buffer for modal text display.
 void setup_render_buffer(Render_Buffer* r) {
+    IN_MENU = true;
     r->dump = r->bd;
     r->bd = r->pv;
     r->pv = create_board();
@@ -542,6 +567,7 @@ void setup_render_buffer(Render_Buffer* r) {
 
 // Finalizes the render buffer.
 void finalize_render_buffer(Render_Buffer* r) {
+    IN_MENU = false;
     free(r->bd);
     r->bd = r->dump;
     update_screen(r);
@@ -551,6 +577,7 @@ void finalize_render_buffer(Render_Buffer* r) {
 
 // No screen update variant
 void finalize_render_buffer_silent(Render_Buffer* r) {
+    IN_MENU = false;
     free(r->bd);
     r->bd = r->dump;
     if (GAME_PAUSED == 1) unlock_inputs();
@@ -1075,6 +1102,7 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
     if (!no_refresh)
         finalize_render_buffer(r);
     if (no_refresh || loaded_a_game) {
+        IN_MENU = false;
         render(r, m);
         update_screen(r);
         resume_game();
@@ -1088,6 +1116,9 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
 #pragma endregion
 
 #pragma region ScreenUpdate
+static Cell blank_cell = {.ch = L' ', .color = COLOR_DEFAULT};
+static int glitch_ticks_left = 0;
+static int glitch_chance = 5;
 #ifdef _WIN32
 
 static const WORD WIN32_COLOR_LOOKUP[] = {
@@ -1119,13 +1150,35 @@ void update_screen(Render_Buffer* r) {
     int minRow = RENDER_HEIGHT, maxRow = -1;
     int minCol = RENDER_WIDTH, maxCol = -1;
 
+    bool is_glitching = (glitch_ticks_left > 0);
+    if (glitch_ticks_left > 0) glitch_ticks_left--;
+
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         for (int j = 0; j < RENDER_WIDTH; j++) {
             int idx = i * RENDER_WIDTH + j;
-            const Cell* c = &r->bd[i][j];
 
-            WORD attr = WIN32_COLOR_LOOKUP[c->color];
+            const Cell* c = &r->bd[i][j];
+            if (is_glitching && (rand() % 100) < glitch_chance) c = &blank_cell;
+
             wchar_t ch = c->ch;
+            Color color = c->color;
+
+            // ---- Fog of War ----
+            if (FOG_OF_WAR && !IN_MENU && i > 0 && i <= REVERSED_INBOX_JUNCTION_HEIGHT && j > 0 && j < RENDER_WIDTH - 1) {
+                int dx = (j - FOG_OF_WAR_ORIGIN_X) / 2;
+                int dy = i - FOG_OF_WAR_ORIGIN_Y;
+                int dist_sq = (dx * dx) + (dy * dy);
+
+                if (dist_sq > FOG_OF_WAR_FOG_RADIUS) {
+                    ch = L' ';
+                    color = COLOR_DEFAULT;
+                } else if (dist_sq > FOG_OF_WAR_CLEAR_VISION_RADIUS) {
+                    color = COLOR_GRAY;
+                    ch = ch == L' ' ? L' ' : L'░';
+                }
+            }
+
+            WORD attr = WIN32_COLOR_LOOKUP[color];
 
             if (first_frame ||
                 ch != prev[idx].Char.UnicodeChar ||
@@ -1186,20 +1239,42 @@ void update_screen(Render_Buffer* r) {
     static char frame_buffer[RENDER_WIDTH * RENDER_HEIGHT * 32 + 4096];
     int out_idx = 0;
 
+    bool is_glitching = (glitch_ticks_left > 0);
+    if (glitch_ticks_left > 0) glitch_ticks_left--;
+
     append_ansi_utf8(frame_buffer, &out_idx, L"\033[H");
 
     int current_color = -1;
 
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         for (int j = 0; j < RENDER_WIDTH; j++) {
-            Cell curr = r->bd[i][j];
+            const Cell* c = &r->bd[i][j];
+            if (is_glitching && (rand() % 100) < glitch_chance) c = &blank_cell;
 
-            if (curr.color != current_color) {
-                append_ansi_utf8(frame_buffer, &out_idx, ansi_from_color(curr.color));
-                current_color = curr.color;
+            wchar_t ch = c->ch;
+            Color color = c->color;
+
+            // ---- Fog of War ----
+            if (FOG_OF_WAR && !IN_MENU && i > 0 && i <= REVERSED_INBOX_JUNCTION_HEIGHT && j > 0 && j < RENDER_WIDTH - 1) {
+                int dx = (j - FOG_OF_WAR_ORIGIN_X) / 2;
+                int dy = i - FOG_OF_WAR_ORIGIN_Y;
+                int dist_sq = (dx * dx) + (dy * dy);
+
+                if (dist_sq > FOG_OF_WAR_FOG_RADIUS) {
+                    ch = L' ';
+                    color = COLOR_DEFAULT;
+                } else if (dist_sq > FOG_OF_WAR_CLEAR_VISION_RADIUS) {
+                    color = COLOR_GRAY;
+                    ch = (ch == L' ') ? L' ' : L'░';
+                }
             }
 
-            append_char_utf8(frame_buffer, &out_idx, curr.ch);
+            if (color != current_color) {
+                append_ansi_utf8(frame_buffer, &out_idx, ansi_from_color(color));
+                current_color = color;
+            }
+
+            append_char_utf8(frame_buffer, &out_idx, ch);
         }
         frame_buffer[out_idx++] = '\n';
     }
@@ -1210,4 +1285,8 @@ void update_screen(Render_Buffer* r) {
     write(STDOUT_FILENO, frame_buffer, out_idx);
 }
 #endif
+void set_glitch(int frame_nb, int chance) {
+    glitch_ticks_left = max(0, frame_nb);
+    glitch_chance = CLAMP(chance, 0, 100);
+}
 #pragma endregion
