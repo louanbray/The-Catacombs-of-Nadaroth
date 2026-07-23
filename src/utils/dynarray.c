@@ -99,7 +99,7 @@ void free_dyn(dynarray* t) {
                 entity* e = get_entity_link(it);
 
                 if (e != NULL)
-                    free_entity_brain(e);
+                    destroy_entity_from_chunk(e);
                 else
                     free_item(it);
             }

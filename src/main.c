@@ -422,7 +422,7 @@ int main(int argc, char* argv[]) {
     init_projectile_system(screen, PLAYER_L, SEED);
 
     render(screen, MAP_L);
-    fog_of_war_enable();
+    // fog_of_war_enable();
     update_screen(screen);
 
     increment_statistic(STAT_GAME_STARTED, 1);
@@ -535,12 +535,22 @@ int main(int argc, char* argv[]) {
                 heal_player(PLAYER_L, get_player_max_health(PLAYER_L));
                 render_health(screen, PLAYER_L);
                 LOG_INFO("Player health restored to max");
-            } else if (USE_KEY('F') || USE_KEY('f')) {
+            } else if (USE_KEY('H') || USE_KEY('h')) {
                 set_player_score(PLAYER_L, ScorePerPhase[get_player_phase(PLAYER_L)]);
                 render_score(screen, PLAYER_L);
                 LOG_INFO("Player score set to phase score");
+            } else if (USE_KEY('F') || USE_KEY('f')) {
+                fog_of_war_toggle();
+                LOG_INFO("%s Fog of War", has_fog_of_war() ? "Enabled" : "Disabled");
             } else if (USE_KEY('!')) {
                 // debug function of the moment
+                set_debug_mode(0);
+                map* mo = create_map();
+                set_map_player(mo, PLAYER_L);
+                set_player_map(PLAYER_L, mo);
+                MAP_L = mo;
+                render(screen, mo);
+                set_debug_mode(1);
             }
         }
 

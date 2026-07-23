@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "../scripts/chunk_generation.h"
 #include "../utils/logger.h"
 
 static AssetManager* asset_manager = NULL;
@@ -256,6 +257,16 @@ bool add_chunk_file(const char* filename, ChunkType type) {
     return true;
 }
 
+bool add_generated_chunk(const char* filename, ChunkType type) {
+    if (type < 0 || type >= CHUNK_TYPE_COUNT) return NULL;
+
+    ChunkAssetFile* chunk = generate_chunk_asset_file(type);
+    if (!chunk) return false;
+
+    asset_manager->chunks[type] = chunk;
+    return true;
+}
+
 bool add_usable_item_file(const char* filename, UsableItem type) {
     if (type < 0 || type >= USABLE_ITEM_COUNT) return NULL;
 
@@ -345,15 +356,15 @@ void init_assets_system() {
     add_chunk_file("assets/chunks/single.dodjo", CHUNK_SINGLE);
     add_chunk_file("assets/chunks/spawn.dodjo", CHUNK_SPAWN);
     // ---- Generated Chunks ----
-    add_chunk_file("assets/chunks/default.dodjo", CHUNK_DEFAULT);
-    add_chunk_file("assets/chunks/default2.dodjo", CHUNK_DEFAULT2);
-    add_chunk_file("assets/chunks/treasure_room_1.dodjo", CHUNK_TREASURE_ROOM);
+    add_generated_chunk("assets/chunks/default.dodjo", CHUNK_DEFAULT);
+    add_generated_chunk("assets/chunks/default2.dodjo", CHUNK_DEFAULT2);
+    add_generated_chunk("assets/chunks/treasure_room_1.dodjo", CHUNK_TREASURE_ROOM);
     add_chunk_file("assets/chunks/boss_room.dodjo", CHUNK_BOSS_ROOM);
-    add_chunk_file("assets/chunks/waiting_room.dodjo", CHUNK_WAITING_ROOM);
-    add_chunk_file("assets/chunks/random_chunk_easy.dodjo", CHUNK_RANDOM_EASY);
-    add_chunk_file("assets/chunks/random_chunk_medium.dodjo", CHUNK_RANDOM_MEDIUM);
-    add_chunk_file("assets/chunks/random_chunk_hard.dodjo", CHUNK_RANDOM_HARD);
-    add_chunk_file("assets/chunks/random_chunk_nadinhard.dodjo", CHUNK_RANDOM_NADINHARD);
+    add_generated_chunk("assets/chunks/waiting_room.dodjo", CHUNK_WAITING_ROOM);
+    add_generated_chunk("assets/chunks/random_chunk_easy.dodjo", CHUNK_RANDOM_EASY);
+    add_generated_chunk("assets/chunks/random_chunk_medium.dodjo", CHUNK_RANDOM_MEDIUM);
+    add_generated_chunk("assets/chunks/random_chunk_hard.dodjo", CHUNK_RANDOM_HARD);
+    add_generated_chunk("assets/chunks/random_chunk_nadinhard.dodjo", CHUNK_RANDOM_NADINHARD);
     add_chunk_file("assets/chunks/escape_room_1.dodjo", CHUNK_ESCAPE_ROOM_1);
     add_chunk_file("assets/chunks/escape_room_2.dodjo", CHUNK_ESCAPE_ROOM_2);
     // Add more chunk files here...

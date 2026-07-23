@@ -163,6 +163,12 @@ static int max(int x, int y) {
 //
 
 // Create a board object
+void free_board(board b) {
+    if (b == NULL) return;
+    free(b[0]);
+    free(b);
+}
+
 board create_board() {
     Cell* data = calloc(RENDER_WIDTH * RENDER_HEIGHT, sizeof(Cell));
     board b = calloc(RENDER_HEIGHT, sizeof(Cell*));
@@ -516,6 +522,14 @@ void fog_of_war_disable() {
     FOG_OF_WAR = false;
 }
 
+bool has_fog_of_war() {
+    return FOG_OF_WAR;
+}
+
+void fog_of_war_toggle() {
+    FOG_OF_WAR = !FOG_OF_WAR;
+}
+
 // Overall render function starting from the map.
 void render(Render_Buffer* r, map* m) {
     player* p = get_player(m);
@@ -568,7 +582,7 @@ void setup_render_buffer(Render_Buffer* r) {
 // Finalizes the render buffer.
 void finalize_render_buffer(Render_Buffer* r) {
     IN_MENU = false;
-    free(r->bd);
+    free_board(r->bd);
     r->bd = r->dump;
     update_screen(r);
     if (GAME_PAUSED == 1) unlock_inputs();
@@ -578,7 +592,7 @@ void finalize_render_buffer(Render_Buffer* r) {
 // No screen update variant
 void finalize_render_buffer_silent(Render_Buffer* r) {
     IN_MENU = false;
-    free(r->bd);
+    free_board(r->bd);
     r->bd = r->dump;
     if (GAME_PAUSED == 1) unlock_inputs();
     resume_game();
@@ -760,6 +774,7 @@ void display_interface(Render_Buffer* r, const char* filename) {
     FILE* file = fopen(filename, "r");
     if (!file) {
         perror("Error opening file");
+        LOG_ERROR("Error opening file.");
         return;
     }
 
@@ -782,6 +797,7 @@ void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         perror("Error opening file");
+        LOG_ERROR("Error opening file.");
         return;
     }
     setup_render_buffer(r);
@@ -844,6 +860,7 @@ void display_statistics(Render_Buffer* r) {
     FILE* file = fopen("assets/interfaces/structures/statistics.dodjo", "r");
     if (!file) {
         perror("Error opening statistics file");
+        LOG_ERROR("Error opening statistics file.");
         return;
     }
 
@@ -1035,6 +1052,7 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
     FILE* file = fopen("assets/interfaces/structures/pause_menu.dodjo", "r");
     if (!file) {
         perror("Error opening pause menu file");
+        LOG_ERROR("Error opening pause menu file.");
         return RESUME_DEFAULT;
     }
 

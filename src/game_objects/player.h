@@ -402,4 +402,6 @@ void player_update_weapon(player* p);
 /// @return bool, if anitem was dropped
 bool drop(player* p, int index);
 
+void set_player_map(player* p, map* m);
+
 #endif

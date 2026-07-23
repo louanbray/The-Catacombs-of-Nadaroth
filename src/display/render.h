@@ -274,4 +274,6 @@ void fog_of_war_setup(int vision_radius, int fog_radius);
 void fog_of_war_set_origin(int x, int y);
 void fog_of_war_enable();
 void fog_of_war_disable();
+void fog_of_war_toggle();
+bool has_fog_of_war();
 #endif

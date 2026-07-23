@@ -10,6 +10,7 @@
 
 #include "../display/render.h"  // update_screen, setup_render_buffer, finalize_render_buffer, USE_KEY, KEY_PRESSED
 #include "../managers/input_manager.h"
+#include "../utils/logger.h"
 #include "../utils/sys_platform.h"
 
 // ----- Types internes -----
@@ -476,6 +477,7 @@ int* display_interface_with_interactions_main(Render_Buffer* r, const char* visu
     FILE* file = fopen(visual_filename, "r");
     if (!file) {
         perror("Error opening visual file");
+        LOG_ERROR("Error opening visual file.");
         return NULL;
     }
     InteractionSet* set = find_set_by_id(interaction_id);

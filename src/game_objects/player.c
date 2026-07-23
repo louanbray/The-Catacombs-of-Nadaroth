@@ -137,6 +137,12 @@ player* create_player(map* m) {
     return p;
 }
 
+void set_player_map(player* p, map* m) {
+    if (!p || !m) return;
+    p->map = m;
+    p->current_chunk = get_spawn(m);
+}
+
 void player_death(player* p) {
     if (p->phase == GAMEPHASE_FIRST_ACT_END) return;
     reset_total_enemies();
