@@ -113,10 +113,14 @@ typedef struct ChunkItem {
  *
  * @var ChunkAssetFile::item_count
  * The number of items in the array.
+ *
+ * @var ChunkAssetFile::can_free
+ * Does this ChunkAssetFile need to be free'd using free_assets_chunk by the receiver
  */
 typedef struct ChunkAssetFile {
     ChunkItem* items;
     size_t item_count;
+    bool can_free;
 } ChunkAssetFile;
 
 /**
@@ -198,6 +202,17 @@ bool add_entity_file(const char* filename, EntityType type);
 bool add_chunk_file(const char* filename, ChunkType type);
 
 /**
+ * @brief Adds a chunk supporting generation to the asset manager.
+ *
+ * This function adds a chunk file specified by the default_file and type to the asset manager.
+ *
+ * @param filename The name of the file to be added as a fallback if generation doesn't work.
+ * @param type The type of the chunk file.
+ * @return true if the file was successfully added, false otherwise.
+ */
+bool add_generated_chunk_file(const char* default_file, ChunkType type);
+
+/**
  * @brief Adds a usable item file to the assets manager.
  *
  * This function takes the filename of a usable item and its type, and adds it to the assets manager.
@@ -221,6 +236,7 @@ EntityAssetFile* get_entity_file(EntityType type);
  * @brief Retrieves a chunk file from the asset manager.
  *
  * This function retrieves a chunk file of the specified type from the asset manager.
+ * If the chunk has a generator, it'll try to generate this chunk randomly, else it'll return the default chunk file
  *
  * @param type The type of the chunk file to retrieve.
  * @return A pointer to the ChunkAssetFile if found, NULL otherwise.
@@ -237,6 +253,13 @@ ChunkAssetFile* get_chunk_file(ChunkType type);
  * @return A pointer to the UsableItemAssetFile corresponding to the given type.
  */
 UsableItemAssetFile* get_usable_item_file(UsableItem type);
+
+/**
+ * @brief Frees a ChunkAssetFile
+ *
+ * @param chunk The chunk asset file to free
+ */
+void free_assets_chunk(ChunkAssetFile* chunk);
 
 /**
  * Frees all resources used by the asset manager.

@@ -125,4 +125,5 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
             }
         }
     }
+    if (chunkFile->can_free) free_assets_chunk(chunkFile);
 }

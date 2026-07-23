@@ -169,6 +169,16 @@ void free_board(board b) {
     free(b);
 }
 
+void free_render_buffer(Render_Buffer* screen) {
+    if (!screen) return;
+    if (screen->dump == screen->bd) screen->dump = NULL;
+    free_board(screen->bd);
+    free_board(screen->pv);
+    free_board(screen->dump);
+    free(screen->rc);
+    free(screen);
+}
+
 board create_board() {
     Cell* data = calloc(RENDER_WIDTH * RENDER_HEIGHT, sizeof(Cell));
     board b = calloc(RENDER_HEIGHT, sizeof(Cell*));
@@ -389,6 +399,13 @@ void render_timer(Render_Buffer* r) {
     write_wstr(r->bd, INFO_ROW_MID, x_pos, tmp, total_size, COLOR_DEFAULT);
 }
 
+void render_current_chunk_name(Render_Buffer* r, player* p) {
+    chunk* current_chunk = get_player_chunk(p);
+    if (!current_chunk) return;
+    const char* name = CHUNK_NAMES[get_chunk_type(current_chunk)];
+    write_str(r->bd, INFO_ROW_BOTTOM, RENDER_WIDTH - 2 - strlen(name), name, strlen(name), COLOR_DEFAULT);
+}
+
 // Renders the player onto the board.
 void render_player(Render_Buffer* r, player* p) {
     if (r->bd[WTR_Y(get_player_py(p))][WTR_X(get_player_px(p))].ch == get_player_design(p)) render_char(r->bd, get_player_px(p), get_player_py(p), ' ');
@@ -548,6 +565,7 @@ void render_from_player(Render_Buffer* r, player* p) {
     render_mental_health(r, p);
     render_timer(r);
     render_keyholder(r, get_player_keyholder(p));
+    render_current_chunk_name(r, p);
 }
 #pragma endregion
 
@@ -570,6 +588,7 @@ wchar_t* fgetws_from_string(wchar_t* buffer, int size, const char** source) {
 // Prepares the render buffer for modal text display.
 void setup_render_buffer(Render_Buffer* r) {
     IN_MENU = true;
+    if (r->dump) free_board(r->dump);
     r->dump = r->bd;
     r->bd = r->pv;
     r->pv = create_board();
@@ -584,6 +603,7 @@ void finalize_render_buffer(Render_Buffer* r) {
     IN_MENU = false;
     free_board(r->bd);
     r->bd = r->dump;
+    r->dump = NULL;
     update_screen(r);
     if (GAME_PAUSED == 1) unlock_inputs();
     resume_game();
@@ -594,6 +614,7 @@ void finalize_render_buffer_silent(Render_Buffer* r) {
     IN_MENU = false;
     free_board(r->bd);
     r->bd = r->dump;
+    r->dump = NULL;
     if (GAME_PAUSED == 1) unlock_inputs();
     resume_game();
 }
@@ -614,7 +635,7 @@ void process_text_line(wchar_t* buffer, size_t width) {
 
 // Reads text from a file into the render buffer.
 void read_text_into_render(Render_Buffer* r, FILE* file) {
-    wchar_t buffer[MAX_LINE];
+    wchar_t buffer[MAX_LINE] = {0};
     int i = 0;
     while (is_game_running() && portable_fgetws(buffer, MAX_LINE, file) != NULL && i < RENDER_HEIGHT - 2) {
         if (buffer[0] == L'#') {
@@ -1270,7 +1291,7 @@ void update_screen(Render_Buffer* r) {
             if (is_glitching && (rand() % 100) < glitch_chance) c = &blank_cell;
 
             wchar_t ch = c->ch;
-            Color color = c->color;
+            int color = c->color;
 
             // ---- Fog of War ----
             if (FOG_OF_WAR && !IN_MENU && i > 0 && i <= REVERSED_INBOX_JUNCTION_HEIGHT && j > 0 && j < RENDER_WIDTH - 1) {

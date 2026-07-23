@@ -374,7 +374,7 @@ bool populate(int target_count, char item_type) {
     return placed == target_count;
 }
 
-void init(ChunkType type) {
+bool init(ChunkType type) {
     DifficultyChunkStats d = DIFF_STATS_LOOKUP[type];
     int attempts = 0;
     bool sg_placed = false;
@@ -394,11 +394,13 @@ void init(ChunkType type) {
     if (attempts >= 100) {
         LOG_ERROR("Couldn't generate a valid chunk after 100 tries");
         LOG_ERROR("Ooga Booga Badluck You Do Have :)");
+        return false;
     }
+    return true;
 }
 
 void export_chunk_to_file(const char* filename, ChunkType type) {
-    init(type);
+    if (!init(type)) return;
     FILE* file = fopen(filename, "w");
     if (!file) {
         perror("Error opening file");
@@ -463,12 +465,13 @@ void export_chunk_to_file(const char* filename, ChunkType type) {
 }
 
 ChunkAssetFile* generate_chunk_asset_file(ChunkType type) {
-    init(type);
+    if (!init(type)) return NULL;
     ChunkAssetFile* chunk = malloc(sizeof(ChunkAssetFile));
     if (!chunk) return NULL;
 
     chunk->items = NULL;
     chunk->item_count = 0;
+    chunk->can_free = true;
 
     char chunk_copy[CHUNK_HEIGHT][CHUNK_WIDTH];
     for (int i = 0; i < CHUNK_HEIGHT; i++) {

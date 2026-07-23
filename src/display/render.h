@@ -269,11 +269,36 @@ void finalize_render_buffer_silent(Render_Buffer* r);
  * @param file Pointer to an already opened file
  */
 void read_text_into_render(Render_Buffer* r, FILE* file);
+
+/// @brief Sets next frame_nb frames to be glitched with a corruption chance of chance
+/// @param frame_nb Number of frame to corrupt
+/// @param chance Corruption in percent
 void set_glitch(int frame_nb, int chance);
+
+/// @brief Sets the fog of war vision
+/// @param vision_radius Clear vision radius
+/// @param fog_radius Gray vision radius, past this radius, nothing is displayed
 void fog_of_war_setup(int vision_radius, int fog_radius);
+
+/// @brief Sets the fog's origin
+/// @param x In World Coos
+/// @param y In World Coos
 void fog_of_war_set_origin(int x, int y);
+
+/// @brief Enables fog of war
 void fog_of_war_enable();
+
+/// @brief Disables fog of war
 void fog_of_war_disable();
+
+/// @brief Toggles fog of war
 void fog_of_war_toggle();
+
+/// @brief Is fog of war on?
+/// @return true if fog of war is on else false
 bool has_fog_of_war();
+
+/// @brief Frees a Render Buffer
+/// @param screen
+void free_render_buffer(Render_Buffer* screen);
 #endif

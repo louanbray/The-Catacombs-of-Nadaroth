@@ -86,6 +86,6 @@ void stop_projectile_system();
  */
 void restart_projectile_system(Render_Buffer* screen, player* p, int seed);
 
-void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsigned int design, int range, bool infinity, ProjectileCallback callback, projectile_data* callback_data);
+bool spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsigned int design, int range, bool infinity, ProjectileCallback callback, projectile_data* callback_data);
 void enemy_attack_callback(int x, int y, projectile_data* data);
 #endif

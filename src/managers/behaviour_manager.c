@@ -17,7 +17,9 @@ void send_projectile(Render_Buffer* r, player* p, int from_x, int from_y, int ta
     callback_data->p = p;
     callback_data->screen = r;
 
-    spawn_projectile(from_x, from_y, target_x, target_y, ignore_display, speed, design, range, infinity, callback, callback_data);
+    if (!spawn_projectile(from_x, from_y, target_x, target_y, ignore_display, speed, design, range, infinity, callback, callback_data)) {
+        free(callback_data);
+    }
 }
 
 void send_projectile_with_enemy_base(Render_Buffer* r, player* p, item* enemy_brain, int from_x, int from_y, int target_x, int target_y) {

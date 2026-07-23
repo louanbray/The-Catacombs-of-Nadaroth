@@ -124,12 +124,7 @@ chunk* create_chunk_raw(int x, int y, int spawn_x, int spawn_y, ChunkType type) 
 }
 
 void reset_chunk_internals(chunk* ck, int spawn_x, int spawn_y, ChunkType type) {
-    int count = len_dyn(ck->elements);
-    for (int i = 0; i < count; i++) {
-        item* it = (item*)get_dyn(ck->elements, i);
-        if (it != NULL) free_item(it);
-    }
-    free_dyn_no_item(ck->elements);
+    free_dyn(ck->elements);
     free_dyn_no_item(ck->enemies);
     free_hm(ck->hashmap);
     ck->elements = create_dyn();

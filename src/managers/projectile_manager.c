@@ -80,6 +80,10 @@ void kill_all_projectiles(Render_Buffer* r) {
                 render_set_cell_char(r, ITR(p->y), ITR(p->x * XSPACING + PADDING_X), L' ');
             }
         }
+        if (p->callback_data) {
+            free(p->callback_data);
+            p->callback_data = NULL;
+        }
         p->active = false;
     }
     pthread_mutex_unlock(&projectile_mutex);
@@ -125,7 +129,9 @@ void update_projectiles(Render_Buffer* r) {
                 total_player_projectiles = total_player_projectiles < 0 ? 0 : total_player_projectiles;
             }
             if (p->callback) {
-                p->callback(p->x * XSPACING + PADDING_X - RECENTER_X, RECENTER_Y - p->y, p->callback_data);
+                void* data_ptr = p->callback_data;
+                p->callback_data = NULL;
+                p->callback(p->x * XSPACING + PADDING_X - RECENTER_X, RECENTER_Y - p->y, data_ptr);
             }
 
             continue;
@@ -278,7 +284,8 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
     free(data);
 }
 
-void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsigned int design, int range, bool infinity, ProjectileCallback callback, projectile_data* callback_data) {
+bool spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsigned int design, int range, bool infinity, ProjectileCallback callback, projectile_data* callback_data) {
+    bool spawned = false;
     pthread_mutex_lock(&projectile_mutex);
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (!projectiles[i].active) {
@@ -304,10 +311,12 @@ void spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsign
                 .callback = callback,
                 .callback_data = callback_data};
             draw_ppos_if_nothing_here(callback_data->screen, &projectiles[i], projectiles[i].design);
+            spawned = true;
             break;
         }
     }
     pthread_mutex_unlock(&projectile_mutex);
+    return spawned;
 }
 
 void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
@@ -456,6 +465,17 @@ void stop_projectile_system(void) {
     pthread_join(projectile_thread, NULL);
     projectile_thread_running = false;
     projectile_thread_stop = false;
+
+    for (int i = 0; i < MAX_PROJECTILES; i++) {
+        if (projectiles[i].active) {
+            if (projectiles[i].callback_data) {
+                free(projectiles[i].callback_data);
+                projectiles[i].callback_data = NULL;
+            }
+            projectiles[i].active = false;
+        }
+    }
+
     LOG_INFO("Stopped projectile system");
 }
 

@@ -22,7 +22,7 @@ static player* PLAYER_L;
 static hotbar* HOTBAR_L;
 
 bool create_dir_if_not_exists(const char* path) {
-    if (mkdir(path) == 0)
+    if (sys_mkdir(path) == 0)
         return true;
 
     if (errno == EEXIST)
@@ -589,6 +589,7 @@ int main(int argc, char* argv[]) {
     destroy_interactions_system();
     destroy_asset_manager();
     clear_local_elements();
+    free_render_buffer(screen);
 
     LOG_INFO("Game session ended normally");
     close_logger();

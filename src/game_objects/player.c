@@ -154,7 +154,7 @@ void player_death(player* p) {
     p->px = p->x;
     p->py = p->y;
     if (p->score >= ScorePerPhase[p->phase] || p->phase == GAMEPHASE_INTRODUCTION) {
-        p->phase++;
+        increment_player_phase(p);
     } else {
         modify_player_mental_health(p, -1);
     }
@@ -285,6 +285,8 @@ keyholder* get_player_keyholder(player* p) {
 
 void increment_player_phase(player* p) {
     p->phase++;
+    if (p->phase < GAMEPHASE_INTRODUCTION) p->phase = GAMEPHASE_INTRODUCTION;
+    if (p->phase >= GAMEPHASE_COUNT) p->phase = GAMEPHASE_COUNT - 1;
 }
 
 void add_player_deaths(player* p) {

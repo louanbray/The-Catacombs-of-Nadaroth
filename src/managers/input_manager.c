@@ -360,8 +360,8 @@ void process_input(player** p, Render_Buffer* screen,
                    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p, int x, int y),
                    void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction),
                    void (*printable_char_callback)(Render_Buffer* screen, player* p, int c)) {
-    char buffer[128];
-    char input_buffer[MAX_BUFFER_SIZE];
+    char buffer[128] = {0};
+    char input_buffer[MAX_BUFFER_SIZE] = {0};
 
     size_t input_buffer_length = 0;
     bool in_paste_mode = false;  // Track if we're inside a paste sequence

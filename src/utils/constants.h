@@ -250,7 +250,9 @@ typedef enum GamePhase {
     GAMEPHASE_FIRST_ACT_SECOND_PHASE,
     GAMEPHASE_FIRST_ACT_THIRD_PHASE,
     GAMEPHASE_FIRST_ACT_FOURTH_PHASE,
-    GAMEPHASE_FIRST_ACT_END
+    GAMEPHASE_FIRST_ACT_END,
+    GAMEPHASE_WIP,
+    GAMEPHASE_COUNT,
 } GamePhase;
 
 // Color enumeration (using a small integer type)
@@ -303,6 +305,7 @@ typedef enum KeyHolderLevel {
     KEYHOLDER_LEVEL_COUNT
 } KeyHolderLevel;
 
-static const int ScorePerPhase[] = {0, 25, 75, 210, 630, 0, 0};  //! TEMPORARY (1870 removed)
+extern const int ScorePerPhase[GAMEPHASE_COUNT];  // Last score is 0, prevents overflow
+extern const char* CHUNK_NAMES[CHUNK_TYPE_COUNT];
 
 #endif

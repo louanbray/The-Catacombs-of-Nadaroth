@@ -7,6 +7,7 @@
 #include "../utils/logger.h"
 
 static AssetManager* asset_manager = NULL;
+static bool HAS_GENERATOR[CHUNK_TYPE_COUNT] = {0};
 
 /**
  * @brief Loads an entity asset file and parses its contents.
@@ -105,6 +106,7 @@ static ChunkAssetFile* load_chunk_file(const char* filename) {
 
     chunk->items = NULL;
     chunk->item_count = 0;
+    chunk->can_free = false;
 
     int x, y, type, display, row_repeat, size, col_repeat, entity_type, usable_item;
     while (fscanf(file, "%d,%d,%d,%d,%d,%d,%d,%d,%d", &x, &y, &type, &display, &row_repeat, &size, &col_repeat, &entity_type, &usable_item) == 9) {
@@ -174,7 +176,7 @@ static UsableItemAssetFile* load_usable_item_file(const char* filename) {
     // Parse the title (second line)
     char title_line[256];
     if (fgets(title_line, sizeof(title_line), file) != NULL) {
-        title_line[strcspn(title_line, "\n")] = '\0';  // Remove newline character
+        title_line[strcspn(title_line, "\r\n")] = '\0';  // Remove newline character
         usable_item->title = strdup(title_line);
         if (!usable_item->title) {
             fclose(file);
@@ -193,7 +195,9 @@ static UsableItemAssetFile* load_usable_item_file(const char* filename) {
     char description_buffer[1024] = {0};
     char line[256];
     while (fgets(line, sizeof(line), file) != NULL) {
+        line[strcspn(line, "\r\n")] = '\0';
         strcat(description_buffer, line);
+        strcat(description_buffer, "\n");
     }
 
     // Allocate and copy the description
@@ -257,13 +261,10 @@ bool add_chunk_file(const char* filename, ChunkType type) {
     return true;
 }
 
-bool add_generated_chunk(const char* filename, ChunkType type) {
+bool add_generated_chunk_file(const char* default_file, ChunkType type) {
     if (type < 0 || type >= CHUNK_TYPE_COUNT) return NULL;
-
-    ChunkAssetFile* chunk = generate_chunk_asset_file(type);
-    if (!chunk) return false;
-
-    asset_manager->chunks[type] = chunk;
+    HAS_GENERATOR[type] = true;
+    add_chunk_file(default_file, type);
     return true;
 }
 
@@ -286,6 +287,11 @@ EntityAssetFile* get_entity_file(EntityType type) {
 ChunkAssetFile* get_chunk_file(ChunkType type) {
     if (type < 0 || type >= CHUNK_TYPE_COUNT) return NULL;
 
+    if (HAS_GENERATOR[type]) {
+        ChunkAssetFile* gen_file = generate_chunk_asset_file(type);
+        if (gen_file != NULL) return gen_file;
+    }
+
     return asset_manager->chunks[type];
 }
 
@@ -295,29 +301,53 @@ UsableItemAssetFile* get_usable_item_file(UsableItem type) {
     return asset_manager->usable_items[type];
 }
 
+void free_assets_entity(EntityAssetFile* entity) {
+    if (!entity) return;
+    free(entity->specs.specs);
+    free(entity->parts);
+    free(entity);
+}
+
+void free_assets_entities(void) {
+    for (EntityType i = 0; i < ENTITY_TYPE_COUNT; i++) {
+        free_assets_entity(asset_manager->entities[i]);
+        asset_manager->entities[i] = NULL;
+    }
+}
+
+void free_assets_chunk(ChunkAssetFile* chunk) {
+    if (!chunk) return;
+    free(chunk->items);
+    free(chunk);
+}
+
+void free_assets_chunks(void) {
+    for (ChunkType i = 0; i < CHUNK_TYPE_COUNT; i++) {
+        free_assets_chunk(asset_manager->chunks[i]);
+        asset_manager->chunks[i] = NULL;
+    }
+}
+
+void free_asset_usable_item(UsableItemAssetFile* item) {
+    if (!item) return;
+    free(item->title);
+    free(item->description);
+    free(item->specs.specs);
+    free(item);
+}
+
+void free_assets_usable_items(void) {
+    for (UsableItem i = 0; i < USABLE_ITEM_COUNT; i++) {
+        free_asset_usable_item(asset_manager->usable_items[i]);
+        asset_manager->usable_items[i] = NULL;
+    }
+}
+
 void destroy_asset_manager() {
     if (!asset_manager) return;
-
-    for (int i = 0; i < ENTITY_TYPE_COUNT; i++) {
-        if (!asset_manager->entities[i]) continue;
-        free(asset_manager->entities[i]->specs.specs);
-        free(asset_manager->entities[i]->parts);
-        free(asset_manager->entities[i]);
-    }
-
-    for (int i = 0; i < CHUNK_TYPE_COUNT; i++) {
-        if (!asset_manager->chunks[i]) continue;
-        free(asset_manager->chunks[i]->items);
-        free(asset_manager->chunks[i]);
-    }
-
-    for (int i = 0; i < USABLE_ITEM_COUNT; i++) {
-        if (!asset_manager->usable_items[i]) continue;
-        free(asset_manager->usable_items[i]->title);
-        free(asset_manager->usable_items[i]->description);
-        free(asset_manager->usable_items[i]->specs.specs);
-        free(asset_manager->usable_items[i]);
-    }
+    free_assets_entities();
+    free_assets_chunks();
+    free_assets_usable_items();
     free(asset_manager);
     asset_manager = NULL;
 }
@@ -356,15 +386,15 @@ void init_assets_system() {
     add_chunk_file("assets/chunks/single.dodjo", CHUNK_SINGLE);
     add_chunk_file("assets/chunks/spawn.dodjo", CHUNK_SPAWN);
     // ---- Generated Chunks ----
-    add_generated_chunk("assets/chunks/default.dodjo", CHUNK_DEFAULT);
-    add_generated_chunk("assets/chunks/default2.dodjo", CHUNK_DEFAULT2);
-    add_generated_chunk("assets/chunks/treasure_room_1.dodjo", CHUNK_TREASURE_ROOM);
+    add_generated_chunk_file("assets/chunks/default.dodjo", CHUNK_DEFAULT);
+    add_generated_chunk_file("assets/chunks/default2.dodjo", CHUNK_DEFAULT2);
+    add_generated_chunk_file("assets/chunks/treasure_room_1.dodjo", CHUNK_TREASURE_ROOM);
     add_chunk_file("assets/chunks/boss_room.dodjo", CHUNK_BOSS_ROOM);
-    add_generated_chunk("assets/chunks/waiting_room.dodjo", CHUNK_WAITING_ROOM);
-    add_generated_chunk("assets/chunks/random_chunk_easy.dodjo", CHUNK_RANDOM_EASY);
-    add_generated_chunk("assets/chunks/random_chunk_medium.dodjo", CHUNK_RANDOM_MEDIUM);
-    add_generated_chunk("assets/chunks/random_chunk_hard.dodjo", CHUNK_RANDOM_HARD);
-    add_generated_chunk("assets/chunks/random_chunk_nadinhard.dodjo", CHUNK_RANDOM_NADINHARD);
+    add_generated_chunk_file("assets/chunks/waiting_room.dodjo", CHUNK_WAITING_ROOM);
+    add_generated_chunk_file("assets/chunks/random_chunk_easy.dodjo", CHUNK_RANDOM_EASY);
+    add_generated_chunk_file("assets/chunks/random_chunk_medium.dodjo", CHUNK_RANDOM_MEDIUM);
+    add_generated_chunk_file("assets/chunks/random_chunk_hard.dodjo", CHUNK_RANDOM_HARD);
+    add_generated_chunk_file("assets/chunks/random_chunk_nadinhard.dodjo", CHUNK_RANDOM_NADINHARD);
     add_chunk_file("assets/chunks/escape_room_1.dodjo", CHUNK_ESCAPE_ROOM_1);
     add_chunk_file("assets/chunks/escape_room_2.dodjo", CHUNK_ESCAPE_ROOM_2);
     // Add more chunk files here...
