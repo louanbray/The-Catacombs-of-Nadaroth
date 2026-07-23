@@ -907,6 +907,9 @@ static bool load_map_data(FILE* f, map* m) {
 bool save_game(const char* filename, player* p, map* m, hotbar* h) {
     if (!filename || !p || !m || !h) return false;
 
+    sys_mkdir("saves");
+    sys_mkdir("saves/user_saves");
+
     // First, save to an uncompressed temporary file
     char temp_filename[512];
     snprintf(temp_filename, sizeof(temp_filename), "%s.tmp", filename);
@@ -1075,6 +1078,8 @@ bool load_game(const char* filename, player* p, map* m, hotbar* h) {
         remove(temp_filename);
         return false;
     }
+
+    clear_chunk_cache();
 
     struct timeval game_started;
     struct timeval time_played;

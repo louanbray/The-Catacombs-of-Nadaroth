@@ -1094,7 +1094,7 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
     while ((!USE_KEY(' ') && !USE_KEY('\n'))) {
         if (USE_KEY('N') || USE_KEY('n')) {
             write_str(r->bd, INFO_ROW_MID, 2, " ", RENDER_WIDTH - 4, COLOR_DEFAULT);
-            if (save_game("data/save.dat", p, m, h)) {
+            if (save_game("saves/user_saves/0.dat", p, m, h)) {
                 LOG_INFO("Game saved successfully!");
                 write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 24) / 2 + 2, "Game saved successfully!", 25, COLOR_GREEN);
                 play_sound_effect_by_id(AUDIO_SUCCESS);
@@ -1107,7 +1107,7 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
         } else if (USE_KEY('B') || USE_KEY('b')) {
             write_str(r->bd, INFO_ROW_MID, 2, " ", RENDER_WIDTH - 4, COLOR_DEFAULT);
             kill_all_projectiles(r);
-            if (load_game("data/save.dat", p, m, h)) {
+            if (load_game("saves/user_saves/0.dat", p, m, h)) {
                 loaded_a_game = true;
                 LOG_INFO("Game loaded successfully!");
                 write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 25) / 2 + 1, "Game loaded successfully!", 26, COLOR_GREEN);
