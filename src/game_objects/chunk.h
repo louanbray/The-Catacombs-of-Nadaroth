@@ -1,5 +1,6 @@
 #ifndef CHUNK_H
 #define CHUNK_H
+#include <stdint.h>
 
 #include "../scripts/chunk_parser.h"
 #include "../utils/hash.h"
@@ -20,6 +21,13 @@ typedef struct chunk_arena {
     arena_block* head;
     arena_block* current;
 } chunk_arena;
+
+typedef struct wall_entry {
+    uint8_t row;
+    uint8_t col;
+    uint8_t color;
+    uint16_t display;
+} wall_entry;
 
 // ---- Arena & Wall Matrix ----
 void* chunk_arena_alloc(chunk_arena* arena, size_t size);
@@ -211,5 +219,10 @@ void reset_chunk_internals(chunk* ck, int spawn_x, int spawn_y, ChunkType type);
 /// @brief Free all internals and the chunk object itself
 /// @param ck chunk to destroy
 void destroy_chunk_full(chunk* ck);
+
+uint16_t get_chunk_wall_count(chunk* ck);
+wall_entry* get_chunk_sparse_walls(chunk* ck);
+void* get_chunk_wall_mask(chunk* ck);
+void set_chunk_walls_data(chunk* ck, uint64_t wall_mask[CHUNK_MATRIX_HEIGHT][2], uint16_t count, wall_entry* walls);
 
 #endif

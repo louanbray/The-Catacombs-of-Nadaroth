@@ -1,19 +1,11 @@
 #include "chunk.h"
 
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../display/render.h"
 #include "../utils/game_status.h"
 #include "item.h"
-
-typedef struct wall_entry {
-    uint8_t row;
-    uint8_t col;
-    uint8_t color;
-    uint16_t display;
-} wall_entry;
 
 /// @brief Private chunk structure definition
 typedef struct chunk {
@@ -231,6 +223,33 @@ chunk_link get_chunk_links(chunk* ck) {
 
 chunk* get_chunk_link_at(chunk* ck, int dir) {
     return ck->link[dir];
+}
+
+uint16_t get_chunk_wall_count(chunk* ck) {
+    return ck ? ck->wall_count : 0;
+}
+
+wall_entry* get_chunk_sparse_walls(chunk* ck) {
+    return ck ? ck->sparse_walls : NULL;
+}
+
+void* get_chunk_wall_mask(chunk* ck) {
+    return ck ? ck->wall_mask : NULL;
+}
+
+void set_chunk_walls_data(chunk* ck, uint64_t wall_mask[CHUNK_MATRIX_HEIGHT][2], uint16_t count, wall_entry* walls) {
+    if (!ck) return;
+    if (wall_mask) {
+        memcpy(ck->wall_mask, wall_mask, sizeof(ck->wall_mask));
+    } else {
+        memset(ck->wall_mask, 0, sizeof(ck->wall_mask));
+    }
+    if (ck->sparse_walls) {
+        free(ck->sparse_walls);
+    }
+    ck->wall_count = count;
+    ck->wall_capacity = count;
+    ck->sparse_walls = walls;
 }
 
 void set_chunk_link(chunk* ck, int dir, chunk* target) {

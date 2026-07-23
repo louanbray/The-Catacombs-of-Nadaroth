@@ -19,7 +19,7 @@
 #include "../utils/sys_platform.h"
 #include "projectile_manager.h"
 
-#define SAVE_VERSION 6
+#define SAVE_VERSION 7
 #define SAVE_MAGIC 0x4E414430  // "NAD0" in hex
 
 static const char* FILE_CACHE = "saves/cache.bin";
@@ -451,6 +451,63 @@ static item* load_item_data(FILE* f, chunk* c, dynarray* items_array) {
     return it;
 }
 
+/// @brief Save the wall_entry structure of a chunk to file
+static bool save_chunk_walls_data(FILE* f, chunk* ck) {
+    if (!f || !ck) return false;
+
+    uint16_t wall_count = get_chunk_wall_count(ck);
+    fwrite(&wall_count, sizeof(uint16_t), 1, f);
+
+    wall_entry* walls = get_chunk_sparse_walls(ck);
+    for (uint16_t i = 0; i < wall_count; i++) {
+        fwrite(&walls[i].row, sizeof(uint8_t), 1, f);
+        fwrite(&walls[i].col, sizeof(uint8_t), 1, f);
+        fwrite(&walls[i].display, sizeof(uint16_t), 1, f);
+        fwrite(&walls[i].color, sizeof(uint8_t), 1, f);
+    }
+
+    return true;
+}
+
+/// @brief Load the wall_entry structure of a chunk from file and apply it directly to the chunk
+static bool load_chunk_walls_data(FILE* f, chunk* ck) {
+    if (!f || !ck) return false;
+
+    uint16_t wall_count = 0;
+    if (fread(&wall_count, sizeof(uint16_t), 1, f) != 1) return false;
+
+    uint64_t wall_mask[CHUNK_MATRIX_HEIGHT][2];
+    memset(wall_mask, 0, sizeof(wall_mask));
+
+    wall_entry* walls = NULL;
+    if (wall_count > 0) {
+        walls = (wall_entry*)malloc(wall_count * sizeof(wall_entry));
+        if (!walls) return false;
+
+        for (uint16_t i = 0; i < wall_count; i++) {
+            uint8_t row, col, color;
+            uint16_t display;
+
+            fread(&row, sizeof(uint8_t), 1, f);
+            fread(&col, sizeof(uint8_t), 1, f);
+            fread(&display, sizeof(uint16_t), 1, f);
+            fread(&color, sizeof(uint8_t), 1, f);
+
+            walls[i].row = row;
+            walls[i].col = col;
+            walls[i].display = display;
+            walls[i].color = color;
+
+            int word_idx = col / 64;
+            int bit_idx = col % 64;
+            wall_mask[row][word_idx] |= (1ULL << bit_idx);
+        }
+    }
+
+    set_chunk_walls_data(ck, wall_mask, wall_count, walls);
+    return true;
+}
+
 /// @brief Save a chunk to file
 static bool save_chunk_data(FILE* f, chunk* ck) {
     if (!f || !ck) return false;
@@ -481,6 +538,12 @@ static bool save_chunk_data(FILE* f, chunk* ck) {
             fwrite(&no_link, sizeof(int), 1, f);
             fwrite(&no_link, sizeof(int), 1, f);
         }
+    }
+
+    // Save the chunk's wall_entry structure directly
+    if (!save_chunk_walls_data(f, ck)) {
+        LOG_ERROR("Failed to save walls for chunk (%d, %d)", x, y);
+        return false;
     }
 
     // Save items in the chunk (excluding entity parts)
@@ -806,13 +869,16 @@ static bool load_map_data(FILE* f, map* m) {
         chunk* ck = get_hm(active_map, x, y);
         if (ck == NULL) {
             ck = create_chunk_raw(x, y, spawn_x, spawn_y, type);
-            parse_chunk_walls(ck, type);
             if (is_near) set_hm(active_map, x, y, ck);
         } else {
             // Update existing chunk - clear its contents first!
             LOG_INFO("Clearing existing chunk (%d, %d) before loading", x, y);
             reset_chunk_internals(ck, spawn_x, spawn_y, type);
-            parse_chunk_walls(ck, type);
+        }
+
+        // Load the chunk's wall_entry structure directly
+        if (!load_chunk_walls_data(f, ck)) {
+            LOG_ERROR("Failed to load walls for chunk (%d, %d)", x, y);
         }
 
         // Load items
@@ -1367,7 +1433,11 @@ chunk* load_chunk_from_cache(map* m, int x, int y) {
     }
 
     chunk* ck = create_chunk_raw(read_x, read_y, spawn_x, spawn_y, type);
-    parse_chunk_walls(ck, type);
+
+    // Load the chunk's wall_entry structure directly
+    if (!load_chunk_walls_data(f, ck)) {
+        LOG_ERROR("Failed to load walls for cached chunk (%d, %d)", read_x, read_y);
+    }
 
     hm* chunks_map = get_map_hashmap(m);
     for (int j = 0; j < 5; j++) {

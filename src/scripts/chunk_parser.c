@@ -143,25 +143,3 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
     }
     if (chunkFile->can_free) free_assets_chunk(chunkFile);
 }
-
-void parse_chunk_walls(chunk* c, ChunkType chunk_type) {
-    ChunkAssetFile* chunkFile = get_chunk_file(chunk_type);
-    if (!chunkFile) return;
-
-    for (size_t i = 0; i < chunkFile->item_count; i++) {
-        ChunkItem* entry = &chunkFile->items[i];
-        if (!entry->entity_type && entry->type == ITEMTYPE_WALL) {
-            for (int row = 0; row < entry->row_repeat; row++) {
-                for (int col = 0; col < entry->col_repeat; col++) {
-                    chunk_set_wall(c,
-                                   entry->x - (1 + entry->size) * row,
-                                   entry->y - col,
-                                   entry->display,
-                                   COLOR_DEFAULT);
-                }
-            }
-        }
-    }
-
-    if (chunkFile->can_free) free_assets_chunk(chunkFile);
-}
