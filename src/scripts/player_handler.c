@@ -52,6 +52,7 @@ bool can_player_see(player* p, int target_x, int target_y, item* e_brain) {
         if (curr_x == target_x && curr_y == target_y) break;
 
         if (curr_x != px || curr_y != py) {
+            if (chunk_has_wall(get_player_chunk(p), curr_x, curr_y)) return false;
             item* obstacle = (item*)get_hm(chunk_items, curr_x, curr_y);
             if (obstacle != NULL) {
                 //? if (is_item_solid(obstacle)) return false;
@@ -193,6 +194,8 @@ PlayerMovementResult pickup_from_chunk(player* p, item* i) {
 
 PlayerMovementResult handle(player* p, int x, int y) {
     chunk* ck = get_player_chunk(p);
+    if (chunk_has_wall(ck, x, y)) return MOV_CANT_MOVE;
+
     hm* h = get_chunk_furniture_coords(ck);
 
     item* i = get_hm(h, x, y);

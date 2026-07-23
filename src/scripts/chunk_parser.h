@@ -12,4 +12,9 @@ typedef struct chunk chunk;
 /// @param type chunk type
 void parse_chunk(chunk* chunk, dynarray* array, ChunkType type);
 
+/// @brief Populate only static walls into chunk wall matrix
+/// @param chunk chunk
+/// @param type chunk type
+void parse_chunk_walls(chunk* chunk, ChunkType type);
+
 #endif

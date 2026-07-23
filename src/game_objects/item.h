@@ -45,6 +45,8 @@ typedef struct enemy {
     EntityType entity_type;
 } enemy;
 
+typedef struct chunk_arena chunk_arena;
+
 /// @brief Create item using given parameters
 /// @param x pos x
 /// @param y pos y
@@ -53,6 +55,9 @@ typedef struct enemy {
 /// @param index Index of this item in the current chunk, if just displayed, use -1
 /// @return item
 item* generate_item(int pos_x, int pos_y, ItemType type, int display, UsableItem usable_item, int index);
+
+/// @brief Create item inside a chunk memory arena
+item* generate_item_arena(chunk_arena* arena, int pos_x, int pos_y, ItemType type, int display, UsableItem usable_item, int index);
 
 /// @brief Get item x
 /// @param item item

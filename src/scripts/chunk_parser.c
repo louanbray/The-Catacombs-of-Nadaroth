@@ -14,20 +14,36 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
     ChunkAssetFile* chunkFile = get_chunk_file(chunk_type);
     if (!chunkFile) return;
 
+    chunk_arena* arena = get_chunk_arena(c);
+
     for (size_t i = 0; i < chunkFile->item_count; i++) {
         ChunkItem* entry = &chunkFile->items[i];
 
         if (!entry->entity_type) {
-            // Regular decorations
-            for (int row = 0; row < entry->row_repeat; row++) {
-                for (int col = 0; col < entry->col_repeat; col++) {
-                    append(d, generate_item(
-                                  entry->x - (1 + entry->size) * row,
-                                  entry->y - col,
-                                  entry->type,
-                                  entry->display,
-                                  entry->usable_item,
-                                  len_dyn(d)));
+            if (entry->type == ITEMTYPE_WALL) {
+                // Static walls stored in compact chunk matrix
+                for (int row = 0; row < entry->row_repeat; row++) {
+                    for (int col = 0; col < entry->col_repeat; col++) {
+                        chunk_set_wall(c,
+                                       entry->x - (1 + entry->size) * row,
+                                       entry->y - col,
+                                       entry->display,
+                                       COLOR_DEFAULT);
+                    }
+                }
+            } else {
+                // Regular non-wall decorations
+                for (int row = 0; row < entry->row_repeat; row++) {
+                    for (int col = 0; col < entry->col_repeat; col++) {
+                        append(d, generate_item_arena(
+                                      arena,
+                                      entry->x - (1 + entry->size) * row,
+                                      entry->y - col,
+                                      entry->type,
+                                      entry->display,
+                                      entry->usable_item,
+                                      len_dyn(d)));
+                    }
                 }
             }
         } else {
@@ -39,13 +55,12 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
             }
 
             // Create the brain item and entity
-            item* brain = generate_item(entry->x, entry->y, entry->type, entry->display, entry->usable_item, -1);
+            item* brain = generate_item_arena(arena, entry->x, entry->y, entry->type, entry->display, entry->usable_item, -1);
             entity* e = create_entity(brain, c);
 
-            // TODO: IMPLEMENT SPECIALIZE_ENTITY FUNCTION
             switch (entry->type) {
                 case ITEMTYPE_ENEMY: {
-                    enemy* elt = malloc(sizeof(enemy));
+                    enemy* elt = arena ? (enemy*)chunk_arena_alloc(arena, sizeof(enemy)) : (enemy*)malloc(sizeof(enemy));
                     elt->hp = entityFile->specs.specs[0];
                     elt->damage = entityFile->specs.specs[1];
                     elt->from_id = len_dyn(get_chunk_enemies(c));
@@ -89,7 +104,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                     break;
                 }
                 case ITEMTYPE_LOOTABLE: {
-                    lootable* loot = malloc(sizeof(lootable));
+                    lootable* loot = arena ? (lootable*)chunk_arena_alloc(arena, sizeof(lootable)) : (lootable*)malloc(sizeof(lootable));
                     loot->key = entityFile->specs.specs[0];
                     loot->none = entityFile->specs.specs[1];
                     loot->bronze = entityFile->specs.specs[2];
@@ -109,7 +124,8 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                 EntityPart* part = &entityFile->parts[j];
                 for (int row = 0; row < part->row_repeat; row++) {
                     for (int col = 0; col < part->col_repeat; col++) {
-                        item* it = generate_item(
+                        item* it = generate_item_arena(
+                            arena,
                             entry->x + part->x - (1 + 1) * row,
                             entry->y + part->y - col,
                             entry->type,
@@ -125,5 +141,27 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
             }
         }
     }
+    if (chunkFile->can_free) free_assets_chunk(chunkFile);
+}
+
+void parse_chunk_walls(chunk* c, ChunkType chunk_type) {
+    ChunkAssetFile* chunkFile = get_chunk_file(chunk_type);
+    if (!chunkFile) return;
+
+    for (size_t i = 0; i < chunkFile->item_count; i++) {
+        ChunkItem* entry = &chunkFile->items[i];
+        if (!entry->entity_type && entry->type == ITEMTYPE_WALL) {
+            for (int row = 0; row < entry->row_repeat; row++) {
+                for (int col = 0; col < entry->col_repeat; col++) {
+                    chunk_set_wall(c,
+                                   entry->x - (1 + entry->size) * row,
+                                   entry->y - col,
+                                   entry->display,
+                                   COLOR_DEFAULT);
+                }
+            }
+        }
+    }
+
     if (chunkFile->can_free) free_assets_chunk(chunkFile);
 }

@@ -9,6 +9,8 @@
 typedef struct hash_map_s hm;
 /// @brief Contained element
 typedef void* element_h;
+/// @brief Chunk arena
+typedef struct chunk_arena chunk_arena;
 
 /// @brief Hash function
 /// @param max_length max length
@@ -44,6 +46,9 @@ element_h get_hm(hm* hashmap, int key_x, int key_y);
 /// @param key_y key2
 /// @param element element to insert
 void set_hm(hm* hashmap, int key_x, int key_y, element_h element);
+
+/// @brief Set value using an optional arena for node allocation
+void set_hm_arena(hm* hashmap, int key_x, int key_y, element_h element, chunk_arena* arena);
 
 /// @brief Remove element linked to the keys
 /// @param hashmap hashmap*

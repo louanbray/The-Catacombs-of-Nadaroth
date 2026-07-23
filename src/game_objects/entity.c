@@ -5,13 +5,16 @@ typedef struct entity {
     dynarray* parts;
     item* brain;
     chunk* c;
+    bool is_arena;
 } entity;
 
 entity* create_entity(item* brain, chunk* c) {
-    entity* e = malloc(sizeof(entity));
+    chunk_arena* arena = get_chunk_arena(c);
+    entity* e = arena ? (entity*)chunk_arena_alloc(arena, sizeof(entity)) : malloc(sizeof(entity));
     e->parts = create_dyn();
     e->brain = brain;
     e->c = c;
+    e->is_arena = (arena != NULL);
     return e;
 }
 
@@ -36,9 +39,12 @@ void for_each_entity_part(entity* e, void (*f)(item*)) {
 }
 
 void destroy_entity(entity* e) {
+    if (e == NULL) return;
     free_dyn_no_item(e->parts);  // parts already freed by remove_entity_from_chunk
     free_item(e->brain);
-    free(e);
+    if (!e->is_arena) {
+        free(e);
+    }
 }
 
 void free_entity_brain(entity* e) {
@@ -118,7 +124,7 @@ bool can_entity_move(entity* e, Direction dir) {
             int x = get_item_x(it) + dx[dir];
             int y = get_item_y(it) + dy[dir];
 
-            if (!is_in_box(x, y)) {
+            if (!is_in_box(x, y) || chunk_has_wall(e->c, x, y)) {
 #pragma omp atomic write
                 can_move = false;
             }

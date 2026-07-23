@@ -8,6 +8,66 @@ typedef struct chunk chunk;
 /// @brief define link to an array of chunk*
 typedef chunk** chunk_link;
 
+/// @brief Arena memory block for chunk-local allocations
+typedef struct arena_block {
+    struct arena_block* next;
+    size_t capacity;
+    size_t offset;
+    char data[];
+} arena_block;
+
+typedef struct chunk_arena {
+    arena_block* head;
+    arena_block* current;
+} chunk_arena;
+
+// ---- Arena & Wall Matrix ----
+void* chunk_arena_alloc(chunk_arena* arena, size_t size);
+chunk_arena* get_chunk_arena(chunk* ck);
+
+#define CHUNK_MATRIX_WIDTH 128
+#define CHUNK_MATRIX_HEIGHT 35
+
+/// @brief Adds or updates a wall in the chunk.
+/// @param ck Pointer to the target chunk.
+/// @param x Wall x-coordinate in chunk space.
+/// @param y Wall y-coordinate in chunk space.
+/// @param display Character used to render the wall.
+/// @param color Color used to render the wall.
+void chunk_set_wall(chunk* ck, int x, int y, int display, Color color);
+
+/// @brief Checks whether a wall exists at the given coordinates.
+/// @param ck Pointer to the target chunk.
+/// @param x Wall x-coordinate in chunk space.
+/// @param y Wall y-coordinate in chunk space.
+/// @return true if a wall exists at (x, y), false otherwise.
+bool chunk_has_wall(chunk* ck, int x, int y);
+
+/// @brief Retrieves the display character of a wall.
+/// @param ck Pointer to the target chunk.
+/// @param x Wall x-coordinate in chunk space.
+/// @param y Wall y-coordinate in chunk space.
+/// @return The display character of the wall, or 0 if no wall exists.
+int chunk_get_wall_display(chunk* ck, int x, int y);
+
+/// @brief Retrieves the color of a wall.
+/// @param ck Pointer to the target chunk.
+/// @param x Wall x-coordinate in chunk space.
+/// @param y Wall y-coordinate in chunk space.
+/// @return The wall color, or COLOR_DEFAULT if no wall exists.
+Color chunk_get_wall_color(chunk* ck, int x, int y);
+
+/// @brief Removes the wall at the given coordinates.
+/// @param ck Pointer to the target chunk.
+/// @param x Wall x-coordinate in chunk space.
+/// @param y Wall y-coordinate in chunk space.
+void chunk_clear_wall(chunk* ck, int x, int y);
+
+/// @brief Renders all walls stored in the chunk onto a board.
+/// @param ck Pointer to the target chunk.
+/// @param board_ptr Pointer to the destination board.
+void chunk_render_walls(chunk* ck, void* board_ptr);
+
 // ---- Decoration ----
 
 /// @brief Gives a random type (w/ exceptions) and add furniture.

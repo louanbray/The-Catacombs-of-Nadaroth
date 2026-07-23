@@ -56,12 +56,19 @@ void clear_screen(board b);
 board get_board(Render_Buffer* screen);
 
 /// @brief Renders a character onto the board at center-based coordinates.
-/// @param screen The board to render on.
+/// @param board The board to render on.
 /// @param x The x coordinate (center based).
 /// @param y The y coordinate (center based).
 /// @param character The character to render.
-/// @param board Pointer to a board.
 void render_char(board board, int x, int y, int character);
+
+/// @brief Renders a character onto the board at center-based coordinates.
+/// @param board The board to render on.
+/// @param x The x coordinate (center based).
+/// @param y The y coordinate (center based).
+/// @param c The character to render.
+/// @param color Color of the char.
+void render_char_colored(board b, int x, int y, int c, int color);
 
 /// @brief Renders a narrow (ASCII) string onto the render buffer.
 /// @param screen Pointer to the Render_Buffer.

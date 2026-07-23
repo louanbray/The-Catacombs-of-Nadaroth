@@ -308,7 +308,7 @@ void free_assets_entity(EntityAssetFile* entity) {
     free(entity);
 }
 
-void free_assets_entities(void) {
+void free_assets_entities() {
     for (EntityType i = 0; i < ENTITY_TYPE_COUNT; i++) {
         free_assets_entity(asset_manager->entities[i]);
         asset_manager->entities[i] = NULL;
@@ -321,7 +321,7 @@ void free_assets_chunk(ChunkAssetFile* chunk) {
     free(chunk);
 }
 
-void free_assets_chunks(void) {
+void free_assets_chunks() {
     for (ChunkType i = 0; i < CHUNK_TYPE_COUNT; i++) {
         free_assets_chunk(asset_manager->chunks[i]);
         asset_manager->chunks[i] = NULL;
@@ -336,7 +336,7 @@ void free_asset_usable_item(UsableItemAssetFile* item) {
     free(item);
 }
 
-void free_assets_usable_items(void) {
+void free_assets_usable_items() {
     for (UsableItem i = 0; i < USABLE_ITEM_COUNT; i++) {
         free_asset_usable_item(asset_manager->usable_items[i]);
         asset_manager->usable_items[i] = NULL;

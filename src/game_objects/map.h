@@ -27,6 +27,12 @@ void reset_new_chunk_flag();
 /// @return accessed or created chunk
 chunk* get_chunk(map* map, int pos_x, int pos_y);
 
+/// @brief Unload chunks far away from player (>3 radius) to disk cache
+/// @param m map
+/// @param player_chunk_x player chunk x
+/// @param player_chunk_y player chunk y
+void update_chunk_unloading(map* m, int player_chunk_x, int player_chunk_y);
+
 /// @brief Get the loaded chunk when passing through a certain gate of current chunk
 /// @param map map
 /// @param current_chunk current chunk
@@ -53,6 +59,15 @@ void set_map_player(map* map, player* player);
 /// @param map map
 /// @return hashmap of chunks
 hm* get_map_hashmap(map* map);
+
+/// @brief Get the hashmap of cached chunk coordinates from the map
+/// @param map map
+/// @return hashmap of cached coordinates
+hm* get_map_cache_hashmap(map* map);
+
+/// @brief Clear cached chunks tracking and remove cache files
+/// @param map map
+void clear_map_cache(map* map);
 
 /// @brief Free full chunk in the map and itself
 /// @param map map

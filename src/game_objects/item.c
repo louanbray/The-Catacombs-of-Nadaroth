@@ -1,10 +1,11 @@
 #include "item.h"
 
+#include "../game_objects/chunk.h"
 #include "../managers/assets_manager.h"
 typedef struct item {
     int x, y;
     ItemType type;
-    bool hidden, used;
+    bool hidden, used, is_arena;
     int display, index;
     void* spec;
     entity* entity_link;
@@ -12,8 +13,8 @@ typedef struct item {
     Color color;
 } item;
 
-item* generate_item(int x, int y, ItemType type, int display, UsableItem usable_item, int index) {
-    item* i = malloc(sizeof(item));
+item* generate_item_arena(chunk_arena* arena, int x, int y, ItemType type, int display, UsableItem usable_item, int index) {
+    item* i = arena ? (item*)chunk_arena_alloc(arena, sizeof(item)) : (item*)malloc(sizeof(item));
     i->x = x;
     i->y = y;
     i->type = type;
@@ -21,11 +22,16 @@ item* generate_item(int x, int y, ItemType type, int display, UsableItem usable_
     i->index = index;
     i->hidden = false;
     i->used = false;
+    i->is_arena = (arena != NULL);
     i->spec = NULL;
     i->entity_link = NULL;
     i->usable_item = usable_item;
     i->color = COLOR_DEFAULT;
     return i;
+}
+
+item* generate_item(int x, int y, ItemType type, int display, UsableItem usable_item, int index) {
+    return generate_item_arena(NULL, x, y, type, display, usable_item, index);
 }
 
 void specialize(item* i, bool used, bool hidden, void* spec) {
@@ -121,10 +127,13 @@ void set_item_index(item* i, int index) {
 }
 
 void free_item(item* i) {
-    if (i->spec != NULL) {
-        free(i->spec);
+    if (i == NULL) return;
+    if (!i->is_arena) {
+        if (i->spec != NULL) {
+            free(i->spec);
+        }
+        free(i);
     }
-    free(i);
 }
 
 void link_entity(item* i, entity* e) {

@@ -4,11 +4,13 @@
 #include <stdlib.h>
 
 #include "../managers/achievements_manager.h"
+#include "../managers/save_manager.h"
 #include "../managers/statistics_manager.h"
 #include "../utils/logger.h"
 
 typedef struct map {
     hm* hashmap;
+    hm* cache_map;
     chunk* spawn;
     player* player;
 } map;
@@ -23,6 +25,7 @@ map* create_map() {
     chunk* ck = generate_chunk(0, 0);
 
     m->hashmap = create_hashmap();
+    m->cache_map = create_hashmap();
     m->spawn = ck;
     m->player = NULL;
     set_hm(m->hashmap, 0, 0, ck);
@@ -45,6 +48,10 @@ hm* get_map_hashmap(map* m) {
     return m->hashmap;
 }
 
+hm* get_map_cache_hashmap(map* m) {
+    return m ? m->cache_map : NULL;
+}
+
 bool is_new_chunk() {
     return IS_NEW_CHUNK;
 }
@@ -61,6 +68,16 @@ chunk* get_chunk(map* m, int x, int y) {
         return ck;
     }
 
+    if (is_chunk_in_cache(x, y)) {
+        IS_NEW_CHUNK = false;
+        ck = load_chunk_from_cache(m, x, y);
+        if (ck != NULL) {
+            if (m->cache_map) purge_hm(m->cache_map, x, y);
+            set_hm(m->hashmap, x, y, ck);
+            return ck;
+        }
+    }
+
     IS_NEW_CHUNK = true;
     if (get_achievement_progress(ACH_MASTER_EXPLORER) < 10)
         add_achievement_progress(ACH_MASTER_EXPLORER, 1);
@@ -71,6 +88,65 @@ chunk* get_chunk(map* m, int x, int y) {
     set_hm(m->hashmap, x, y, ck);
 
     return ck;
+}
+
+typedef struct unload_callback_data {
+    map* m;
+    int player_x;
+    int player_y;
+    int count;
+    int keys_x[256];
+    int keys_y[256];
+} unload_callback_data;
+
+static void collect_far_chunks_cb(int key_x, int key_y, element_h elem, void* user_data) {
+    (void)elem;
+    unload_callback_data* data = (unload_callback_data*)user_data;
+    if (!data) return;
+
+    if (key_x == 0 && key_y == 0) return;
+
+    int dx = abs(key_x - data->player_x);
+    int dy = abs(key_y - data->player_y);
+    int dist = (dx > dy) ? dx : dy;
+
+    if (dist > 3 && data->count < 256) {
+        data->keys_x[data->count] = key_x;
+        data->keys_y[data->count] = key_y;
+        data->count++;
+    }
+}
+
+void update_chunk_unloading(map* m, int player_chunk_x, int player_chunk_y) {
+    if (!m || !m->hashmap) return;
+    unload_callback_data data = {0};
+    data.m = m;
+    data.player_x = player_chunk_x;
+    data.player_y = player_chunk_y;
+
+    for_each_hm(m->hashmap, collect_far_chunks_cb, &data);
+
+    for (int i = 0; i < data.count; i++) {
+        int x = data.keys_x[i];
+        int y = data.keys_y[i];
+        chunk* ck = get_hm(m->hashmap, x, y);
+        if (ck) {
+            for (int d = 0; d < 5; d++) {
+                chunk* neighbor = get_chunk_link_at(ck, d);
+                if (neighbor) {
+                    for (int r = 0; r < 5; r++) {
+                        if (get_chunk_link_at(neighbor, r) == ck) {
+                            set_chunk_link(neighbor, r, NULL);
+                        }
+                    }
+                }
+            }
+            save_chunk_to_cache(ck);
+            if (m->cache_map) set_hm(m->cache_map, x, y, (void*)1);
+            purge_hm(m->hashmap, x, y);
+            destroy_chunk_full(ck);
+        }
+    }
 }
 
 chunk* get_chunk_from(map* m, chunk* c1, Direction dir) {
@@ -154,5 +230,6 @@ void destroy_map(map* m) {
     if (m == NULL) return;
     for_each_hm(m->hashmap, free_chunk_callback, NULL);
     free_hm(m->hashmap);
+    if (m->cache_map) free_hm(m->cache_map);
     free(m);
 }

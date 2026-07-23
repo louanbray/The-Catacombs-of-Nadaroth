@@ -11,6 +11,7 @@
 #include "game_objects/map.h"
 #include "game_objects/player.h"
 #include "managers/managers.h"
+#include "managers/save_manager.h"
 #include "scripts/player_handler.h"
 #include "utils/game_status.h"
 #include "utils/logger.h"
@@ -589,6 +590,7 @@ int main(int argc, char* argv[]) {
     destroy_interactions_system();
     destroy_asset_manager();
     clear_local_elements();
+    clear_chunk_cache();
     free_render_buffer(screen);
 
     LOG_INFO("Game session ended normally");

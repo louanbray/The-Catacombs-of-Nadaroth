@@ -162,7 +162,13 @@ void update_projectiles(Render_Buffer* r) {
 
 // Function to animate a projectile moving from (x0, y0) to (x1, y1)
 void projectile_callback(int x, int y, projectile_data* data) {
-    item* it = get_hm(get_chunk_furniture_coords(get_player_chunk(data->p)), x, y);
+    chunk* current_ck = get_player_chunk(data->p);
+    if (chunk_has_wall(current_ck, x, y)) {
+        free(data);
+        return;
+    }
+
+    item* it = get_hm(get_chunk_furniture_coords(current_ck), x, y);
 
     if (it == NULL) {
         free(data);
@@ -454,7 +460,7 @@ void init_projectile_system(Render_Buffer* r, player* p, int seed) {
     start_projectile_thread(r, p, seed, true);
 }
 
-void stop_projectile_system(void) {
+void stop_projectile_system() {
     if (!projectile_thread_running) {
         LOG_INFO("Can't stop projectile system : already stopped");
         return;

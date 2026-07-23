@@ -201,7 +201,7 @@ bool is_walkable(int x, int y) {
     return (c == ' ' || c == 'N' || c == 'S' || c == 'V' || c == 'P' || is_stargate_cell(x, y));
 }
 
-bool check_chunk_connectivity(void) {
+bool check_chunk_connectivity() {
     bool visited[CHUNK_HEIGHT][CHUNK_WIDTH] = {false};
     Point queue[CHUNK_HEIGHT * CHUNK_WIDTH];
     int head = 0, tail = 0;
@@ -249,7 +249,7 @@ bool is_center_3x3(int x, int y) {
     return false;
 }
 
-void init_grid(void) {
+void init_grid() {
     for (int y = 0; y < CHUNK_HEIGHT; y++) {
         for (int x = 0; x < CHUNK_WIDTH; x++) {
             grid[y][x] = (x % 2 == 0) ? ' ' : '*';
@@ -257,7 +257,7 @@ void init_grid(void) {
     }
 }
 
-void apply_gates(void) {
+void apply_gates() {
     for (int x = 62; x <= 67; x += 1) {
         grid[0][x] = 'N';
         grid[CHUNK_HEIGHT - 1][x] = 'S';

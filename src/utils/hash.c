@@ -3,6 +3,7 @@
 #include <omp.h>
 #include <stdio.h>
 
+#include "../game_objects/chunk.h"
 #include "logger.h"
 
 /// @brief Bucket list
@@ -16,6 +17,8 @@ typedef struct hash_map_s {
     int max_collide;
     int length;
     int nb_e;
+    bool is_arena;
+    chunk_arena* arena;
     list** hash_map;
 } hm;
 
@@ -33,6 +36,8 @@ hm* create_hashmap() {
     hm* ht = (hm*)malloc(sizeof(hm));
     ht->length = 100;
     ht->nb_e = 0;
+    ht->is_arena = false;
+    ht->arena = NULL;
     ht->hash_map = (list**)calloc(ht->length, sizeof(list*));
     ht->max_collide = 5;
     return ht;
@@ -63,7 +68,7 @@ element_h get_hm(hm* t, int x, int y) {
 /// @param x X-coordinate
 /// @param y Y-coordinate
 /// @param val Element value
-void setCell(list* cell, int x, int y, element_h val) {
+void set_cell(list* cell, int x, int y, element_h val) {
     cell->x = x;
     cell->y = y;
     cell->ck = val;
@@ -100,9 +105,9 @@ void resize_hm(hm* t) {
 
         while (l != NULL) {
             int index = hash(t->length, l->x, l->y);
-            list* l2 = (list*)malloc(sizeof(list));
+            list* l2 = t->arena ? (list*)chunk_arena_alloc(t->arena, sizeof(list)) : (list*)malloc(sizeof(list));
 
-            setCell(l2, l->x, l->y, l->ck);
+            set_cell(l2, l->x, l->y, l->ck);
 
             l2->next = t->hash_map[index];
             t->hash_map[index] = l2;
@@ -110,13 +115,18 @@ void resize_hm(hm* t) {
             list* temp = l;
             l = l->next;
 
-            free(temp);
+            if (!t->is_arena) free(temp);
         }
     }
     free(old);
 }
 
-void set_hm(hm* t, int x, int y, element_h e) {
+void set_hm_arena(hm* t, int x, int y, element_h e, chunk_arena* arena) {
+    if (arena != NULL) {
+        t->is_arena = true;
+        t->arena = arena;
+    }
+
     int index = hash(t->length, x, y);
 
     list* existing = t->hash_map[index];
@@ -128,9 +138,9 @@ void set_hm(hm* t, int x, int y, element_h e) {
         existing = existing->next;
     }
 
-    list* l = (list*)malloc(sizeof(list));
+    list* l = arena ? (list*)chunk_arena_alloc(arena, sizeof(list)) : (list*)malloc(sizeof(list));
 
-    setCell(l, x, y, e);
+    set_cell(l, x, y, e);
 
     l->next = t->hash_map[index];
     t->hash_map[index] = l;
@@ -140,6 +150,10 @@ void set_hm(hm* t, int x, int y, element_h e) {
     }
 
     t->nb_e++;
+}
+
+void set_hm(hm* t, int x, int y, element_h e) {
+    set_hm_arena(t, x, y, e, NULL);
 }
 
 void purge_hm(hm* t, int x, int y) {
@@ -156,7 +170,7 @@ void purge_hm(hm* t, int x, int y) {
                 prev->next = curr->next;
             }
 
-            free(curr);
+            if (!t->is_arena) free(curr);
 
             t->nb_e--;
 
@@ -171,16 +185,17 @@ void purge_hm(hm* t, int x, int y) {
 void free_hm(hm* t) {
     if (t == NULL) return;
 
-    int len = t->length;
-
+    if (!t->is_arena) {
+        int len = t->length;
 #pragma omp parallel for
-    for (int i = 0; i < len; i++) {
-        list* l = t->hash_map[i];
+        for (int i = 0; i < len; i++) {
+            list* l = t->hash_map[i];
 
-        while (l != NULL) {
-            list* next = l->next;
-            free(l);
-            l = next;
+            while (l != NULL) {
+                list* next = l->next;
+                free(l);
+                l = next;
+            }
         }
     }
 

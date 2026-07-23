@@ -365,10 +365,12 @@ void render_item_title(Render_Buffer* screen, void* it) {
 
 // Renders the chunk contents (furniture items, etc.) into the board.
 void render_chunk(Render_Buffer* r, chunk* c) {
-    dynarray* d = get_chunk_furniture_list(c);
     board b = r->bd;
-
+    dynarray* d = get_chunk_furniture_list(c);
     int len = len_dyn(d);
+
+    chunk_render_walls(c, b);
+
     for (int i = 0; i < len; i++) {
         item* it = get_dyn(d, i);
         if (it == NULL) continue;

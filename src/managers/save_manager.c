@@ -16,6 +16,7 @@
 #include "../utils/game_status.h"
 #include "../utils/hash.h"
 #include "../utils/logger.h"
+#include "../utils/sys_platform.h"
 #include "projectile_manager.h"
 
 #define SAVE_VERSION 6
@@ -389,13 +390,19 @@ static item* load_item_data(FILE* f, chunk* c, dynarray* items_array) {
     int color;
     fread(&color, sizeof(int), 1, f);
 
+    if (type == ITEMTYPE_WALL) {
+        chunk_set_wall(c, x, y, display, (Color)color);
+        return NULL;
+    }
+
+    chunk_arena* arena = get_chunk_arena(c);
     // Create the item
-    item* it = generate_item(x, y, (ItemType)type, display, (UsableItem)usable_type, len_dyn(items_array));
+    item* it = generate_item_arena(arena, x, y, (ItemType)type, display, (UsableItem)usable_type, len_dyn(items_array));
     set_item_color(it, (Color)color);
 
     // Load specs based on item type
     if (type == ITEMTYPE_ENEMY) {
-        enemy* e = malloc(sizeof(enemy));
+        enemy* e = arena ? (enemy*)chunk_arena_alloc(arena, sizeof(enemy)) : (enemy*)malloc(sizeof(enemy));
         fread(&e->hp, sizeof(int), 1, f);
         fread(&e->damage, sizeof(int), 1, f);
         fread(&e->from_id, sizeof(int), 1, f);
@@ -415,7 +422,7 @@ static item* load_item_data(FILE* f, chunk* c, dynarray* items_array) {
         fread(&e->loot.id, sizeof(LootTableID), 1, f);
         specialize(it, used, hidden, e);
     } else if (type == ITEMTYPE_LOOTABLE) {
-        lootable* loot = malloc(sizeof(lootable));
+        lootable* loot = arena ? (lootable*)chunk_arena_alloc(arena, sizeof(lootable)) : (lootable*)malloc(sizeof(lootable));
         fread(&loot->key, sizeof(UsableItem), 1, f);
         fread(&loot->none, sizeof(int), 1, f);
         fread(&loot->bronze, sizeof(int), 1, f);
@@ -633,20 +640,6 @@ static bool save_chunk_data(FILE* f, chunk* ck) {
     return true;
 }
 
-/// @brief Context for counting chunks in the hashmap
-typedef struct {
-    int count;
-} chunk_counter_ctx;
-
-/// @brief Callback to count chunks
-static void count_chunk_callback(int x, int y, element_h elt, void* user_data) {
-    (void)x;
-    (void)y;
-    (void)elt;
-    chunk_counter_ctx* ctx = (chunk_counter_ctx*)user_data;
-    ctx->count++;
-}
-
 /// @brief Context for saving chunks
 typedef struct {
     FILE* f;
@@ -667,24 +660,60 @@ static void save_chunk_callback(int x, int y, element_h elt, void* user_data) {
     }
 }
 
+typedef struct cache_saver_ctx {
+    FILE* f;
+    bool success;
+} cache_saver_ctx;
+
+static void save_cached_chunk_callback(int x, int y, element_h elt, void* user_data) {
+    (void)elt;
+    cache_saver_ctx* ctx = (cache_saver_ctx*)user_data;
+    if (!ctx->success) return;
+
+    char path[128];
+    snprintf(path, sizeof(path), "saves/cache/chunk_%d_%d.bin", x, y);
+    FILE* cf = fopen(path, "rb");
+    if (!cf) {
+        LOG_WARN("Could not open cached chunk file %s for saving", path);
+        return;
+    }
+
+    char buffer[4096];
+    size_t bytes;
+    while ((bytes = fread(buffer, 1, sizeof(buffer), cf)) > 0) {
+        if (fwrite(buffer, 1, bytes, ctx->f) != bytes) {
+            ctx->success = false;
+            break;
+        }
+    }
+    fclose(cf);
+}
+
 /// @brief Save map data to file
 static bool save_map_data(FILE* f, map* m) {
     if (!f || !m) return false;
 
-    hm* chunks_map = get_map_hashmap(m);
+    hm* active_map = get_map_hashmap(m);
+    hm* cache_map = get_map_cache_hashmap(m);
 
-    // Count chunks
-    chunk_counter_ctx counter = {0};
-    for_each_hm(chunks_map, count_chunk_callback, &counter);
+    int total_chunks = size_hm(active_map) + (cache_map ? size_hm(cache_map) : 0);
+    LOG_INFO("Saving %d total chunks to save file (%d active, %d cached)",
+             total_chunks, size_hm(active_map), cache_map ? size_hm(cache_map) : 0);
+    fwrite(&total_chunks, sizeof(int), 1, f);
 
-    LOG_INFO("Saving %d chunks to file", counter.count);
-    fwrite(&counter.count, sizeof(int), 1, f);
-
-    // Save all chunks
+    // Save active chunks in RAM
     chunk_saver_ctx saver = {f, true};
-    for_each_hm(chunks_map, save_chunk_callback, &saver);
+    for_each_hm(active_map, save_chunk_callback, &saver);
+    if (!saver.success) return false;
 
-    return saver.success;
+    // Save cached chunks from disk
+    if (cache_map) {
+        cache_saver_ctx csaver = {f, true};
+        for_each_hm(cache_map, save_cached_chunk_callback, &csaver);
+        if (!csaver.success) return false;
+    }
+
+    return true;
 }
 
 // Temporary structure to store chunk link info during loading
@@ -731,11 +760,13 @@ static bool load_map_data(FILE* f, map* m) {
         if (ck == NULL) {
             // Create chunk from deserialized data
             ck = create_chunk_raw(x, y, spawn_x, spawn_y, type);
+            parse_chunk_walls(ck, type);
             set_hm(chunks_map, x, y, ck);
         } else {
             // Update existing chunk - clear its contents first!
             LOG_INFO("Clearing existing chunk (%d, %d) before loading", x, y);
             reset_chunk_internals(ck, spawn_x, spawn_y, type);
+            parse_chunk_walls(ck, type);
         }
 
         // Load items (entity parts are NOT saved here, they're in the enemies section)
@@ -1130,4 +1161,197 @@ bool delete_save(const char* filename) {
     }
     LOG_ERROR("Failed to delete save file: %s", filename);
     return false;
+}
+
+static void get_cache_filename(char* buffer, size_t buflen, int x, int y) {
+    snprintf(buffer, buflen, "saves/cache/chunk_%d_%d.bin", x, y);
+}
+
+bool save_chunk_to_cache(chunk* ck) {
+    if (!ck) return false;
+    sys_mkdir("saves");
+    sys_mkdir("saves/cache");
+    char path[128];
+    get_cache_filename(path, sizeof(path), get_chunk_x(ck), get_chunk_y(ck));
+    FILE* f = fopen(path, "wb");
+    if (!f) return false;
+    bool res = save_chunk_data(f, ck);
+    fclose(f);
+    return res;
+}
+
+bool is_chunk_in_cache(int x, int y) {
+    char path[128];
+    get_cache_filename(path, sizeof(path), x, y);
+    FILE* f = fopen(path, "rb");
+    if (f) {
+        fclose(f);
+        return true;
+    }
+    return false;
+}
+
+chunk* load_chunk_from_cache(map* m, int x, int y) {
+    char path[128];
+    get_cache_filename(path, sizeof(path), x, y);
+    FILE* f = fopen(path, "rb");
+    if (!f) return NULL;
+
+    int read_x, read_y, spawn_x, spawn_y;
+    ChunkType type;
+
+    if (fread(&read_x, sizeof(int), 1, f) != 1) {
+        fclose(f);
+        return NULL;
+    }
+    fread(&read_y, sizeof(int), 1, f);
+    fread(&spawn_x, sizeof(int), 1, f);
+    fread(&spawn_y, sizeof(int), 1, f);
+    fread(&type, sizeof(int), 1, f);
+
+    int link_coords[5][2];
+    for (int j = 0; j < 5; j++) {
+        fread(&link_coords[j][0], sizeof(int), 1, f);
+        fread(&link_coords[j][1], sizeof(int), 1, f);
+    }
+
+    chunk* ck = create_chunk_raw(read_x, read_y, spawn_x, spawn_y, type);
+    parse_chunk_walls(ck, type);
+
+    if (m) {
+        hm* chunks_map = get_map_hashmap(m);
+        for (int j = 0; j < 5; j++) {
+            if (link_coords[j][0] != -9999) {
+                chunk* target = get_hm(chunks_map, link_coords[j][0], link_coords[j][1]);
+                if (target) set_chunk_link(ck, j, target);
+            }
+        }
+    }
+
+    int item_count;
+    fread(&item_count, sizeof(int), 1, f);
+
+    for (int j = 0; j < item_count; j++) {
+        bool item_exists;
+        fread(&item_exists, sizeof(bool), 1, f);
+
+        if (item_exists) {
+            item* it = load_item_data(f, ck, get_chunk_furniture_list(ck));
+            if (it) {
+                chunk_append_element(ck, it);
+                chunk_register_item(ck, it);
+            } else {
+                chunk_append_element(ck, NULL);
+            }
+        } else {
+            chunk_append_element(ck, NULL);
+        }
+    }
+
+    int enemy_count;
+    fread(&enemy_count, sizeof(int), 1, f);
+
+    for (int j = 0; j < enemy_count; j++) {
+        bool enemy_exists;
+        fread(&enemy_exists, sizeof(bool), 1, f);
+
+        if (enemy_exists) {
+            item* brain = load_item_data(f, ck, get_chunk_enemies(ck));
+            if (brain) {
+                int part_count;
+                fread(&part_count, sizeof(int), 1, f);
+
+                bool should_skip = false;
+                if (get_item_type(brain) == ITEMTYPE_LOOTABLE) {
+                    lootable* loot = (lootable*)get_item_spec(brain);
+                    if (loot && loot->bronze == 0 && loot->silver == 0 &&
+                        loot->gold == 0 && loot->nadino == 0) {
+                        should_skip = true;
+                    }
+                }
+
+                if (!should_skip) {
+                    if (get_item_type(brain) == ITEMTYPE_ENEMY) {
+                        enemy* e = (enemy*)get_item_spec(brain);
+                        if (e) {
+                            e->from_id = len_dyn(get_chunk_enemies(ck));
+                        }
+                    }
+
+                    if (part_count > 0) {
+                        entity* ent = create_entity(brain, ck);
+                        for (int k = 0; k < part_count; k++) {
+                            bool part_exists;
+                            fread(&part_exists, sizeof(bool), 1, f);
+                            if (part_exists) {
+                                item* part = load_item_data(f, ck, get_chunk_furniture_list(ck));
+                                if (part) {
+                                    add_entity_part(ent, part);
+                                    link_entity(part, ent);
+                                    chunk_append_element(ck, part);
+                                    chunk_register_item(ck, part);
+                                }
+                            }
+                        }
+                    }
+
+                    if (get_item_type(brain) == ITEMTYPE_ENEMY) {
+                        chunk_append_enemy(ck, brain);
+                    }
+                }
+            }
+        }
+    }
+
+    fclose(f);
+    remove(path);
+    return ck;
+}
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <dirent.h>
+#include <unistd.h>
+#endif
+
+void clear_chunk_cache() {
+#ifdef _WIN32
+    WIN32_FIND_DATAA findData;
+    HANDLE hFind = FindFirstFileA("saves\\cache\\*", &findData);
+    if (hFind != INVALID_HANDLE_VALUE) {
+        do {
+            if (strcmp(findData.cFileName, ".") != 0 && strcmp(findData.cFileName, "..") != 0) {
+                char path[PATH_MAX];
+                int n = snprintf(path, sizeof(path), "saves\\cache\\%s", findData.cFileName);
+                if (n >= 0 && n < (int)sizeof(path)) {
+                    remove(path);
+                } else {
+                    LOG_WARN("Failed to remove cache file '%s': path too long.", findData.cFileName);
+                }
+            }
+        } while (FindNextFileA(hFind, &findData));
+        FindClose(hFind);
+    }
+    RemoveDirectoryA("saves\\cache");
+#else
+    DIR* dir = opendir("saves/cache");
+    if (dir) {
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != NULL) {
+            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+                char path[PATH_MAX];
+                int n = snprintf(path, sizeof(path), "saves/cache/%s", entry->d_name);
+                if (n >= 0 && n < (int)sizeof(path)) {
+                    remove(path);
+                } else {
+                    LOG_WARN("Failed to remove cache file '%s': path too long.", entry->d_name);
+                }
+            }
+        }
+        closedir(dir);
+        rmdir("saves/cache");
+    }
+#endif
+    LOG_INFO("Temporary chunk cache cleared");
 }

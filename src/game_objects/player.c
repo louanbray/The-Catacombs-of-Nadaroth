@@ -394,6 +394,7 @@ PlayerMovementResult move_player(player* p, Direction dir) {
 
 void move_player_chunk(player* p, Direction dir) {
     p->current_chunk = get_chunk_from(p->map, p->current_chunk, dir);
+    update_chunk_unloading(p->map, get_chunk_x(p->current_chunk), get_chunk_y(p->current_chunk));
     bool new_chunk = is_new_chunk();
     if (new_chunk) add_total_enemies(p);
     if (new_chunk && p->health == 1) {
