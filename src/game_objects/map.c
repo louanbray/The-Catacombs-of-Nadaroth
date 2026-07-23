@@ -68,11 +68,10 @@ chunk* get_chunk(map* m, int x, int y) {
         return ck;
     }
 
-    if (is_chunk_in_cache(x, y)) {
+    if (is_chunk_in_cache(m, x, y)) {
         IS_NEW_CHUNK = false;
         ck = load_chunk_from_cache(m, x, y);
         if (ck != NULL) {
-            if (m->cache_map) purge_hm(m->cache_map, x, y);
             set_hm(m->hashmap, x, y, ck);
             return ck;
         }
@@ -141,8 +140,7 @@ void update_chunk_unloading(map* m, int player_chunk_x, int player_chunk_y) {
                     }
                 }
             }
-            save_chunk_to_cache(ck);
-            if (m->cache_map) set_hm(m->cache_map, x, y, (void*)1);
+            save_chunk_to_cache(m, ck);
             purge_hm(m->hashmap, x, y);
             destroy_chunk_full(ck);
         }
@@ -218,7 +216,6 @@ void print_map(map* m) {
     print_chunk(m->spawn);
 }
 
-/// @brief Callback used by destroy_map to free each chunk's internals
 static void free_chunk_callback(int key_x, int key_y, element_h elem, void* user_data) {
     (void)key_x;
     (void)key_y;
@@ -226,10 +223,20 @@ static void free_chunk_callback(int key_x, int key_y, element_h elem, void* user
     destroy_chunk_full((chunk*)elem);
 }
 
+static void free_cache_entry_callback(int key_x, int key_y, element_h elem, void* user_data) {
+    (void)key_x;
+    (void)key_y;
+    (void)user_data;
+    if (elem) free(elem);
+}
+
 void destroy_map(map* m) {
     if (m == NULL) return;
     for_each_hm(m->hashmap, free_chunk_callback, NULL);
     free_hm(m->hashmap);
-    if (m->cache_map) free_hm(m->cache_map);
+    if (m->cache_map) {
+        for_each_hm(m->cache_map, free_cache_entry_callback, NULL);
+        free_hm(m->cache_map);
+    }
     free(m);
 }
