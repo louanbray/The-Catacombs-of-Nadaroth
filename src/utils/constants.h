@@ -117,6 +117,8 @@ TODO LIST:
 ! If diff = easy : possibility to restart an act to up your rating else if diff = hard : f you and start over.
 ! Add autosave [when?] (current game) and 5 local saves (diff games). + cross plateform (movement)
 ! Add glitch % MH
+! Patch race cond on player in handle_resume/input thread
+! Remove gettimeofday to use get_tick_count_ms/μs/ns to prevent it jumping when changing the date
 
 Bonne chance à moi
 */

@@ -351,14 +351,12 @@ int main(int argc, char* argv[]) {
     // ------------------- Show home menu and help -------------------
     home_menu(screen, PLAYER_L, RESUME_DEFAULT);
 
-    if (!is_kitty_supported()) {
-        if (!get_setting_value(SETTING_SKIP_KITTY_WARNING)) {
-            int res = 0;
-            int* result = display_interface_with_interactions(screen, "assets/interfaces/structures/kitty_fallback.dodjo", "kitty", &res);
-            if (result != NULL && res >= 1) {
-                set_setting_value(SETTING_FALLBACK_RELEASE_SPEED, result[0]);
-                free(result);
-            }
+    if (!is_kitty_supported() && !get_setting_value(SETTING_SKIP_KITTY_WARNING)) {
+        int res = 0;
+        int* result = display_interface_with_interactions(screen, "assets/interfaces/structures/kitty_fallback.dodjo", "kitty", &res);
+        if (result != NULL && res >= 1) {
+            set_setting_value(SETTING_FALLBACK_RELEASE_SPEED, result[0]);
+            free(result);
         }
     }
 
