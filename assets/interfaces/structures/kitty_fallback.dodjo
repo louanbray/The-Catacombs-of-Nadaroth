@@ -1,0 +1,36 @@
+~
+~
+                                    ╔════════════════════════════════════════════════════╗~
+                                    ║                                                    ║~
+                                    ║                                                    ║~
+                                    ║                                                    ║~
+                                    ╠════════════════════════════════════════════════════╣~
+                                    ║                                                    ║~
+                                    ║     It seems that the kitty protocol is not        ║~
+                                    ║   supported on your terminal.                      ║~
+                                    ║                                                    ║~
+                                    ║     Please select when a movement key is set to    ║~
+                                    ║   be released. The selection is based on the       ║~
+                                    ║   number of cells the player can get to in one     ║~
+                                    ║   key press                                        ║~
+                                    ║                                                    ║~
+                                    ║                                                    ║~
+                                    ║   Speed (in cells per press):                      ║~
+                                    ║         One (default)                              ║~
+                                    ║                                                    ║~
+                                    ║         Two                                        ║~
+                                    ║                                                    ║~
+                                    ║         Three                                      ║~
+                                    ║                                                    ║~
+                                    ║                                                    ║~
+                                    ║   > You can disable this popup in the settings.    ║~
+                                    ║   > You can still change the speed later in the    ║~
+                                    ║   settings.                                        ║~
+                                    ║                                                    ║~
+                                    ║   Use ↑/↓ to select skin, ←/→ to pick              ║~
+                                    ║   Press [ENTER] to confirm                         ║~
+                                    ║                                                    ║~
+                                    ╚════════════════════════════════════════════════════╝~
+~
+~
+════════════════════════════════════════════════════ PRESS [ENTER] TO START ═════════════════════════════════════════════════════~

@@ -32,6 +32,10 @@ bool create_dir_if_not_exists(const char* path) {
     return false;
 }
 
+void init_settings_callbacks() {
+    setting_attach_callback(SETTING_FALLBACK_RELEASE_SPEED, sync_fallback_release_speed_from_settings);
+}
+
 /// @brief
 /// Initialize global game state and core subsystems.
 void init_game_system() {
@@ -48,6 +52,7 @@ void init_game_system() {
     load_achievements();
     load_statistics();
     load_settings();
+    init_settings_callbacks();
     LOG_INFO("Game system initialized with SEED: %d", SEED);
 }
 
@@ -78,63 +83,25 @@ void move(Render_Buffer* screen, player* p, int dir) {
     fog_of_war_set_origin(get_player_x(p), get_player_y(p));
 }
 
-#ifdef _WIN32
-static const unsigned long long HOLD_REPEAT_DELAY_MS = 60ULL;
-static const unsigned long long HOLD_REPEAT_INTERVAL_MS = 60ULL;
-
-static bool is_virtual_key_down(int virtual_key) {
-    return (GetAsyncKeyState(virtual_key) & 0x8000) != 0;
-}
-
-enum HeldMoveMask {
-    MOVE_NONE = 0,
-    MOVE_NORTH = 1 << 0,
-    MOVE_SOUTH = 1 << 1,
-    MOVE_WEST = 1 << 2,
-    MOVE_EAST = 1 << 3,
-};
-
-static unsigned int get_held_move_mask() {
-    bool up = is_virtual_key_down('Z');
-    bool down = is_virtual_key_down('S');
-    bool left = is_virtual_key_down('Q');
-    bool right = is_virtual_key_down('D');
-
-    if (up && down) {
-        up = false;
-        down = false;
-    }
-    if (left && right) {
-        left = false;
-        right = false;
-    }
-
-    return (up ? MOVE_NORTH : MOVE_NONE) | (down ? MOVE_SOUTH : MOVE_NONE) |
-           (left ? MOVE_WEST : MOVE_NONE) | (right ? MOVE_EAST : MOVE_NONE);
-}
+static const uint64_t HOLD_REPEAT_DELAY_MS = UINT64_C(60);
+static const uint64_t HOLD_REPEAT_INTERVAL_MS = UINT64_C(60);
 
 static void apply_move_mask(Render_Buffer* screen, player* p, unsigned int mask) {
-    if (mask & MOVE_NORTH) {
-        move(screen, p, DIR_NORTH);
-    }
-    if (mask & MOVE_SOUTH) {
-        move(screen, p, DIR_SOUTH);
-    }
-    if (mask & MOVE_WEST) {
-        move(screen, p, DIR_WEST);
-    }
-    if (mask & MOVE_EAST) {
-        move(screen, p, DIR_EAST);
-    }
+    if (!p) return;
+
+    if (mask & MOVE_NORTH) move(screen, p, DIR_NORTH);
+    if (mask & MOVE_SOUTH) move(screen, p, DIR_SOUTH);
+    if (mask & MOVE_WEST) move(screen, p, DIR_WEST);
+    if (mask & MOVE_EAST) move(screen, p, DIR_EAST);
 }
 
-static void process_held_movement(Render_Buffer* screen, player* p) {
+void process_held_movement(Render_Buffer* screen, player* p) {
     static unsigned int last_mask = MOVE_NONE;
-    static unsigned long long next_move_time = 0;
-    static unsigned long long repeat_start_time = 0;
+    static uint64_t next_move_time = 0;
+    static uint64_t repeat_start_time = 0;
 
+    uint64_t now = get_tick_count_ms();
     unsigned int mask = get_held_move_mask();
-    unsigned long long now = GetTickCount64();
 
     if (mask == MOVE_NONE) {
         last_mask = MOVE_NONE;
@@ -165,7 +132,6 @@ static void process_held_movement(Render_Buffer* screen, player* p) {
         }
     }
 }
-#endif
 
 /// @brief Handle the user keyboard entries
 /// @param entry entry
@@ -174,35 +140,6 @@ static void process_held_movement(Render_Buffer* screen, player* p) {
 void compute_entry(Render_Buffer* screen, player* p, int entry) {
     hotbar* hb = get_player_hotbar(p);
     switch (entry) {
-#ifdef _WIN32
-        case KEY_Z_LOW:
-        case KEY_Z_HIGH:
-        case KEY_S_LOW:
-        case KEY_S_HIGH:
-        case KEY_Q_LOW:
-        case KEY_Q_HIGH:
-        case KEY_D_LOW:
-        case KEY_D_HIGH:
-            return;
-#else
-        case KEY_Z_LOW:
-        case KEY_Z_HIGH:
-            move(screen, p, DIR_NORTH);
-            break;
-        case KEY_S_LOW:
-        case KEY_S_HIGH:
-            move(screen, p, DIR_SOUTH);
-            break;
-        case KEY_Q_LOW:
-        case KEY_Q_HIGH:
-            move(screen, p, DIR_WEST);
-            break;
-        case KEY_D_LOW:
-        case KEY_D_HIGH:
-            move(screen, p, DIR_EAST);
-            break;
-#endif
-
         case KEY_1:
         case KEY_2:
         case KEY_3:
@@ -414,6 +351,17 @@ int main(int argc, char* argv[]) {
     // ------------------- Show home menu and help -------------------
     home_menu(screen, PLAYER_L, RESUME_DEFAULT);
 
+    if (!is_kitty_supported()) {
+        if (!get_setting_value(SETTING_SKIP_KITTY_WARNING)) {
+            int res = 0;
+            int* result = display_interface_with_interactions(screen, "assets/interfaces/structures/kitty_fallback.dodjo", "kitty", &res);
+            if (result != NULL && res >= 1) {
+                set_setting_value(SETTING_FALLBACK_RELEASE_SPEED, result[0]);
+                free(result);
+            }
+        }
+    }
+
     if (!get_setting_value(SETTING_SKIP_INTRO)) {
         display_interface(screen, "assets/interfaces/structures/help.dodjo");
         play_cinematic(screen, "assets/cinematics/oblivion.dodjo", CINEMATIC_FRAME_DELAY);
@@ -421,6 +369,7 @@ int main(int argc, char* argv[]) {
 
     // ------------------- Post init -------------------
     init_projectile_system(screen, PLAYER_L, SEED);
+    apply_settings_callbacks();
 
     render(screen, MAP_L);
     // fog_of_war_enable();
@@ -471,10 +420,9 @@ int main(int argc, char* argv[]) {
             }
         }
 
-#ifdef _WIN32
+        //? Handles input for player movement
         if (!GAME_PAUSED || is_debug_mode()) process_held_movement(screen, PLAYER_L);
         if (GAME_PAUSED && is_debug_mode()) update_screen(screen);
-#endif
 
         if (GAME_PAUSED) {
             sys_sleep_ms(16);

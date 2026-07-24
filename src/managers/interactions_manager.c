@@ -167,6 +167,7 @@ void init_interactions_system() {
 
     load_interactions_file("assets/interfaces/interactions/skin.interact.dodjo", "skin");
     load_interactions_file("assets/interfaces/interactions/difficulty.interact.dodjo", "difficulty");
+    load_interactions_file("assets/interfaces/interactions/kitty.interact.dodjo", "kitty");
 }
 
 void destroy_interactions_system() {
@@ -238,52 +239,44 @@ static int expand_anim_pattern(UIAnimation* a, int idx, char* out_pattern, int* 
     int i = 0;
     int pat_len = (int)strlen(a->pattern);
 
+    // Current char color
+    int active_color = COLOR_DEFAULT;
+
     while (i < pat_len) {
-        if (symbol_len > 0 &&
-            i + symbol_len <= pat_len &&
-            memcmp(&a->pattern[i], a->color_symbol, symbol_len) == 0) {
-            i += symbol_len;  // On saute le tag (§ ou @)
-
-            if (i < pat_len) {
-                // On récupère la taille en octets du caractère qui suit (ex: ■ = 3)
-                int char_len = utf8_seq_len((unsigned char)a->pattern[i]);
-                if (i + char_len > pat_len) char_len = pat_len - i;
-
-                int color_val = COLOR_DEFAULT;
+        // color symbol?  ex:§
+        if (symbol_len > 0 && i + symbol_len <= pat_len && memcmp(&a->pattern[i], a->color_symbol, symbol_len) == 0) {
+            i += symbol_len;  // We skip the tag
+            if (active_color == COLOR_DEFAULT) {
                 if (a->color_sequence_len > 0) {
-                    color_val = a->color_sequence[idx % a->color_sequence_len];
+                    active_color = a->color_sequence[idx % a->color_sequence_len];
                 }
-
-                // Une seule couleur pour ce caractère multi-octets
-                if (colors) colors[color_idx] = color_val;
-                color_idx++;
-
-                // On copie TOUS les octets de ce caractère coloré
-                for (int c = 0; c < char_len; c++) {
-                    if (out_pattern) out_pattern[out_len] = a->pattern[i];
-                    out_len++;
-                    i++;
-                }
+            } else {
+                // Another symbol resets the color
+                active_color = COLOR_DEFAULT;
             }
-        } else {
-            // Caractère normal (ex: '[', ']', ou lettre)
-            int char_len = utf8_seq_len((unsigned char)a->pattern[i]);
-            if (i + char_len > pat_len) char_len = pat_len - i;
 
-            if (colors) colors[color_idx] = COLOR_DEFAULT;
-            color_idx++;
+            continue;
+        }
 
-            // On copie tous les octets du caractère normal
-            for (int c = 0; c < char_len; c++) {
-                if (out_pattern) out_pattern[out_len] = a->pattern[i];
-                out_len++;
-                i++;
-            }
+        // normal char (ex: '[', ']', letters...)
+        int char_len = utf8_seq_len((unsigned char)a->pattern[i]);
+        if (i + char_len > pat_len) char_len = pat_len - i;
+
+        // Set current color to the char
+        if (colors) colors[color_idx] = active_color;
+        color_idx++;
+
+        // We copy all bytes of the UTF8 char
+        for (int c = 0; c < char_len; c++) {
+            if (out_pattern) out_pattern[out_len] = a->pattern[i];
+            out_len++;
+            i++;
         }
     }
+
     if (out_pattern) out_pattern[out_len] = '\0';
 
-    return color_idx;  // Renvoie le nombre de colonnes pour draw_pattern_at et clear_pattern_at
+    return color_idx;  // Returns the number of real rendered columns
 }
 
 // Parse interaction file lines. We expect the file only contains the interactions part.

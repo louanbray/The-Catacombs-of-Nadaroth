@@ -156,3 +156,13 @@ bool directory_exists(const char* path) {
     return S_ISDIR(st.st_mode);
 #endif
 }
+
+uint64_t get_tick_count_ms() {
+#ifdef _WIN32
+    return GetTickCount64();
+#else
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)(ts.tv_sec * UINT64_C(1000) + ts.tv_nsec / UINT64_C(1000000));
+#endif
+}

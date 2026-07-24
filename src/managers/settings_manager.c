@@ -16,9 +16,37 @@ typedef struct setting {
     const char* description;
     int max_value;
     int value;
+    SettingCallback* callbacks;
+    int callback_count;
 } setting;
 
 setting** settings = NULL;
+
+static void trigger_setting_callbacks(enum SettingID id) {
+    if (id < 0 || id >= SETTINGS_COUNT || !settings[id]) return;
+
+    setting* s = settings[id];
+    for (int i = 0; i < s->callback_count; i++) {
+        if (s->callbacks[i]) {
+            s->callbacks[i]();
+        }
+    }
+}
+
+void apply_settings_callbacks() {
+    for (int id = 0; id < SETTINGS_COUNT; id++) {
+        trigger_setting_callbacks(id);
+    }
+}
+
+void setting_attach_callback(enum SettingID id, SettingCallback callback_fn) {
+    if (id < 0 || id >= SETTINGS_COUNT || !settings[id] || !callback_fn) return;
+
+    setting* s = settings[id];
+    s->callbacks = realloc(s->callbacks, sizeof(SettingCallback) * (s->callback_count + 1));
+    s->callbacks[s->callback_count] = callback_fn;
+    s->callback_count++;
+}
 
 const char* get_setting_name(enum SettingID id) {
     if (id < 0 || id >= SETTINGS_COUNT) return NULL;
@@ -48,6 +76,7 @@ void set_setting_value(enum SettingID id, int value) {
         settings[id]->value = value;
         LOG_INFO("Setting %s value set to %d/%d", settings[id]->name, value, settings[id]->max_value);
         save_settings();
+        trigger_setting_callbacks(id);
     }
 }
 
@@ -64,6 +93,7 @@ bool modify_setting_value(enum SettingID id, int value) {
         LOG_INFO("Setting %s value modified to %d/%d", settings[id]->name, new_value, settings[id]->max_value);
         play_sound_effect_by_id(AUDIO_CHANGE_SETTING_VALUE);
         save_settings();
+        trigger_setting_callbacks(id);
         return true;
     } else {
         return false;
@@ -95,6 +125,8 @@ void load_settings() {
             param->description = strdup(description);
             param->max_value = max_value;
             param->value = 0;
+            param->callbacks = NULL;
+            param->callback_count = 0;
             settings[id] = param;
         }
     }
@@ -112,10 +144,12 @@ void load_settings() {
     fclose(data_file);
     if (settings_file) fclose(settings_file);
 }
+
 void save_settings() {
     FILE* file = fopen(SETTINGS_FILE, "w");
+    if (!file) return;
     for (int i = 0; i < SETTINGS_COUNT; i++) {
-        fprintf(file, "%d\n", settings[i]->value);
+        fprintf(file, "%d\n", settings[i] ? settings[i]->value : 0);
     }
     fclose(file);
 }

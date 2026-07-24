@@ -82,7 +82,7 @@ bool chunk_has_wall(chunk* ck, int x, int y) {
     if (chunk_coords_to_matrix(x, y, &row, &col)) {
         int word_idx = col / 64;
         int bit_idx = col % 64;
-        return (ck->wall_mask[row][word_idx] & (1ULL << bit_idx)) != 0;
+        return (ck->wall_mask[row][word_idx] & (UINT64_C(1) << bit_idx)) != 0;
     }
     return false;
 }
@@ -94,7 +94,7 @@ void chunk_set_wall(chunk* ck, int x, int y, int display, Color color) {
 
     int word_idx = col / 64;
     int bit_idx = col % 64;
-    ck->wall_mask[row][word_idx] |= (1ULL << bit_idx);
+    ck->wall_mask[row][word_idx] |= (UINT64_C(1) << bit_idx);
 
     for (uint16_t i = 0; i < ck->wall_count; i++) {
         if (ck->sparse_walls[i].row == (uint8_t)row && ck->sparse_walls[i].col == (uint8_t)col) {
@@ -126,7 +126,7 @@ void chunk_clear_wall(chunk* ck, int x, int y) {
 
     int word_idx = col / 64;
     int bit_idx = col % 64;
-    ck->wall_mask[row][word_idx] &= ~(1ULL << bit_idx);
+    ck->wall_mask[row][word_idx] &= ~(UINT64_C(1) << bit_idx);
 
     for (uint16_t i = 0; i < ck->wall_count; i++) {
         if (ck->sparse_walls[i].row == (uint8_t)row && ck->sparse_walls[i].col == (uint8_t)col) {
@@ -168,7 +168,7 @@ void chunk_render_walls(chunk* ck, void* board_ptr) {
         wall_entry* w = &ck->sparse_walls[i];
         int word_idx = w->col / 64;
         int bit_idx = w->col % 64;
-        if (ck->wall_mask[w->row][word_idx] & (1ULL << bit_idx)) {
+        if (ck->wall_mask[w->row][word_idx] & (UINT64_C(1) << bit_idx)) {
             int game_x = w->col - 64;
             int game_y = 17 - w->row;
             render_char_colored(b, game_x, game_y, w->display, w->color);

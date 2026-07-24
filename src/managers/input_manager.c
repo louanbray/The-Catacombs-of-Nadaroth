@@ -5,13 +5,24 @@
 #include "../utils/game_status.h"
 #include "../utils/logger.h"
 #include "../utils/sys_platform.h"
+#include "settings_manager.h"
 
 #define MAX_KEYS 256
 #define MAX_BUFFER_SIZE 1024
 #define CTRL_C 0x03  // CTRL+C character code
 
+// ---- Default Key Press ----
 static bool key_states[MAX_KEYS] = {false};
 static bool key_pressed_last_frame[MAX_KEYS] = {false};
+
+// ---- Continous Key Press ----
+static bool held_keys[MAX_KEYS] = {false};
+static uint64_t last_seen_keys[MAX_KEYS] = {0};
+
+static uint64_t FALLBACK_RELEASE_TIMEOUT_MS = UINT64_C(60);
+static bool kitty_supported = false;
+
+// ---- Are inputs unlocked ----
 static bool unlock = true;
 
 #ifdef _WIN32
@@ -57,6 +68,7 @@ void restore_terminal_mode() {
         exit(EXIT_FAILURE);
     }
 #endif
+    printf("\033[<u");                 // Restore the normal keyboard
     printf("\33[?25h");                // Re-enable cursor visibility
     printf("\033[?1003l\033[?1006l");  // Disable Mouse events
     printf("\033[?2004l");             // Disable bracketed paste mode
@@ -195,6 +207,7 @@ void init_terminal() {
     printf("\33[?25l");                // Disable cursor
     printf("\033[?1003h\033[?1006h");  // Enable mouse motion events
     printf("\033[?2004h");             // Enable bracketed paste mode
+    printf("\033[>3u");                // Activates kitty keyboard protocol (Press + Repeat + Release)
     fflush(stdout);
 }
 
@@ -355,6 +368,83 @@ void unlock_inputs() {
     unlock = true;
 }
 
+// ---- Continuous movement handling ----
+void set_fallback_release_speed(int speed) {
+    if (speed < 1) speed = 1;
+    FALLBACK_RELEASE_TIMEOUT_MS = (uint64_t)(speed * 60);
+}
+
+void sync_fallback_release_speed_from_settings() {
+    set_fallback_release_speed(get_setting_value(SETTING_FALLBACK_RELEASE_SPEED));
+}
+
+bool is_kitty_supported() {
+    return kitty_supported;
+}
+
+/// @brief Parse a Kitty Keyboard Protocol sequence (\033[codepoint;mod:event_type u)
+static bool parse_kitty_key_event(const char* buf, size_t length, size_t* parsed_len, int* key, int* event_type, int* modifier) {
+    if (length < 3 || buf[0] != '\033' || buf[1] != '[') return false;
+
+    size_t i = 2;
+    while (i < length && buf[i] != 'u') {
+        i++;
+    }
+    if (i >= length || buf[i] != 'u') return false;  // Incomplete sequence
+
+    *parsed_len = i + 1;
+
+    int codepoint = 0, mod = 1, evt = 1;
+    if (sscanf(buf, "\033[%d;%d:%du", &codepoint, &mod, &evt) == 3) {
+        *key = codepoint;
+        *modifier = mod;
+        *event_type = evt;
+        return true;
+    }
+    if (sscanf(buf, "\033[%d:%du", &codepoint, &evt) == 2) {
+        *key = codepoint;
+        *modifier = mod;
+        *event_type = evt;
+        return true;
+    }
+    if (sscanf(buf, "\033[%du", &codepoint) == 1) {
+        *key = codepoint;
+        *modifier = mod;
+        *event_type = 1;  // Default : Press
+        return true;
+    }
+
+    return false;
+}
+
+unsigned int get_held_move_mask() {
+    uint64_t now = get_tick_count_ms();
+    if (!kitty_supported) {
+        for (int i = 0; i < MAX_KEYS; i++) {
+            if (held_keys[i] && (now - last_seen_keys[i] > FALLBACK_RELEASE_TIMEOUT_MS)) {
+                held_keys[i] = false;
+            }
+        }
+    }
+
+    bool up = held_keys['z'] || held_keys['Z'];
+    bool down = held_keys['s'] || held_keys['S'];
+    bool left = held_keys['q'] || held_keys['Q'];
+    bool right = held_keys['d'] || held_keys['D'];
+
+    if (up && down) {
+        up = false;
+        down = false;
+    }
+    if (left && right) {
+        left = false;
+        right = false;
+    }
+
+    return (up ? MOVE_NORTH : MOVE_NONE) | (down ? MOVE_SOUTH : MOVE_NONE) |
+           (left ? MOVE_WEST : MOVE_NONE) | (right ? MOVE_EAST : MOVE_NONE);
+}
+
 void process_input(player** p, Render_Buffer* screen,
                    void (*mouse_left_event_callback)(Render_Buffer* screen, player* p, int x, int y),
                    void (*mouse_right_event_callback)(Render_Buffer* screen, player* p, int x, int y),
@@ -391,6 +481,8 @@ void process_input(player** p, Render_Buffer* screen,
 
         // Process the buffer for complete sequences
         size_t processed = 0;
+        size_t kitty_len = 0;
+        int key_code = 0, event_type = 0, modifier = 1;
 
         while (processed < input_buffer_length) {
             // Check for paste start/end sequences first
@@ -410,7 +502,25 @@ void process_input(player** p, Render_Buffer* screen,
                 continue;
             }
 
-            if (is_mouse_event(input_buffer + processed, input_buffer_length - processed)) {
+            if (parse_kitty_key_event(input_buffer + processed, input_buffer_length - processed, &kitty_len, &key_code, &event_type, &modifier)) {
+                kitty_supported = true;
+                bool is_ctrl_down = ((modifier - 1) & 4) != 0;
+                //? Handling ctrl-c in kitty protocol
+                if ((key_code == 'c' || key_code == 'C' || key_code == 99) && is_ctrl_down) {
+                    stop_game();
+                    processed += kitty_len;
+                    continue;
+                }
+                if (key_code >= 0 && key_code < MAX_KEYS) {
+                    // event_type : 1 = Press, 2 = Repeat, 3 = Release
+                    if (event_type == 1 || event_type == 2) {
+                        held_keys[key_code] = true;
+                    } else if (event_type == 3) {
+                        held_keys[key_code] = false;
+                    }
+                }
+                processed += kitty_len;
+            } else if (is_mouse_event(input_buffer + processed, input_buffer_length - processed)) {
                 size_t mouse_event_length = get_mouse_event_length(input_buffer + processed, input_buffer_length - processed);
                 if (mouse_event_length > 0) {
                     parse_sgr_mouse_event(input_buffer + processed, &event);
@@ -444,6 +554,9 @@ void process_input(player** p, Render_Buffer* screen,
             } else if ((input_buffer[processed] >= 32 && input_buffer[processed] <= 126) ||
                        input_buffer[processed] == '\n' || input_buffer[processed] == '\r') {
                 unsigned char key = (unsigned char)input_buffer[processed];
+
+                held_keys[key] = true;
+                last_seen_keys[key] = get_tick_count_ms();
 
                 if (unlock) {
                     player* current_player = *p;

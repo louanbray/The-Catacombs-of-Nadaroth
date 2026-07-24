@@ -5,3 +5,5 @@
 4;Skip Player Custom (New Game);Keep the current player class/color when starting a new game;1
 5;Skip Difficulty Selection (Reset);Keep the current difficulty when resetting;1
 6;Skip Difficulty Selection (New Game);Keep the current difficuty when starting a new game;1
+7;Moves per press (IF kitty protocol isn't supported);Sets the number of moves triggered by one key press (0: default);3
+8;Skip Kitty Warning;Skips the kitty unsupported warning and moves per press selection;1

@@ -500,7 +500,7 @@ static bool load_chunk_walls_data(FILE* f, chunk* ck) {
 
             int word_idx = col / 64;
             int bit_idx = col % 64;
-            wall_mask[row][word_idx] |= (1ULL << bit_idx);
+            wall_mask[row][word_idx] |= (UINT64_C(1) << bit_idx);
         }
     }
 

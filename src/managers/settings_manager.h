@@ -13,8 +13,33 @@ enum SettingID {
     SETTING_SKIP_PLAYER_CUSTOM_ON_NEW_GAME,
     SETTING_SKIP_DIFFICULTY_SELECTION_ON_RESET,
     SETTING_SKIP_DIFFICULTY_SELECTION_ON_NEW_GAME,
+    SETTING_FALLBACK_RELEASE_SPEED,
+    SETTING_SKIP_KITTY_WARNING,
     SETTINGS_COUNT
 };
+
+typedef void (*SettingCallback)(void);
+
+/**
+ * @brief Registers a callback function to be triggered when a specific setting changes.
+ *
+ * Attaches a no-argument callback function to the specified setting ID. All attached
+ * callbacks for a given setting will be executed automatically whenever its value
+ * is modified.
+ *
+ * @param id The ID of the target setting.
+ * @param callback_fn Pointer to the function to invoke upon setting modification.
+ */
+void setting_attach_callback(enum SettingID id, SettingCallback callback_fn);
+
+/**
+ * @brief Triggers all registered callbacks for every setting.
+ *
+ * Iterates through all available setting IDs and executes their attached
+ * callbacks. Typically called during initialization to synchronize runtime
+ * systems with the loaded settings state.
+ */
+void apply_settings_callbacks();
 
 /**
  * Get the display name of a setting.

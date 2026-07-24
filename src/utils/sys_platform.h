@@ -2,6 +2,7 @@
 #define SYS_PLATFORM_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <wchar.h>
 
@@ -34,5 +35,8 @@ int sys_mkdir(const char* path);
 
 /// @brief Checks if a directory exists at the specified path, using Windows API on Windows and stat() on other platforms.
 bool directory_exists(const char* path);
+
+/// @brief Get tick count in milliseconds (cross-platform)
+uint64_t get_tick_count_ms();
 
 #endif  // SYS_PLATFORM_H

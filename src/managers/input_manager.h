@@ -4,6 +4,7 @@
 #include <locale.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,6 +34,18 @@ typedef struct InputThreadArgs {
     void (*mouse_scroll_callback)(Render_Buffer* screen, player* p, int x, int y, int direction);
     void (*printable_char_callback)(Render_Buffer* screen, player* p, int c);
 } InputThreadArgs;
+
+typedef enum HeldMoveMask {
+    MOVE_NONE = 0,
+    MOVE_NORTH = 1 << 0,
+    MOVE_SOUTH = 1 << 1,
+    MOVE_WEST = 1 << 2,
+    MOVE_EAST = 1 << 3,
+} HeldMoveMask;
+
+/// @brief Returns the bit by bit mask of the held directions
+unsigned int get_held_move_mask();
+
 /**
  * @brief Initializes the terminal settings for the application.
  *
@@ -85,6 +98,26 @@ void lock_inputs();
  * @brief Unlocks the inputs by setting the unlock flag to true.
  */
 void unlock_inputs();
+
+/**
+ * @brief Sets the number of moves triggered on key press when kitty protocol isn't supported
+ *
+ * @param speed Moves/press
+ */
+void set_fallback_release_speed(int speed);
+
+/**
+ * @brief Synchronizes the fallback release speed with the saved settings.
+ *
+ * Retrieves the value of SETTING_FALLBACK_RELEASE_SPEED from the configuration
+ * and applies it to the runtime state via set_fallback_release_speed().
+ */
+void sync_fallback_release_speed_from_settings();
+
+/**
+ * @brief Returns true if the kitty keyboard protocol is supported
+ */
+bool is_kitty_supported();
 
 /**
  * @brief Restore terminal mode
