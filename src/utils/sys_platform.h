@@ -36,6 +36,11 @@ int sys_mkdir(const char* path);
 /// @brief Checks if a directory exists at the specified path, using Windows API on Windows and stat() on other platforms.
 bool directory_exists(const char* path);
 
+/// @brief Creates a directory if it doesn't already exists
+/// @param path path of the directory
+/// @return true if the directory exists, false if the path is unaccessible or is not a dir
+bool create_dir_if_not_exists(const char* path);
+
 /// @brief Get tick count in milliseconds (cross-platform)
 uint64_t get_tick_count_ms();
 

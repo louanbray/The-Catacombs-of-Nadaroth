@@ -147,8 +147,7 @@ int sys_mkdir(const char* path) {
 bool directory_exists(const char* path) {
     struct stat st;
 
-    if (stat(path, &st) != 0)
-        return false;
+    if (stat(path, &st) != 0) return false;
 
 #ifdef _WIN32
     return (st.st_mode & _S_IFDIR) != 0;
@@ -165,4 +164,10 @@ uint64_t get_tick_count_ms() {
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)(ts.tv_sec * UINT64_C(1000) + ts.tv_nsec / UINT64_C(1000000));
 #endif
+}
+
+bool create_dir_if_not_exists(const char* path) {
+    if (sys_mkdir(path) == 0) return true;
+    if (errno == EEXIST) return directory_exists(path);
+    return false;
 }

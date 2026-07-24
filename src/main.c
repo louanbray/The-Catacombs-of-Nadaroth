@@ -12,6 +12,7 @@
 #include "game_objects/player.h"
 #include "managers/managers.h"
 #include "managers/save_manager.h"
+#include "scripts/item_effects.h"
 #include "scripts/player_handler.h"
 #include "utils/game_status.h"
 #include "utils/logger.h"
@@ -21,16 +22,6 @@ static unsigned int SEED;
 static map* MAP_L;
 static player* PLAYER_L;
 static hotbar* HOTBAR_L;
-
-bool create_dir_if_not_exists(const char* path) {
-    if (sys_mkdir(path) == 0)
-        return true;
-
-    if (errno == EEXIST)
-        return directory_exists(path);
-
-    return false;
-}
 
 void init_settings_callbacks() {
     setting_attach_callback(SETTING_FALLBACK_RELEASE_SPEED, sync_fallback_release_speed_from_settings);
@@ -119,17 +110,13 @@ void process_held_movement(Render_Buffer* screen, player* p) {
         return;
     }
 
-    if (now < repeat_start_time) {
-        return;
-    }
+    if (now < repeat_start_time) return;
 
     if (now >= next_move_time) {
         apply_move_mask(screen, p, mask);
 
         next_move_time += HOLD_REPEAT_INTERVAL_MS;
-        if (next_move_time < now) {
-            next_move_time = now + HOLD_REPEAT_INTERVAL_MS;
-        }
+        if (next_move_time < now) next_move_time = now + HOLD_REPEAT_INTERVAL_MS;
     }
 }
 
@@ -169,50 +156,9 @@ void interact(Render_Buffer* screen, player* p, int x, int y) {
     x += GAME_PADDING / 2;
     hotbar* hb = get_player_hotbar(p);
     bool chest_opened = check_lootable_interaction(p, x, y);
-    bool destroy = false;
 
     item* it = get_selected_item(hb);
-    if (it != NULL && !chest_opened) {  //? Prevents doing two actions at the same time
-        UsableItem type = get_item_usable_type(it);
-        if (type == USABLE_ITEM_NOT_USABLE) return;
-
-        switch (type) {
-            case USABLE_ITEM_GOLDEN_APPLE:
-                destroy = true;
-                set_player_max_health(p, get_player_max_health(p) + 1);
-                break;
-            case USABLE_ITEM_ONION_RING:
-                if (get_player_max_health(p) != get_player_health(p)) {
-                    destroy = true;
-                    heal_player(p, 1);
-                }
-                break;
-            case USABLE_ITEM_STOCKFISH:
-                if (get_player_max_health(p) != get_player_health(p)) {
-                    destroy = true;
-                    heal_player(p, get_player_max_health(p) - get_player_health(p));
-                }
-                break;
-            case USABLE_ITEM_BOMB:
-                destroy = true;
-                destroy_player_cchunk(p);
-                break;
-            case USABLE_ITEM_SCHOOL_DISHES:
-                if (get_player_mental_health(p) != 4) {
-                    destroy = true;
-                    modify_player_mental_health(p, 1);
-                }
-                break;
-            case USABLE_ITEM_FORGOTTEN_DISH:
-                if (get_player_mental_health(p) != 4) {
-                    destroy = true;
-                    set_player_mental_health(p, 4);
-                }
-                break;
-            default:
-                return;
-        }
-    }
+    bool destroy = (!chest_opened && it != NULL) ? use_item(get_item_usable_type(it), p) : false;
 
     if (chest_opened) {
         render_from_player(screen, p);
@@ -313,7 +259,10 @@ void handle_resume(ResumeState state, Render_Buffer* screen) {
 /// @return I dream of a 0
 int main(int argc, char* argv[]) {
     // ------------------- Create player directory -------------------
-    create_dir_if_not_exists("data");
+    if (!create_dir_if_not_exists("data")) {
+        LOG_ERROR("User data folder failed to be created");
+        exit(EXIT_FAILURE);
+    }
 
     // ------------------- Parse arguments -------------------
     SEED = (unsigned int)time(NULL);

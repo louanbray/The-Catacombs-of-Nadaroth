@@ -207,20 +207,15 @@ PlayerMovementResult handle(player* p, int x, int y) {
             case ITEMTYPE_GATE:
                 move_player_chunk(p, get_direction(x, y));
                 return MOV_MOVED_CHUNK;
-                break;
             case ITEMTYPE_SGATE:
                 move_player_chunk(p, DIR_STARGATE);
                 return MOV_MOVED_CHUNK;
-                break;
             case ITEMTYPE_LOOTABLE:
                 return collide_lootable(p, i);
-                break;
             case ITEMTYPE_PICKABLE:
                 return pickup_from_chunk(p, i);
-                break;
             default:
                 return MOV_CANT_MOVE;
-                break;
         }
     }
 

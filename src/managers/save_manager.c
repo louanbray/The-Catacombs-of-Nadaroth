@@ -1014,8 +1014,10 @@ static bool load_map_data(FILE* f, map* m) {
 bool save_game(const char* filename, player* p, map* m, hotbar* h) {
     if (!filename || !p || !m || !h) return false;
 
-    sys_mkdir(FILEDIR_SAVES);
-    sys_mkdir(FILEDIR_USER_SAVES);
+    if (!create_dir_if_not_exists(FILEDIR_SAVES) || !create_dir_if_not_exists(FILEDIR_USER_SAVES)) {
+        LOG_ERROR("Failed to create user saves folder");
+        return false;
+    }
 
     // First, save to an uncompressed temporary file
     char temp_filename[512];

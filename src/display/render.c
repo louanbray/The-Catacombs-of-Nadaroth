@@ -30,8 +30,8 @@ static bool FOG_OF_WAR = false;
 static int IN_MENU = 0;  // Counts how deep you are in the menus
 static int FOG_OF_WAR_ORIGIN_X = WTR_X(0);
 static int FOG_OF_WAR_ORIGIN_Y = WTR_Y(0);
-static int FOG_OF_WAR_CLEAR_VISION_RADIUS = (9 * 9);  // 6
-static int FOG_OF_WAR_FOG_RADIUS = (12 * 12);         // 9
+static int FOG_OF_WAR_CLEAR_VISION_RADIUS = (9 * 9);  // 9
+static int FOG_OF_WAR_FOG_RADIUS = (12 * 12);         // 12
 
 #define INFO_ROW_BOTTOM (RENDER_HEIGHT - 2)
 #define INFO_ROW_MID (RENDER_HEIGHT - 3)
@@ -1108,6 +1108,7 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
             write_str(r->bd, INFO_ROW_MID, 2, " ", RENDER_WIDTH - 4, COLOR_DEFAULT);
             kill_all_projectiles(r);
             if (load_game("saves/user_saves/0.dat", p, m, h)) {
+                fog_of_war_set_origin(get_player_x(p), get_player_y(p));
                 loaded_a_game = true;
                 LOG_INFO("Game loaded successfully!");
                 write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 25) / 2 + 1, "Game loaded successfully!", 26, COLOR_GREEN);
