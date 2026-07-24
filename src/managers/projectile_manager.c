@@ -232,33 +232,36 @@ void projectile_callback(int x, int y, projectile_data* data) {
 
 void enemy_attack_callback(int x, int y, projectile_data* data) {
     bool dead = false;
-    if (x == get_player_x(data->p) && y == get_player_y(data->p)) {
+    player* p = data->p;
+    Render_Buffer* screen = data->screen;
+    if (x == get_player_x(p) && y == get_player_y(p)) {
         play_sound_effect_by_id(AUDIO_PLAYER_HURT);
-        if (damage_player(data->p, data->damage)) {
-            player_death(data->p);
-            render_from_player(data->screen, data->p);
+        if (damage_player(p, data->damage)) {
+            player_death(p);
+            render_from_player(screen, p);
+            fog_of_war_set_origin(get_player_x(p), get_player_y(p));
             dead = true;
         } else
-            render_health(data->screen, data->p);
+            render_health(screen, p);
     }
     if (dead) {
-        kill_all_projectiles(data->screen);
+        kill_all_projectiles(screen);
         char filepath[PATH_MAX];
-        GamePhase phase = get_player_phase(data->p);
-        snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(data->p), phase);
+        GamePhase phase = get_player_phase(p);
+        snprintf(filepath, sizeof(filepath), "assets/cinematics/lore/%d/%d.dodjo", get_player_mental_health(p), phase);
         if (phase == GAMEPHASE_FIRST_ACT_END) {
             LOG_INFO("Game completed in %ld seconds and %ld microseconds", get_time_played().tv_sec, get_time_played().tv_usec);
             increment_statistic(STAT_GAME_COMPLETIONS, 1);
             set_achievement_progress(ACH_DAWN_BREAKER, 1);
-            if (get_player_mental_health(data->p) == MAX_MENTAL_HEALTH) {
+            if (get_player_mental_health(p) == MAX_MENTAL_HEALTH) {
                 set_achievement_progress(ACH_UNSHAKEN, 1);
-                if (get_player_design(data->p) == PLAYER_DESIGN_BALL)
+                if (get_player_design(p) == PLAYER_DESIGN_BALL)
                     increment_statistic(STAT_GAME_COMPLETION_AS_BALL, 1);
-                else if (get_player_design(data->p) == PLAYER_DESIGN_CAMO)
+                else if (get_player_design(p) == PLAYER_DESIGN_CAMO)
                     increment_statistic(STAT_GAME_COMPLETION_AS_CAMO, 1);
-                else if (get_player_design(data->p) == PLAYER_DESIGN_BRAWLER)
+                else if (get_player_design(p) == PLAYER_DESIGN_BRAWLER)
                     increment_statistic(STAT_GAME_COMPLETION_AS_BRAWLER, 1);
-                else if (get_player_design(data->p) == PLAYER_DESIGN_SHIELD)
+                else if (get_player_design(p) == PLAYER_DESIGN_SHIELD)
                     increment_statistic(STAT_GAME_COMPLETION_AS_SHIELD, 1);
                 if (get_time_played().tv_sec < 600) {  // 10mn
                     increment_statistic(STAT_SPEED_RUNS, 1);
@@ -278,10 +281,10 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
             pause_game();
             lock_inputs();
         }
-        play_cinematic(data->screen, filepath, CINEMATIC_FRAME_DELAY);
-        if (phase == GAMEPHASE_FIRST_ACT_END) play_cinematic(data->screen, "assets/cinematics/wip.dodjo", CINEMATIC_FRAME_DELAY);  //! Placeholder for future content
-        if (get_player_mental_health(data->p) == 0) {
-            play_cinematic(data->screen, "assets/cinematics/the_end.dodjo", CINEMATIC_FRAME_DELAY);
+        play_cinematic(screen, filepath, CINEMATIC_FRAME_DELAY);
+        if (phase == GAMEPHASE_FIRST_ACT_END) play_cinematic(screen, "assets/cinematics/wip.dodjo", CINEMATIC_FRAME_DELAY);  //! Placeholder for future content
+        if (get_player_mental_health(p) == 0) {
+            play_cinematic(screen, "assets/cinematics/the_end.dodjo", CINEMATIC_FRAME_DELAY);
             pause_game();
             lock_inputs();
         }

@@ -27,11 +27,11 @@ typedef struct Render_Buffer {
 } Render_Buffer;
 
 static bool FOG_OF_WAR = false;
-static bool IN_MENU = false;
+static int IN_MENU = 0;  // Counts how deep you are in the menus
 static int FOG_OF_WAR_ORIGIN_X = WTR_X(0);
 static int FOG_OF_WAR_ORIGIN_Y = WTR_Y(0);
-static int FOG_OF_WAR_CLEAR_VISION_RADIUS = (6 * 6);  // 6
-static int FOG_OF_WAR_FOG_RADIUS = (9 * 9);           // 9
+static int FOG_OF_WAR_CLEAR_VISION_RADIUS = (9 * 9);  // 6
+static int FOG_OF_WAR_FOG_RADIUS = (12 * 12);         // 9
 
 #define INFO_ROW_BOTTOM (RENDER_HEIGHT - 2)
 #define INFO_ROW_MID (RENDER_HEIGHT - 3)
@@ -589,7 +589,7 @@ wchar_t* fgetws_from_string(wchar_t* buffer, int size, const char** source) {
 
 // Prepares the render buffer for modal text display.
 void setup_render_buffer(Render_Buffer* r) {
-    IN_MENU = true;
+    IN_MENU += 1;
     if (r->dump) free_board(r->dump);
     r->dump = r->bd;
     r->bd = r->pv;
@@ -602,7 +602,7 @@ void setup_render_buffer(Render_Buffer* r) {
 
 // Finalizes the render buffer.
 void finalize_render_buffer(Render_Buffer* r) {
-    IN_MENU = false;
+    IN_MENU -= IN_MENU ? 1 : 0;
     free_board(r->bd);
     r->bd = r->dump;
     r->dump = NULL;
@@ -613,7 +613,7 @@ void finalize_render_buffer(Render_Buffer* r) {
 
 // No screen update variant
 void finalize_render_buffer_silent(Render_Buffer* r) {
-    IN_MENU = false;
+    IN_MENU -= IN_MENU ? 1 : 0;
     free_board(r->bd);
     r->bd = r->dump;
     r->dump = NULL;
@@ -1143,7 +1143,7 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
     if (!no_refresh)
         finalize_render_buffer(r);
     if (no_refresh || loaded_a_game) {
-        IN_MENU = false;
+        IN_MENU -= IN_MENU ? 1 : 0;
         render(r, m);
         update_screen(r);
         resume_game();

@@ -28,7 +28,7 @@ void parse_chunk(chunk* c, dynarray* d, ChunkType chunk_type) {
                                        entry->x - (1 + entry->size) * row,
                                        entry->y - col,
                                        entry->display,
-                                       COLOR_DEFAULT);
+                                       COLOR_GRAY);
                     }
                 }
             } else {

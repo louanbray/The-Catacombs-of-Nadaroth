@@ -372,7 +372,7 @@ int main(int argc, char* argv[]) {
     apply_settings_callbacks();
 
     render(screen, MAP_L);
-    // fog_of_war_enable();
+    fog_of_war_enable();
     update_screen(screen);
 
     increment_statistic(STAT_GAME_STARTED, 1);
