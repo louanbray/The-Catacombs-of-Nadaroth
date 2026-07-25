@@ -157,10 +157,10 @@ void update_chunk_unloading(map* m, int player_chunk_x, int player_chunk_y) {
         int y = data.keys_y[i];
         chunk* ck = get_hm(m->hashmap, x, y);
         if (ck) {
-            for (int d = 0; d < 5; d++) {
+            for (int d = 0; d < 4; d++) {
                 chunk* neighbor = get_chunk_link_at(ck, d);
                 if (neighbor) {
-                    for (int r = 0; r < 5; r++) {
+                    for (int r = 0; r < 4; r++) {
                         if (get_chunk_link_at(neighbor, r) == ck) {
                             set_chunk_link(neighbor, r, NULL);
                         }
@@ -175,14 +175,12 @@ void update_chunk_unloading(map* m, int player_chunk_x, int player_chunk_y) {
 }
 
 chunk* get_chunk_from(map* m, chunk* c1, Direction dir) {
-    if (get_chunk_link_at(c1, dir) != NULL) {
-        return get_chunk_link_at(c1, dir);
-    }
+    if (get_chunk_link_at(c1, dir) != NULL) return get_chunk_link_at(c1, dir);
 
-    if (dir != 0) {
-        const int dx[] = {0, 1, 0, -1, 0};
-        const int dy[] = {0, 0, 1, 0, -1};
-        int s = dir < 3 ? 2 : -2;
+    if (dir != DIR_STARGATE) {
+        const int dx[] = {1, 0, -1, 0};
+        const int dy[] = {0, 1, 0, -1};
+        int s = dir < 2 ? 2 : -2;
 
         chunk* ck = get_chunk(m, get_chunk_x(c1) + dx[dir], get_chunk_y(c1) + dy[dir]);
 
@@ -191,17 +189,24 @@ chunk* get_chunk_from(map* m, chunk* c1, Direction dir) {
 
         return ck;
     } else {
-        int x = rand() % 20 - 10;
-        int y = rand() % 20 - 10;
-        if (x == get_chunk_x(c1) && y == get_chunk_y(c1)) {
-            x += 1;
-            y += 1;
+        int stargate_x, stargate_y;
+        int c_x = get_chunk_x(c1);
+        int c_y = get_chunk_y(c1);
+        get_chunk_stargate(c1, &stargate_x, &stargate_y);
+        if (stargate_x == -9999 && stargate_y == -9999) {
+            int x = rand() % 20 - 10;
+            int y = rand() % 20 - 10;
+            if (x == 0 && y == 0) {
+                x += 1;
+                y += 1;
+            }
+            stargate_x = c_x + x;
+            stargate_y = c_y + y;
+            set_chunk_stargate(c1, stargate_x, stargate_y);
         }
 
-        chunk* ck = get_chunk(m, get_chunk_x(c1) + x, get_chunk_y(c1) + y);
-
-        set_chunk_link(ck, dir, c1);
-        set_chunk_link(c1, dir, ck);
+        chunk* ck = get_chunk(m, stargate_x, stargate_y);
+        set_chunk_stargate(ck, c_x, c_y);
 
         return ck;
     }
@@ -215,8 +220,8 @@ void purge_chunk(hm* m, chunk* ck) {
     if (get_chunk_x(ck) == 0 && get_chunk_y(ck) == 0) return;
 
     purge_hm(m, get_chunk_x(ck), get_chunk_y(ck));
-    for (int i = 0; i < 5; i++) {
-        int s = i == 0 ? 0 : (i < 3 ? 2 : -2);
+    for (int i = 0; i < 4; i++) {
+        int s = (i < 2 ? 2 : -2);
         chunk* linked = get_chunk_link_at(ck, i);
         if (linked != NULL) {
             set_chunk_link(linked, i + s, NULL);
@@ -234,8 +239,8 @@ void print_chunk(chunk* ck) {
     chunk_link lk = get_chunk_links(ck);
     LOG_S("CHUNK: %p [x: %d, y: %d, type: %d, element: %p]\n", (void*)ck,
           get_chunk_x(ck), get_chunk_y(ck), get_chunk_type(ck), (void*)get_chunk_furniture_list(ck));
-    LOG_S("link: [%p, %p, %p, %p, %p]\n\n",
-          (void*)lk[0], (void*)lk[1], (void*)lk[2], (void*)lk[3], (void*)lk[4]);
+    LOG_S("link: [%p, %p, %p, %p]\n\n",
+          (void*)lk[0], (void*)lk[1], (void*)lk[2], (void*)lk[3]);
 }
 
 void print_map(map* m) {

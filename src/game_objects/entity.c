@@ -84,8 +84,8 @@ void move_part(chunk* c, item* i, Direction dir) {
     int x = get_item_x(i);
     int y = get_item_y(i);
 
-    const int dx[] = {0, 2, 0, -2, 0};
-    const int dy[] = {0, 0, 1, 0, -1};
+    const int dx[] = {2, 0, -2, 0, 0};
+    const int dy[] = {0, 1, 0, -1, 0};
 
     hm* h = get_chunk_furniture_coords(c);
     purge_hm(h, x, y);
@@ -106,8 +106,8 @@ bool can_entity_move(entity* e, Direction dir) {
     dynarray* d = e->parts;
     int len = len_dyn(d);
 
-    const int dx[] = {0, 2, 0, -2, 0};
-    const int dy[] = {0, 0, 1, 0, -1};
+    const int dx[] = {2, 0, -2, 0, 0};
+    const int dy[] = {0, 1, 0, -1, 0};
 
     hm* h = get_chunk_furniture_coords(e->c);
     bool can_move = true;

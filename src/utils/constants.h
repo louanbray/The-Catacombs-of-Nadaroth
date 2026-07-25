@@ -119,17 +119,18 @@ TODO LIST:
 ! Add glitch % MH
 ! Patch race cond on player in handle_resume/input thread
 ! Remove gettimeofday to use get_tick_count_ms/μs/ns to prevent it jumping when changing the date
+! -9999
 
 Bonne chance à moi
 */
 
 /// @brief Gate position/type
 typedef enum Direction {  //! DO NOT MODIFY
-    DIR_STARGATE,
     DIR_EAST,
     DIR_NORTH,
     DIR_WEST,
-    DIR_SOUTH
+    DIR_SOUTH,
+    DIR_STARGATE
 } Direction;
 
 /// @brief item type

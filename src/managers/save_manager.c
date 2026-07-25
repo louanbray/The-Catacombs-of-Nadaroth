@@ -517,17 +517,21 @@ static bool save_chunk_data(FILE* f, chunk* ck) {
     int y = get_chunk_y(ck);
     int spawn_x = get_chunk_spawn_x(ck);
     int spawn_y = get_chunk_spawn_y(ck);
+    int stargate_x, stargate_y;
+    get_chunk_stargate(ck, &stargate_x, &stargate_y);
     ChunkType type = get_chunk_type(ck);
 
     fwrite(&x, sizeof(int), 1, f);
     fwrite(&y, sizeof(int), 1, f);
     fwrite(&spawn_x, sizeof(int), 1, f);
     fwrite(&spawn_y, sizeof(int), 1, f);
+    fwrite(&stargate_x, sizeof(int), 1, f);
+    fwrite(&stargate_y, sizeof(int), 1, f);
     fwrite(&type, sizeof(int), 1, f);
 
     // Save chunk links (coordinates of linked chunks, or -9999 if no link)
     chunk_link links = get_chunk_links(ck);
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) {
         if (links[i] != NULL) {
             int link_x = get_chunk_x(links[i]);
             int link_y = get_chunk_y(links[i]);
@@ -816,7 +820,7 @@ static bool save_map_data(FILE* f, map* m) {
 typedef struct {
     int chunk_x;
     int chunk_y;
-    int link_coords[5][2];  // For each direction: [x, y] or [-9999, -9999] if no link
+    int link_coords[4][2];  // For each direction: [x, y] or [-9999, -9999] if no link
 } chunk_link_info;
 
 /// @brief Load map data from file
@@ -835,17 +839,19 @@ static bool load_map_data(FILE* f, map* m) {
 
     // First pass: load near chunks to RAM, stream far chunks directly to single disk cache file
     for (int i = 0; i < chunk_count; i++) {
-        int x, y, spawn_x, spawn_y;
+        int x, y, spawn_x, spawn_y, stargate_x, stargate_y;
         ChunkType type;
 
         fread(&x, sizeof(int), 1, f);
         fread(&y, sizeof(int), 1, f);
         fread(&spawn_x, sizeof(int), 1, f);
         fread(&spawn_y, sizeof(int), 1, f);
+        fread(&stargate_x, sizeof(int), 1, f);
+        fread(&stargate_y, sizeof(int), 1, f);
         fread(&type, sizeof(int), 1, f);
 
-        int link_coords[5][2];
-        for (int j = 0; j < 5; j++) {
+        int link_coords[4][2];
+        for (int j = 0; j < 4; j++) {
             fread(&link_coords[j][0], sizeof(int), 1, f);
             fread(&link_coords[j][1], sizeof(int), 1, f);
         }
@@ -859,7 +865,7 @@ static bool load_map_data(FILE* f, map* m) {
         if (is_near) {
             link_infos[ram_count].chunk_x = x;
             link_infos[ram_count].chunk_y = y;
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < 4; j++) {
                 link_infos[ram_count].link_coords[j][0] = link_coords[j][0];
                 link_infos[ram_count].link_coords[j][1] = link_coords[j][1];
             }
@@ -875,6 +881,8 @@ static bool load_map_data(FILE* f, map* m) {
             LOG_INFO("Clearing existing chunk (%d, %d) before loading", x, y);
             reset_chunk_internals(ck, spawn_x, spawn_y, type);
         }
+
+        set_chunk_stargate(ck, stargate_x, stargate_y);
 
         // Load the chunk's wall_entry structure directly
         if (!load_chunk_walls_data(f, ck)) {
@@ -988,7 +996,7 @@ static bool load_map_data(FILE* f, map* m) {
         chunk* ck = get_hm(active_map, link_infos[i].chunk_x, link_infos[i].chunk_y);
         if (!ck) continue;
 
-        for (int j = 0; j < 5; j++) {
+        for (int j = 0; j < 4; j++) {
             int link_x = link_infos[i].link_coords[j][0];
             int link_y = link_infos[i].link_coords[j][1];
 
@@ -1416,7 +1424,7 @@ chunk* load_chunk_from_cache(map* m, int x, int y) {
         return NULL;
     }
 
-    int read_x, read_y, spawn_x, spawn_y;
+    int read_x, read_y, spawn_x, spawn_y, stargate_x, stargate_y;
     ChunkType type;
 
     if (fread(&read_x, sizeof(int), 1, f) != 1) {
@@ -1426,10 +1434,12 @@ chunk* load_chunk_from_cache(map* m, int x, int y) {
     fread(&read_y, sizeof(int), 1, f);
     fread(&spawn_x, sizeof(int), 1, f);
     fread(&spawn_y, sizeof(int), 1, f);
+    fread(&stargate_x, sizeof(int), 1, f);
+    fread(&stargate_y, sizeof(int), 1, f);
     fread(&type, sizeof(int), 1, f);
 
-    int link_coords[5][2];
-    for (int j = 0; j < 5; j++) {
+    int link_coords[4][2];
+    for (int j = 0; j < 4; j++) {
         fread(&link_coords[j][0], sizeof(int), 1, f);
         fread(&link_coords[j][1], sizeof(int), 1, f);
     }
@@ -1441,8 +1451,10 @@ chunk* load_chunk_from_cache(map* m, int x, int y) {
         LOG_ERROR("Failed to load walls for cached chunk (%d, %d)", read_x, read_y);
     }
 
+    set_chunk_stargate(ck, stargate_x, stargate_y);
+
     hm* chunks_map = get_map_hashmap(m);
-    for (int j = 0; j < 5; j++) {
+    for (int j = 0; j < 4; j++) {
         if (link_coords[j][0] != -9999) {
             chunk* target = get_hm(chunks_map, link_coords[j][0], link_coords[j][1]);
             if (target) set_chunk_link(ck, j, target);

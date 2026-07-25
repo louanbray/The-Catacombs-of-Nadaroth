@@ -10,8 +10,8 @@
 /// @brief Private chunk structure definition
 typedef struct chunk {
     chunk_link link;
-    int x, spawn_x;
-    int y, spawn_y;
+    int x, spawn_x, stargate_dest_x;
+    int y, spawn_y, stargate_dest_y;
     ChunkType type;
     dynarray* elements;
     dynarray* enemies;
@@ -178,7 +178,7 @@ void chunk_render_walls(chunk* ck, void* board_ptr) {
 
 /// @brief Create an empty set of 5 chunk links
 static chunk_link create_link() {
-    return calloc(5, sizeof(chunk*));
+    return calloc(4, sizeof(chunk*));
 }
 
 dynarray* get_chunk_furniture_list(chunk* ck) {
@@ -222,6 +222,7 @@ chunk_link get_chunk_links(chunk* ck) {
 }
 
 chunk* get_chunk_link_at(chunk* ck, int dir) {
+    if (dir == DIR_STARGATE) return NULL;
     return ck->link[dir];
 }
 
@@ -256,6 +257,16 @@ void set_chunk_link(chunk* ck, int dir, chunk* target) {
     ck->link[dir] = target;
 }
 
+void set_chunk_stargate(chunk* ck, int target_x, int target_y) {
+    ck->stargate_dest_x = target_x;
+    ck->stargate_dest_y = target_y;
+}
+
+void get_chunk_stargate(chunk* ck, int* target_x, int* target_y) {
+    *target_x = ck->stargate_dest_x;
+    *target_y = ck->stargate_dest_y;
+}
+
 void chunk_append_element(chunk* ck, item* it) {
     append(ck->elements, it);
 }
@@ -282,6 +293,8 @@ chunk* create_chunk(int x, int y) {
     ck->link = create_link();
     ck->x = x;
     ck->y = y;
+    ck->stargate_dest_x = -9999;
+    ck->stargate_dest_y = -9999;
     ck->type = CHUNK_SPAWN;
     ck->spawn_x = 1;
     ck->spawn_y = 0;
@@ -307,6 +320,8 @@ chunk* create_chunk_raw(int x, int y, int spawn_x, int spawn_y, ChunkType type) 
     ck->link = create_link();
     ck->x = x;
     ck->y = y;
+    ck->stargate_dest_x = -9999;
+    ck->stargate_dest_y = -9999;
     ck->spawn_x = spawn_x;
     ck->spawn_y = spawn_y;
     ck->type = type;
@@ -337,6 +352,8 @@ void reset_chunk_internals(chunk* ck, int spawn_x, int spawn_y, ChunkType type) 
     ck->hashmap = create_hashmap();
     ck->spawn_x = spawn_x;
     ck->spawn_y = spawn_y;
+    ck->stargate_dest_x = -9999;
+    ck->stargate_dest_y = -9999;
     ck->type = type;
 }
 

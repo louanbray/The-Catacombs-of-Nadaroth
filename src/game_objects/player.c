@@ -370,8 +370,8 @@ void link_hotbar(player* p, hotbar* h) {
 }
 
 PlayerMovementResult move_player(player* p, Direction dir) {
-    const int dx[] = {0, 2, 0, -2, 0};
-    const int dy[] = {0, 0, 1, 0, -1};
+    const int dx[] = {2, 0, -2, 0, 0};
+    const int dy[] = {0, 1, 0, -1, 0};
 
     p->px = p->x;
     p->py = p->y;

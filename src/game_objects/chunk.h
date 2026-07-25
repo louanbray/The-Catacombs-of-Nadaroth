@@ -146,7 +146,7 @@ dynarray* get_chunk_enemies(chunk* chunk);
 /// @return ChunkType
 ChunkType get_chunk_type(chunk* chunk);
 
-/// @brief Get the links of the chunk (array of 5 chunk pointers)
+/// @brief Get the links of the chunk (array of 4 chunk pointers)
 /// @param chunk chunk
 /// @return chunk_link
 chunk_link get_chunk_links(chunk* chunk);
@@ -157,11 +157,23 @@ chunk_link get_chunk_links(chunk* chunk);
 /// @return linked chunk or NULL
 chunk* get_chunk_link_at(chunk* ck, int dir);
 
+/// @brief Gets the coos of the linked chunk via stargate
+/// @param ck chunk
+/// @param target_x pointer to return stargate x
+/// @param target_y pointer to return stargate t
+void get_chunk_stargate(chunk* ck, int* target_x, int* target_y);
+
 /// @brief Set the linked chunk at direction index [0..4]
 /// @param ck chunk
 /// @param dir direction index
 /// @param target target chunk (may be NULL)
 void set_chunk_link(chunk* ck, int dir, chunk* target);
+
+/// @brief Sets the linked chunk via stargate using coos
+/// @param ck chunk to link
+/// @param target_x target chunk x
+/// @param target_y target chunk y
+void set_chunk_stargate(chunk* ck, int target_x, int target_y);
 
 // ---- Element / enemy helpers ----
 
