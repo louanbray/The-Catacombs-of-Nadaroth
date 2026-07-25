@@ -6,6 +6,7 @@
 #include "../game_objects/item.h"
 #include "../game_objects/map.h"
 #include "../game_objects/player.h"
+#include "../managers/cutscene_manager.h"
 #include "../managers/managers.h"
 #include "../utils/dynarray.h"
 #include "../utils/game_status.h"
@@ -302,7 +303,7 @@ wchar_t render_get_cell_char(Render_Buffer* screen, int y, int x) {
 }
 
 void render_set_cell_char(Render_Buffer* screen, int y, int x, int c) {
-    if (GAME_PAUSED) return;
+    if (GAME_PAUSED && !is_in_cutscene()) return;
     screen->bd[y][x].ch = c;
 }
 
@@ -1071,7 +1072,7 @@ void home_menu(Render_Buffer* r, player* p, ResumeState resume_state) {
     }
 }
 
-ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
+ResumeState pause_menu(Render_Buffer* r, player* p) {
     FILE* file = fopen("assets/interfaces/structures/pause_menu.dodjo", "r");
     if (!file) {
         perror("Error opening pause menu file");
@@ -1090,6 +1091,9 @@ ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h) {
     bool no_refresh = false;
     bool loaded_a_game = false;
     ResumeState state = RESUME_DEFAULT;
+
+    map* m = get_player_map(p);
+    hotbar* h = get_player_hotbar(p);
 
     while ((!USE_KEY(' ') && !USE_KEY('\n'))) {
         if (USE_KEY('N') || USE_KEY('n')) {

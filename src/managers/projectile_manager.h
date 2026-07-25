@@ -85,7 +85,16 @@ void stop_projectile_system();
  * @param seed Seed used to drive projectile and enemy firing randomness.
  */
 void restart_projectile_system(Render_Buffer* screen, player* p, int seed);
+void restart_projectile_system_restoring_enemy_timers(Render_Buffer* r, player* p, int seed);
 
 bool spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsigned int design, int range, bool infinity, ProjectileCallback callback, projectile_data* callback_data);
 void enemy_attack_callback(int x, int y, projectile_data* data);
+
+unsigned int get_projectile_seed();
+void set_projectile_seed(unsigned int seed);
+void restore_projectiles();
+void backup_and_clear_projectiles();
+void restore_enemy_timers();
+void backup_and_clear_enemy_timers();
+
 #endif

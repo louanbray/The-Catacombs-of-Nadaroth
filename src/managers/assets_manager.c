@@ -287,7 +287,7 @@ EntityAssetFile* get_entity_file(EntityType type) {
 ChunkAssetFile* get_chunk_file(ChunkType type) {
     if (type < 0 || type >= CHUNK_TYPE_COUNT) return NULL;
 
-    if (HAS_GENERATOR[type]) {
+    if (HAS_GENERATOR[type] && is_generation_enabled()) {
         ChunkAssetFile* gen_file = generate_chunk_asset_file(type);
         if (gen_file != NULL) return gen_file;
     }

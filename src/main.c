@@ -10,6 +10,7 @@
 #include "game_objects/entity.h"
 #include "game_objects/map.h"
 #include "game_objects/player.h"
+#include "managers/cutscene_manager.h"
 #include "managers/managers.h"
 #include "managers/save_manager.h"
 #include "scripts/item_effects.h"
@@ -44,34 +45,8 @@ void init_game_system() {
     load_statistics();
     load_settings();
     init_settings_callbacks();
+    init_cutscenes();
     LOG_INFO("Game system initialized with SEED: %d", SEED);
-}
-
-/// @brief Handle the player movement and use the appropriate render
-/// @param b board
-/// @param p player
-/// @param dir direction
-void move(Render_Buffer* screen, player* p, int dir) {
-    switch (move_player(p, dir)) {
-        case MOV_MOVED_CHUNK:
-            kill_all_projectiles(screen);
-            render_from_player(screen, p);
-            break;
-        case MOV_CANT_MOVE:
-            break;
-        case MOV_PICKED_UP:
-            render_player(screen, p);
-            render_hotbar(screen, get_player_hotbar(p));
-            render_keyholder(screen, get_player_keyholder(p));
-            break;
-        case MOV_PICKED_UP_ENTITY:
-            render_from_player(screen, p);
-            break;
-        default:
-            render_player(screen, p);
-            break;
-    }
-    fog_of_war_set_origin(get_player_x(p), get_player_y(p));
 }
 
 static const uint64_t HOLD_REPEAT_DELAY_MS = UINT64_C(60);
@@ -128,6 +103,8 @@ void compute_entry(Render_Buffer* screen, player* p, int entry) {
     hotbar* hb = get_player_hotbar(p);
     switch (entry) {
         case KEY_1:
+            request_cutscene(CUTSCENE_TEST);
+            break;
         case KEY_2:
         case KEY_3:
         case KEY_4:
@@ -319,7 +296,7 @@ int main(int argc, char* argv[]) {
     apply_settings_callbacks();
 
     render(screen, MAP_L);
-    fog_of_war_enable();
+    // fog_of_war_enable();
     update_screen(screen);
 
     increment_statistic(STAT_GAME_STARTED, 1);
@@ -348,6 +325,7 @@ int main(int argc, char* argv[]) {
                 accumulated_time -= full_seconds;
             }
             //? MAIN UPDATE LOOP
+            update_cutscenes(screen, PLAYER_L);
             update_screen(screen);
         }
 
@@ -379,7 +357,7 @@ int main(int argc, char* argv[]) {
         if (USE_KEY('E') || USE_KEY('e')) {
             display_item_description(screen, get_selected_item(HOTBAR_L));
         } else if (USE_KEY(' ')) {
-            handle_resume(pause_menu(screen, PLAYER_L, MAP_L, HOTBAR_L), screen);
+            handle_resume(pause_menu(screen, PLAYER_L), screen);
         }
 
         if (is_debug_mode()) {
@@ -393,7 +371,7 @@ int main(int argc, char* argv[]) {
             } else if (USE_KEY('R') || USE_KEY('r')) {
                 kill_all_projectiles(screen);
             } else if (USE_KEY('U') || USE_KEY('u')) {
-                render(screen, MAP_L);
+                render_from_player(screen, PLAYER_L);
                 LOG_INFO("Screen re-rendered");
             } else if (USE_KEY('M') || USE_KEY('m')) {
                 modify_player_mental_health(PLAYER_L, 1);
@@ -440,13 +418,6 @@ int main(int argc, char* argv[]) {
                 LOG_INFO("%s Fog of War", has_fog_of_war() ? "Enabled" : "Disabled");
             } else if (USE_KEY('!')) {
                 // debug function of the moment
-                set_debug_mode(0);
-                map* mo = create_map();
-                set_map_player(mo, PLAYER_L);
-                set_player_map(PLAYER_L, mo);
-                MAP_L = mo;
-                render(screen, mo);
-                set_debug_mode(1);
             }
         }
 

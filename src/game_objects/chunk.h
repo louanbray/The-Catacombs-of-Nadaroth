@@ -84,6 +84,11 @@ void chunk_render_walls(chunk* ck, void* board_ptr);
 /// @param y pos y
 void decorate(chunk* chunk, int x, int y);
 
+/// @brief Add all elements of the chunk depending of the type
+/// @param c chunk
+/// @param type type
+void fill_furniture(chunk* c, ChunkType type);
+
 // ---- Accessors ----
 
 /// @brief Returns a dynarray of chunk decoration

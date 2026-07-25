@@ -10,6 +10,7 @@
 #define CHUNK_HEIGHT 35
 
 char grid[CHUNK_HEIGHT][CHUNK_WIDTH];
+static bool GENERATION_ENABLED = true;
 
 typedef struct ItemDef {
     char symbol;
@@ -527,6 +528,14 @@ ChunkAssetFile* generate_chunk_asset_file(ChunkType type) {
     }
 
     return chunk;
+}
+
+void set_generation_enabled(bool state) {
+    GENERATION_ENABLED = state;
+}
+
+bool is_generation_enabled() {
+    return GENERATION_ENABLED;
 }
 
 // int main() {

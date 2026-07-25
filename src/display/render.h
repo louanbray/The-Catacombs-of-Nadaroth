@@ -247,12 +247,10 @@ void home_menu(Render_Buffer* r, player* p, ResumeState resume_state);
  *
  * @param r Pointer to the render buffer
  * @param p Pointer to the player
- * @param m Pointer to the player's current map
- * @param h Pointer to the player's hotbar
  *
  * @return The action to do upon resuming the game
  */
-ResumeState pause_menu(Render_Buffer* r, player* p, map* m, hotbar* h);
+ResumeState pause_menu(Render_Buffer* r, player* p);
 
 /**
  * @brief Make a backup of the current board and create a new blank board (two-stackable) + lock inputs + add pause game layer

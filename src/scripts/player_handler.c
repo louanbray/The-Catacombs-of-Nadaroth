@@ -2,11 +2,14 @@
 
 #include <stdio.h>
 
+#include "../display/render.h"
 #include "../game_objects/chunk.h"
 #include "../game_objects/entity.h"
+#include "../game_objects/player.h"
 #include "../managers/achievements_manager.h"
 #include "../managers/audio_manager.h"
 #include "../managers/loot_manager.h"
+#include "../managers/projectile_manager.h"
 #include "../managers/statistics_manager.h"
 
 /// @brief Returns the part of the map the player is in as a direction (USED ONLY FOR GATES)
@@ -220,4 +223,27 @@ PlayerMovementResult handle(player* p, int x, int y) {
     }
 
     return MOV_CAN_MOVE;
+}
+
+void move(Render_Buffer* screen, player* p, int dir) {
+    switch (move_player(p, dir)) {
+        case MOV_MOVED_CHUNK:
+            kill_all_projectiles(screen);
+            render_from_player(screen, p);
+            break;
+        case MOV_CANT_MOVE:
+            break;
+        case MOV_PICKED_UP:
+            render_player(screen, p);
+            render_hotbar(screen, get_player_hotbar(p));
+            render_keyholder(screen, get_player_keyholder(p));
+            break;
+        case MOV_PICKED_UP_ENTITY:
+            render_from_player(screen, p);
+            break;
+        default:
+            render_player(screen, p);
+            break;
+    }
+    fog_of_war_set_origin(get_player_x(p), get_player_y(p));
 }

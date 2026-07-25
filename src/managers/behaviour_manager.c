@@ -5,6 +5,8 @@
 #include "../game_objects/player.h"
 #include "projectile_manager.h"
 
+static bool NO_RANDOM = false;
+
 void send_projectile(Render_Buffer* r, player* p, int from_x, int from_y, int target_x, int target_y, int damage, int ignore_display, int speed, unsigned int design, int range, bool infinity, ProjectileCallback callback) {
     from_x = CLAMP(from_x, 1, RENDER_WIDTH);
     from_y = CLAMP(from_y, 1, PLAY_HEIGHT_MAX);
@@ -49,7 +51,7 @@ void send_projectile_from_enemy_to_player(Render_Buffer* r, player* p, item* ene
 
 void default_enemy_behaviour(Render_Buffer* r, player* p, item* enemy_brain, int* attack_cooldown) {
     if (!r || !p || !enemy_brain) return;
-    *attack_cooldown = -1;
+    *attack_cooldown = NO_RANDOM ? ATTACK_COOLDOWN_DEFAULT_NOT_RANDOM : ATTACK_COOLDOWN_DEFAULT_RANDOM;
     send_projectile_from_enemy_to_player(r, p, enemy_brain, true);
 }
 
@@ -97,6 +99,14 @@ void boss_behaviour(Render_Buffer* r, player* p, item* enemy_brain, int* attack_
             *attack_cooldown = 60 / 4;
             break;
     }
+}
+
+void set_enemy_random_cooldown_enabled(bool state) {
+    NO_RANDOM = !state;
+}
+
+bool is_enemy_random_cooldown_enabled() {
+    return !NO_RANDOM;
 }
 
 attack_fn get_attack_fn(EntityType etype) {

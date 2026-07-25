@@ -13,6 +13,12 @@ typedef struct player player;
 /// @return map
 map* create_map();
 
+void set_map_chunk(map* m, ChunkType ctype, int chunk_x, int chunk_y, int spawn_x, int spawn_y);
+
+map* create_map_with_spawn(ChunkType spawn_type, int spawn_x, int spawn_y);
+void set_cache_enabled(bool state);
+bool is_cache_enabled();
+
 /// @brief Get new chunk status
 /// @return true if the last chunk accessed was newly generated, false otherwise
 bool is_new_chunk();

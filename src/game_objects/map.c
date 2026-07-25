@@ -16,6 +16,7 @@ typedef struct map {
 } map;
 
 static bool IS_NEW_CHUNK = false;
+static bool CACHE_ENABLED = true;
 
 /// @brief Create a core map bound the the player
 /// @param p player
@@ -24,6 +25,24 @@ map* create_map() {
     map* m = malloc(sizeof(map));
     chunk* ck = generate_chunk(0, 0);
 
+    m->hashmap = create_hashmap();
+    m->cache_map = create_hashmap();
+    m->spawn = ck;
+    m->player = NULL;
+    set_hm(m->hashmap, 0, 0, ck);
+    return m;
+}
+
+void set_map_chunk(map* m, ChunkType ctype, int chunk_x, int chunk_y, int spawn_x, int spawn_y) {
+    chunk* ck = create_chunk_raw(chunk_x, chunk_y, spawn_x, spawn_y, ctype);
+    fill_furniture(ck, ctype);
+    set_hm(m->hashmap, chunk_x, chunk_y, ck);
+}
+
+map* create_map_with_spawn(ChunkType spawn_type, int spawn_x, int spawn_y) {
+    map* m = malloc(sizeof(map));
+    chunk* ck = create_chunk_raw(0, 0, spawn_x, spawn_y, spawn_type);
+    fill_furniture(ck, spawn_type);
     m->hashmap = create_hashmap();
     m->cache_map = create_hashmap();
     m->spawn = ck;
@@ -42,6 +61,14 @@ player* get_player(map* m) {
 
 void set_map_player(map* m, player* p) {
     m->player = p;
+}
+
+void set_cache_enabled(bool state) {
+    CACHE_ENABLED = state;
+}
+
+bool is_cache_enabled() {
+    return CACHE_ENABLED;
 }
 
 hm* get_map_hashmap(map* m) {
@@ -117,7 +144,7 @@ static void collect_far_chunks_cb(int key_x, int key_y, element_h elem, void* us
 }
 
 void update_chunk_unloading(map* m, int player_chunk_x, int player_chunk_y) {
-    if (!m || !m->hashmap) return;
+    if (!m || !m->hashmap || !CACHE_ENABLED) return;
     unload_callback_data data = {0};
     data.m = m;
     data.player_x = player_chunk_x;

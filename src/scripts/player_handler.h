@@ -1,7 +1,12 @@
 #ifndef PLAYER_HANDLER_H
 #define PLAYER_HANDLER_H
 
-#include "../game_objects/player.h"
+#include <stdbool.h>
+
+#include "../utils/constants.h"
+
+typedef struct player player;
+typedef struct Render_Buffer Render_Buffer;
 
 /// @brief Handle the interactions between the player and the items on the ground
 /// @param p player
@@ -16,5 +21,11 @@ PlayerMovementResult handle(player* player, int x, int y);
 /// @param y click y
 /// @return bool : has a chest been opened?
 bool check_lootable_interaction(player* p, int x, int y);
+
+/// @brief Handle the player movement and use the appropriate render
+/// @param b board
+/// @param p player
+/// @param dir direction
+void move(Render_Buffer* screen, player* p, int dir);
 
 #endif

@@ -12,6 +12,7 @@
 #include "achievements_manager.h"
 #include "audio_manager.h"
 #include "behaviour_manager.h"
+#include "cutscene_manager.h"
 #include "input_manager.h"
 #include "loot_manager.h"
 #include "statistics_manager.h"
@@ -33,6 +34,14 @@ static unsigned int projectile_rng_seed = 0;
 static int total_enemies = 0;
 static int total_player_projectiles = 0;
 static int tracked_enemy_count = -1;
+static chunk* g_current_chunk = NULL;
+static int* g_enemy_attack_timers = NULL;
+static int* g_enemy_ids = NULL;
+
+static int saved_tracked_enemy_count = -1;
+static chunk* saved_current_chunk = NULL;
+static int* saved_enemy_attack_timers = NULL;
+static int* saved_enemy_ids = NULL;
 
 typedef struct {
     Render_Buffer* r;
@@ -67,6 +76,9 @@ static bool projectile_thread_running = false;
 static bool projectile_thread_stop = false;
 static bool projectile_mutex_ready = false;
 
+static Projectile saved_projectiles[MAX_PROJECTILES];
+static int saved_total_player_projectiles = 0;
+
 pthread_mutex_t entity_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void kill_all_projectiles(Render_Buffer* r) {
@@ -84,6 +96,7 @@ void kill_all_projectiles(Render_Buffer* r) {
             free(p->callback_data);
             p->callback_data = NULL;
         }
+        p->callback = NULL;
         p->active = false;
     }
     pthread_mutex_unlock(&projectile_mutex);
@@ -345,7 +358,7 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
 
     total_player_projectiles++;
 
-    spawn_projectile(
+    bool spawned = spawn_projectile(
         x,
         y,
         target_x,
@@ -357,16 +370,20 @@ void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
         has_infinity(p),
         projectile_callback,
         p_data);
+
+    if (spawned) {
+        pthread_mutex_lock(&projectile_mutex);
+        total_player_projectiles++;
+        pthread_mutex_unlock(&projectile_mutex);
+    } else {
+        free(p_data);
+    }
 }
 
 void* projectile_loop(void* args) {
     InitThreadArgs* arg = (InitThreadArgs*)args;
     Render_Buffer* r = arg->r;
     player* p = arg->p;
-
-    int* enemy_attack_timers = NULL;
-    chunk* current_chunk = NULL;
-    int* enemy_ids = NULL;
 
     struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666667};  // 60 FPS
 
@@ -375,7 +392,7 @@ void* projectile_loop(void* args) {
             break;
         }
         pthread_mutex_lock(&pause_mutex);
-        while (GAME_PAUSED && !projectile_thread_stop) {
+        while (GAME_PAUSED && !projectile_thread_stop && !is_in_cutscene()) {
             pthread_cond_wait(&pause_cond, &pause_mutex);
         }
         pthread_mutex_unlock(&pause_mutex);
@@ -388,33 +405,34 @@ void* projectile_loop(void* args) {
         dynarray* d = get_chunk_enemies(c);
         int current_enemy_count = len_dyn(d);
 
-        if (c != current_chunk || current_enemy_count != tracked_enemy_count) {
-            free(enemy_attack_timers);
-            free(enemy_ids);
-            current_chunk = c;
+        if (c != g_current_chunk || current_enemy_count != tracked_enemy_count) {
+            free(g_enemy_attack_timers);
+            free(g_enemy_ids);
+            g_current_chunk = c;
             tracked_enemy_count = current_enemy_count;
-            enemy_attack_timers = malloc(current_enemy_count * sizeof(int));
-            enemy_ids = malloc(current_enemy_count * sizeof(int));
+            g_enemy_attack_timers = malloc(current_enemy_count * sizeof(int));
+            g_enemy_ids = malloc(current_enemy_count * sizeof(int));
             total_player_projectiles = 0;
 
             for (int i = 0; i < current_enemy_count; i++) {
-                enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % FIRING_RANDOM_OFFSET_MAX + (get_difficulty() == DIFFICULTY_EASY ? EASY_MODE_INV_FRAMES : HARD_MODE_INV_FRAMES);  // 60-90 frames before starting to attack
-                enemy_ids[i] = i;
+                g_enemy_attack_timers[i] = (is_enemy_random_cooldown_enabled() ? rand_r(&projectile_rng_seed) % FIRING_RANDOM_OFFSET_MAX : FIRING_RANDOM_OFFSET_MAX) + (get_difficulty() == DIFFICULTY_EASY ? EASY_MODE_INV_FRAMES : HARD_MODE_INV_FRAMES);  // 60-90 frames before starting to attack
+                g_enemy_ids[i] = i;
             }
         }
 
         for (int i = 0; i < current_enemy_count; i++) {
-            if (enemy_ids == NULL || enemy_attack_timers == NULL) continue;
+            if (g_enemy_ids == NULL || g_enemy_attack_timers == NULL) continue;
 
-            item* brain = get_dyn(d, enemy_ids[i]);
+            item* brain = get_dyn(d, g_enemy_ids[i]);
             if (brain != NULL) {
-                enemy_attack_timers[i]--;
+                g_enemy_attack_timers[i]--;
 
-                if (enemy_attack_timers[i] <= 0) {
+                if (g_enemy_attack_timers[i] <= 0) {
                     enemy* enemy_brain = (enemy*)get_item_spec(brain);
                     attack_fn attack = get_attack_fn(enemy_brain->entity_type);
-                    attack(r, p, brain, &enemy_attack_timers[i]);
-                    if (enemy_attack_timers[i] == -1) enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % enemy_brain->attack_interval + enemy_brain->attack_delay;  // delay ~> delay+interval frames
+                    attack(r, p, brain, &g_enemy_attack_timers[i]);
+                    if (g_enemy_attack_timers[i] == ATTACK_COOLDOWN_DEFAULT_RANDOM) g_enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % enemy_brain->attack_interval + enemy_brain->attack_delay;  // delay ~> delay+interval frames
+                    if (g_enemy_attack_timers[i] == ATTACK_COOLDOWN_DEFAULT_NOT_RANDOM) g_enemy_attack_timers[i] = enemy_brain->attack_interval + enemy_brain->attack_delay;
                 }
             }
         }
@@ -423,8 +441,13 @@ void* projectile_loop(void* args) {
         nanosleep(&ts, NULL);
     }
 
-    free(enemy_attack_timers);
-    free(enemy_ids);
+    free(g_enemy_attack_timers);
+    free(g_enemy_ids);
+    g_enemy_attack_timers = NULL;
+    g_enemy_ids = NULL;
+    g_current_chunk = NULL;
+    tracked_enemy_count = -1;
+
     free(arg);
     return NULL;
 }
@@ -475,6 +498,7 @@ void stop_projectile_system() {
     projectile_thread_running = false;
     projectile_thread_stop = false;
 
+    pthread_mutex_lock(&projectile_mutex);
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (projectiles[i].active) {
             if (projectiles[i].callback_data) {
@@ -484,6 +508,7 @@ void stop_projectile_system() {
             projectiles[i].active = false;
         }
     }
+    pthread_mutex_unlock(&projectile_mutex);
 
     LOG_INFO("Stopped projectile system");
 }
@@ -492,6 +517,17 @@ void restart_projectile_system(Render_Buffer* r, player* p, int seed) {
     if (projectile_thread_running) {
         stop_projectile_system();
     }
+
+    projectile_thread_stop = false;
+    start_projectile_thread(r, p, seed, false);
+}
+
+void restart_projectile_system_restoring_enemy_timers(Render_Buffer* r, player* p, int seed) {
+    if (projectile_thread_running) {
+        stop_projectile_system();
+    }
+
+    restore_enemy_timers();
 
     projectile_thread_stop = false;
     start_projectile_thread(r, p, seed, false);
@@ -516,4 +552,62 @@ void add_total_enemies(player* p) {
 void reset_total_enemies() {
     total_enemies = 0;
     tracked_enemy_count = -1;
+}
+
+unsigned int get_projectile_seed() {
+    return projectile_rng_seed;
+}
+
+void set_projectile_seed(unsigned int seed) {
+    projectile_rng_seed = seed;
+}
+
+void backup_and_clear_enemy_timers() {
+    saved_current_chunk = g_current_chunk;
+    saved_enemy_attack_timers = g_enemy_attack_timers;
+    saved_enemy_ids = g_enemy_ids;
+    saved_tracked_enemy_count = tracked_enemy_count;
+
+    g_current_chunk = NULL;
+    g_enemy_attack_timers = NULL;
+    g_enemy_ids = NULL;
+    tracked_enemy_count = -1;
+}
+
+void restore_enemy_timers() {
+    free(g_enemy_attack_timers);
+    free(g_enemy_ids);
+
+    g_current_chunk = saved_current_chunk;
+    g_enemy_attack_timers = saved_enemy_attack_timers;
+    g_enemy_ids = saved_enemy_ids;
+    tracked_enemy_count = saved_tracked_enemy_count;
+
+    saved_current_chunk = NULL;
+    saved_enemy_attack_timers = NULL;
+    saved_enemy_ids = NULL;
+    saved_tracked_enemy_count = -1;
+}
+
+void backup_and_clear_projectiles() {
+    pthread_mutex_lock(&projectile_mutex);
+
+    memcpy(saved_projectiles, projectiles, sizeof(projectiles));
+    saved_total_player_projectiles = total_player_projectiles;
+
+    memset(projectiles, 0, sizeof(projectiles));
+    total_player_projectiles = 0;
+
+    pthread_mutex_unlock(&projectile_mutex);
+}
+
+void restore_projectiles() {
+    pthread_mutex_lock(&projectile_mutex);
+
+    memcpy(projectiles, saved_projectiles, sizeof(projectiles));
+    total_player_projectiles = saved_total_player_projectiles;
+
+    memset(saved_projectiles, 0, sizeof(saved_projectiles));
+
+    pthread_mutex_unlock(&projectile_mutex);
 }
