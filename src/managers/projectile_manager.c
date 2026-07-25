@@ -79,6 +79,8 @@ static bool projectile_mutex_ready = false;
 static Projectile saved_projectiles[MAX_PROJECTILES];
 static int saved_total_player_projectiles = 0;
 
+static int cutscene_wait = 0;
+
 pthread_mutex_t entity_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void kill_all_projectiles(Render_Buffer* r) {
@@ -114,6 +116,13 @@ static void draw_ppos_if_nothing_here(Render_Buffer* r, Projectile* p, unsigned 
 
 // Bresenham's Line Algorithm
 void update_projectiles(Render_Buffer* r) {
+    if (is_in_cutscene()) {
+        if (cutscene_wait > 0) {
+            cutscene_wait--;
+            return;
+        }
+        cutscene_wait = get_cutscene_speed();
+    }
     pthread_mutex_lock(&projectile_mutex);
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (!projectiles[i].active) continue;
@@ -342,7 +351,7 @@ bool spawn_projectile(int x0, int y0, int x1, int y1, int from, int rate, unsign
 }
 
 void fire_projectile(Render_Buffer* r, player* p, int target_x, int target_y) {
-    if (get_difficulty() == DIFFICULTY_HARD && total_player_projectiles >= 1) return;
+    if (get_difficulty() == DIFFICULTY_HARD && total_player_projectiles >= 1 && !is_in_cutscene()) return;
     player_update_weapon(p);
     int x = get_player_x(p) + RECENTER_X - PADDING_X;
     int y = -get_player_y(p) + RECENTER_Y;
@@ -416,6 +425,7 @@ void* projectile_loop(void* args) {
 
             for (int i = 0; i < current_enemy_count; i++) {
                 g_enemy_attack_timers[i] = (is_enemy_random_cooldown_enabled() ? rand_r(&projectile_rng_seed) % FIRING_RANDOM_OFFSET_MAX : FIRING_RANDOM_OFFSET_MAX) + (get_difficulty() == DIFFICULTY_EASY ? EASY_MODE_INV_FRAMES : HARD_MODE_INV_FRAMES);  // 60-90 frames before starting to attack
+                if (is_in_cutscene()) g_enemy_attack_timers[i] *= get_cutscene_speed();
                 g_enemy_ids[i] = i;
             }
         }
@@ -433,6 +443,7 @@ void* projectile_loop(void* args) {
                     attack(r, p, brain, &g_enemy_attack_timers[i]);
                     if (g_enemy_attack_timers[i] == ATTACK_COOLDOWN_DEFAULT_RANDOM) g_enemy_attack_timers[i] = rand_r(&projectile_rng_seed) % enemy_brain->attack_interval + enemy_brain->attack_delay;  // delay ~> delay+interval frames
                     if (g_enemy_attack_timers[i] == ATTACK_COOLDOWN_DEFAULT_NOT_RANDOM) g_enemy_attack_timers[i] = enemy_brain->attack_interval + enemy_brain->attack_delay;
+                    if (is_in_cutscene()) g_enemy_attack_timers[i] *= get_cutscene_speed();
                 }
             }
         }

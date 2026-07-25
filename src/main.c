@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
     apply_settings_callbacks();
 
     render(screen, MAP_L);
-    // fog_of_war_enable();
+    // fog_of_war_set_enabled(true);
     update_screen(screen);
 
     increment_statistic(STAT_GAME_STARTED, 1);
@@ -415,7 +415,7 @@ int main(int argc, char* argv[]) {
                 LOG_INFO("Player score set to phase score");
             } else if (USE_KEY('F') || USE_KEY('f')) {
                 fog_of_war_toggle();
-                LOG_INFO("%s Fog of War", has_fog_of_war() ? "Enabled" : "Disabled");
+                LOG_INFO("%s Fog of War", is_fog_of_war_enabled() ? "Enabled" : "Disabled");
             } else if (USE_KEY('!')) {
                 // debug function of the moment
             }

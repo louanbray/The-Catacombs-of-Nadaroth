@@ -290,18 +290,23 @@ void fog_of_war_setup(int vision_radius, int fog_radius);
 /// @param y In World Coos
 void fog_of_war_set_origin(int x, int y);
 
-/// @brief Enables fog of war
-void fog_of_war_enable();
-
-/// @brief Disables fog of war
-void fog_of_war_disable();
+/// @brief Set fog of war enabled to state
+/// @param state true if FoW on
+void fog_of_war_set_enabled(bool state);
 
 /// @brief Toggles fog of war
 void fog_of_war_toggle();
 
 /// @brief Is fog of war on?
 /// @return true if fog of war is on else false
-bool has_fog_of_war();
+bool is_fog_of_war_enabled();
+
+/// @brief Flashes a color
+/// @param color
+/// @param frame_length
+/// @param frame_spacing
+/// @param duration
+void set_color_flashes(Color color, int frame_length, int frame_spacing, int duration);
 
 /// @brief Frees a Render Buffer
 /// @param screen

@@ -1,6 +1,7 @@
 #include "constants.h"
 
 const char* CHUNK_NAMES[CHUNK_TYPE_COUNT] = {
+    "EMPTY",
     "DEBUG",
     "SINGLE",
     "SPAWN",

@@ -534,15 +534,11 @@ void fog_of_war_set_origin(int x, int y) {
     FOG_OF_WAR_ORIGIN_Y = WTR_Y(y);
 }
 
-void fog_of_war_enable() {
-    FOG_OF_WAR = true;
+void fog_of_war_set_enabled(bool state) {
+    FOG_OF_WAR = state;
 }
 
-void fog_of_war_disable() {
-    FOG_OF_WAR = false;
-}
-
-bool has_fog_of_war() {
+bool is_fog_of_war_enabled() {
     return FOG_OF_WAR;
 }
 
@@ -1165,6 +1161,13 @@ ResumeState pause_menu(Render_Buffer* r, player* p) {
 static Cell blank_cell = {.ch = L' ', .color = COLOR_DEFAULT};
 static int glitch_ticks_left = 0;
 static int glitch_chance = 5;
+
+static Color flashes_color = COLOR_DEFAULT;
+static int flashes_duration = 0;
+static int flashes_frame_length = 0;
+static int flashes_frame_interval = 0;
+static int flashes_ticks_left = 0;
+
 #ifdef _WIN32
 
 static const WORD WIN32_COLOR_LOOKUP[] = {
@@ -1197,7 +1200,27 @@ void update_screen(Render_Buffer* r) {
     int minCol = RENDER_WIDTH, maxCol = -1;
 
     bool is_glitching = (glitch_ticks_left > 0);
+    bool is_flashing = false;
     if (glitch_ticks_left > 0) glitch_ticks_left--;
+
+    if (flashes_ticks_left != 0) {
+        flashes_duration--;
+        if (flashes_duration <= 0) {
+            flashes_ticks_left = 0;
+        } else if (flashes_ticks_left > 0) {
+            flashes_ticks_left--;
+            if (flashes_ticks_left == 0) {
+                flashes_ticks_left = -flashes_frame_interval;
+            } else {
+                is_flashing = true;
+            }
+        } else {
+            flashes_ticks_left++;
+            if (flashes_ticks_left == 0) {
+                flashes_ticks_left = min(flashes_frame_length, flashes_duration);
+            }
+        }
+    }
 
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         for (int j = 0; j < RENDER_WIDTH; j++) {
@@ -1207,7 +1230,7 @@ void update_screen(Render_Buffer* r) {
             if (is_glitching && (rand() % 100) < glitch_chance) c = &blank_cell;
 
             wchar_t ch = c->ch;
-            Color color = c->color;
+            Color color = is_flashing ? flashes_color : c->color;
 
             // ---- Fog of War ----
             if (FOG_OF_WAR && !IN_MENU && i > 0 && i <= REVERSED_INBOX_JUNCTION_HEIGHT && j > 0 && j < RENDER_WIDTH - 1) {
@@ -1286,7 +1309,26 @@ void update_screen(Render_Buffer* r) {
     int out_idx = 0;
 
     bool is_glitching = (glitch_ticks_left > 0);
+    bool is_flashing = false;
     if (glitch_ticks_left > 0) glitch_ticks_left--;
+    if (flashes_ticks_left != 0) {
+        flashes_duration--;
+        if (flashes_duration <= 0) {
+            flashes_ticks_left = 0;
+        } else if (flashes_ticks_left > 0) {
+            flashes_ticks_left--;
+            if (flashes_ticks_left == 0) {
+                flashes_ticks_left = -flashes_frame_interval;
+            } else {
+                is_flashing = true;
+            }
+        } else {
+            flashes_ticks_left++;
+            if (flashes_ticks_left == 0) {
+                flashes_ticks_left = min(flashes_frame_length, flashes_duration);
+            }
+        }
+    }
 
     append_ansi_utf8(frame_buffer, &out_idx, L"\033[H");
 
@@ -1298,7 +1340,7 @@ void update_screen(Render_Buffer* r) {
             if (is_glitching && (rand() % 100) < glitch_chance) c = &blank_cell;
 
             wchar_t ch = c->ch;
-            int color = c->color;
+            int color = is_flashing ? (int)flashes_color : c->color;
 
             // ---- Fog of War ----
             if (FOG_OF_WAR && !IN_MENU && i > 0 && i <= REVERSED_INBOX_JUNCTION_HEIGHT && j > 0 && j < RENDER_WIDTH - 1) {
@@ -1335,4 +1377,13 @@ void set_glitch(int frame_nb, int chance) {
     glitch_ticks_left = max(0, frame_nb);
     glitch_chance = CLAMP(chance, 0, 100);
 }
+
+void set_color_flashes(Color color, int frame_length, int frame_spacing, int duration) {
+    flashes_color = color;
+    flashes_frame_length = frame_length;
+    flashes_frame_interval = frame_spacing;
+    flashes_duration = duration;
+    flashes_ticks_left = frame_length;
+}
+
 #pragma endregion

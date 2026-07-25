@@ -18,5 +18,6 @@ void init_cutscenes();
 bool is_in_cutscene();
 void update_cutscenes(Render_Buffer* screen, player* main_player);
 void request_cutscene(CutsceneID id);
+int get_cutscene_speed();
 
 #endif  // CUTSCENE_MANAGER_H
