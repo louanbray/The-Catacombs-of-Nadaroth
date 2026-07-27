@@ -16,7 +16,10 @@ static Mix_Chunk* sound_effects[AUDIO_COUNT] = {0};
 
 static int disabled_effects[AUDIO_COUNT] = {0};
 
+static int AUDIO_ENABLED = 0;
+
 void play_bgm(const char* filename, int loop) {
+    if (!AUDIO_ENABLED) return;
     if (current_music != NULL) {
         Mix_HaltMusic();
         Mix_FreeMusic(current_music);
@@ -31,6 +34,7 @@ void play_bgm(const char* filename, int loop) {
 }
 
 void load_track(const char* filename, AudioID audio_id) {
+    if (!AUDIO_ENABLED) return;
     if (audio_id < 0 || audio_id >= AUDIO_COUNT) exit(EXIT_FAILURE);
     if (sound_effects[audio_id] != NULL) return;
 
@@ -42,6 +46,7 @@ void load_track(const char* filename, AudioID audio_id) {
 }
 
 void play_sound_effect_by_id(AudioID audio_id) {
+    if (!AUDIO_ENABLED) return;
     if (audio_id < 0 || audio_id >= AUDIO_COUNT || disabled_effects[audio_id]) return;
     Mix_Chunk* effect = sound_effects[audio_id];
     if (!effect) return;
@@ -75,6 +80,7 @@ void enable_sound_effect(AudioID audio_id) {
 }
 
 void stop_audio() {
+    if (!AUDIO_ENABLED) return;
     if (Mix_PlayingMusic()) {
         Mix_HaltMusic();
     }
@@ -88,6 +94,7 @@ void stop_audio() {
  * Free all sound effects stored in the cache.
  */
 void free_sound_effects() {
+    if (!AUDIO_ENABLED) return;
     for (int i = 0; i < AUDIO_COUNT; i++) {
         if (sound_effects[i]) {
             Mix_FreeChunk(sound_effects[i]);
@@ -97,6 +104,7 @@ void free_sound_effects() {
 }
 
 void audio_close() {
+    if (!AUDIO_ENABLED) return;
     stop_audio();
     free_sound_effects();
     Mix_CloseAudio();
@@ -104,8 +112,14 @@ void audio_close() {
 }
 
 int init_audio() {
-    if (SDL_Init(SDL_INIT_AUDIO) < 0) return 1;
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) return 1;
+    if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+        LOG_WARN("Failed SDL Init");
+        return 1;
+    }
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        LOG_WARN("Failed audio channel opening");
+        return 1;
+    }
 
     Mix_AllocateChannels(MAX_AUDIO_CHANNEL);
 
@@ -115,6 +129,8 @@ int init_audio() {
     load_track("assets/audio/kill.wav", AUDIO_ENEMY_KILLED);
     load_track("assets/audio/player_hurt.wav", AUDIO_PLAYER_HURT);
     load_track("assets/audio/pickup_item.wav", AUDIO_PICKUP_ITEM);
+
+    AUDIO_ENABLED = 1;
 
     return 0;
 }

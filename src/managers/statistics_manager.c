@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../utils/logger.h"
+
 #define STAT_FILE "data/player_statistics.dodjo"
 
 static int* statistics = NULL;
@@ -21,8 +23,15 @@ int get_statistic(enum StatisticID id) {
 
 void load_statistics() {
     statistics = calloc(STATISTIC_COUNT, sizeof(int));
+    if (!statistics) {
+        LOG_WARN("Failed to create statistics");
+        return;
+    }
     FILE* file = fopen(STAT_FILE, "r");
-    if (file == NULL) return;
+    if (file == NULL) {
+        LOG_INFO("Failed to load statistics");
+        return;
+    }
     for (int i = 0; i < STATISTIC_COUNT; i++) {
         fscanf(file, "%d\n", &statistics[i]);
     }
@@ -31,7 +40,10 @@ void load_statistics() {
 
 void save_statistics() {
     FILE* file = fopen(STAT_FILE, "w");
-    if (file == NULL) return;
+    if (file == NULL) {
+        LOG_WARN("Failed to save statistics");
+        return;
+    }
     for (int i = 0; i < STATISTIC_COUNT; i++) {
         fprintf(file, "%d\n", statistics[i]);
     }

@@ -32,7 +32,13 @@ void print_dyn(dynarray* t) {
 
 dynarray* create_dyn() {
     dynarray* da = (dynarray*)malloc(sizeof(dynarray));
+    if (!da) return NULL;
     da->elt = (element*)malloc(sizeof(element) * 10);
+    if (!da->elt) {
+        LOG_WARN("Failed to create dynarray");
+        free(da);
+        return NULL;
+    }
     da->len = 0;
     da->memlen = 10;
     return da;

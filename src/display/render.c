@@ -65,7 +65,7 @@ static int FOG_OF_WAR_FOG_RADIUS = (12 * 12);         // 12
 #define ANALYSIS_DISPLAY_X_POS -63
 #define ANALYSIS_DISPLAY_Y_POS 13
 
-#define SPACE_TO_EXIT_DISPLAY_X_POS -10
+#define SPACE_TO_EXIT_DISPLAY_X_POS -11
 #define SPACE_TO_EXIT_DISPLAY_Y_POS -18
 
 #define ITEM_DESCRIPTION_Y_OFFSET 6
@@ -336,6 +336,10 @@ void render_item_title(Render_Buffer* screen, void* it) {
     if (it == NULL) return;
 
     UsableItemAssetFile* uif = get_usable_item_file(get_item_usable_type((item*)it));
+    if (!uif || !uif->specs.specs) {
+        LOG_WARN("Failed to fetch valid usable item asset file");
+        return;
+    }
     char* title = uif->title;
     Rarity class = uif->specs.specs[0];
 
@@ -666,6 +670,10 @@ void display_item_description(Render_Buffer* r, void* it) {
     if (type == USABLE_ITEM_NOT_USABLE) return;
 
     UsableItemAssetFile* item_file = get_usable_item_file(type);
+    if (!item_file) {
+        LOG_WARN("Failed to fetch valid usable item asset file");
+        return;
+    }
     const char* desc = item_file->description;
 
     setup_render_buffer(r);
@@ -814,7 +822,11 @@ void display_interface(Render_Buffer* r, const char* filename) {
 
 // Plays a cinematic by reading lines from a file and updating the board.
 void play_cinematic(Render_Buffer* r, const char* filename, int delay) {
+#ifndef NO_LORE
     FILE* file = fopen(filename, "r");
+#else
+    FILE* file = fopen("assets/cinematics/no_lore.dodjo", "r");
+#endif
     if (file == NULL) {
         perror("Error opening file");
         LOG_ERROR("Error opening file.");

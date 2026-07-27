@@ -4,26 +4,26 @@
 ~
 ~
 ~
-                                    ╔════════════════════════════════════════════════════╗~
-                                    ║                                                    ║~
-                                    ║               CHOOSE YOUR DIFFICULTY               ║~
-                                    ║                                                    ║~
-                                    ╠════════════════════════════════════════════════════╣~
-                                    ║                                                    ║~
-                                    ║                                                    ║~
-                                    ║   Difficulty:                                      ║~
-                                    ║                                                    ║~
-                                    ║         Easy      Default Class                    ║~
-                                    ║                                                    ║~
-                                    ║         Hard      Remove the few seconds before    ║~
-                                    ║                   the enemy starts shooting        ║~
-                                    ║                   Only one player projectile can   ║~
-                                    ║                   exist at the same time           ║~
-                                    ║                                                    ║~
-                                    ║   Use ↑/↓ to select difficulty                     ║~
-                                    ║   Press [ENTER] to confirm                         ║~
-                                    ║                                                    ║~
-                                    ╚════════════════════════════════════════════════════╝~
+                                     ╔════════════════════════════════════════════════════╗~
+                                     ║                                                    ║~
+                                     ║               CHOOSE YOUR DIFFICULTY               ║~
+                                     ║                                                    ║~
+                                     ╠════════════════════════════════════════════════════╣~
+                                     ║                                                    ║~
+                                     ║                                                    ║~
+                                     ║   Difficulty:                                      ║~
+                                     ║                                                    ║~
+                                     ║         Easy      Default Difficulty               ║~
+                                     ║                                                    ║~
+                                     ║         Hard      Remove the few seconds before    ║~
+                                     ║                   the enemy starts shooting        ║~
+                                     ║                   Only one player projectile can   ║~
+                                     ║                   exist at the same time           ║~
+                                     ║                                                    ║~
+                                     ║   Use ↑/↓ to select difficulty                     ║~
+                                     ║   Press [SPACE] to confirm                         ║~
+                                     ║                                                    ║~
+                                     ╚════════════════════════════════════════════════════╝~
 ~
 ~
 ~
@@ -33,4 +33,4 @@
 ~
 ~
 ~
-════════════════════════════════════════════════════ PRESS [ENTER] TO START ═════════════════════════════════════════════════════~
+════════════════════════════════════════════════════ PRESS [SPACE] TO START ═════════════════════════════════════════════════════~

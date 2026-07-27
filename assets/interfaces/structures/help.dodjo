@@ -4,10 +4,10 @@
 ~
   CONTROLS : ~
 ~
-    [Z] : UP~
-    [Q] : LEFT~
-    [S] : DOWN~
-    [D] : RIGHT~
+    [Z] | [↑] : UP~
+    [Q] | [←] : LEFT~
+    [S] | [↓] : DOWN~
+    [D] | [→] : RIGHT~
 ~
     [LEFT CLICK] : USE WEAPON~
     [RIGHT CLICK] : USE CONSUMABLE ITEM~
@@ -24,6 +24,8 @@
 ~
   TIPS : ~
 ~
-    To use a bow, hold it in your hand and left-click.~
+    BOWS : To use a bow, hold it in your hand and left-click.~
+    KEYS : To use a key, hold it in your hand and collide with a chest of the same rarity~
+        or right click the chest with a key of matching rarity in your inventory.~
     Chests are represented by the first letter of their rank.~
     Pay close attention to your score and your character's well-being.~

@@ -133,10 +133,18 @@ bool is_in_cutscene() {
 }
 
 void request_cutscene(CutsceneID id) {
+    if (id <= CUTSCENE_NONE || id >= CUTSCENE_COUNT) {
+        LOG_WARN("Couldn't request cutscene id : %d, id out of range", id);
+        return;
+    }
     PENDING_CUTSCENE = id;
 }
 
 void update_cutscenes(Render_Buffer* screen, player* main_player) {
+    if (!screen || !main_player) {
+        LOG_WARN("Failed to update cutscenes, incorrect parameters");
+        return;
+    }
     if (PENDING_CUTSCENE != CUTSCENE_NONE) {
         CutsceneID id_to_run = PENDING_CUTSCENE;
         PENDING_CUTSCENE = CUTSCENE_NONE;
@@ -156,6 +164,10 @@ int get_cutscene_speed() {
 
 // --------- Cutscenes Scripts Utils ---------
 void cutscene_wait(Render_Buffer* screen, int duration_ms) {
+    if (!screen) {
+        LOG_WARN("Cutscene wait failed : invalid screen pointer");
+        return;
+    }
     int elapsed = 0;
     const int frame_time = 16 * CUTSCENE_SPEED;
 

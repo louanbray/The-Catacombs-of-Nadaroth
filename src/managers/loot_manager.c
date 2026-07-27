@@ -2,6 +2,7 @@
 
 #include "../game_objects/item.h"
 #include "../utils/dynarray.h"
+#include "../utils/logger.h"
 
 dynarray** loot_manager = NULL;
 static unsigned int loot_seed = 1;
@@ -21,11 +22,18 @@ Color get_color_for_rarity(Rarity rarity_index) {
     }
 }
 
-void create_loot_tables() {
+bool create_loot_tables() {
     loot_manager = malloc(sizeof(dynarray*) * LOOT_TABLE_COUNT);
+    if (!loot_manager) return false;
     for (int i = 0; i < LOOT_TABLE_COUNT; i++) {
         loot_manager[i] = create_dyn();
+        if (!loot_manager[i]) {
+            for (int j = i - 1; j >= 0; j--) free_dyn_no_item(loot_manager[j]);
+            free(loot_manager);
+            return false;
+        }
     }
+    return true;
 }
 
 void seed_loot_manager(unsigned int seed) {
@@ -103,6 +111,11 @@ item* generate_loot(lootable* loot) {
         loot_item = get_dyn(table, loot_rand() % length);
     }
 
+    if (!loot_item) {
+        LOG_WARN("Failed to find a loot item to generate");
+        return NULL;
+    }
+
     item* new_loot = generate_item(0, 0, ITEMTYPE_PICKABLE, get_item_display(loot_item), get_item_usable_type(loot_item), -1);
     set_item_color(new_loot, get_item_color(loot_item));
 
@@ -110,7 +123,10 @@ item* generate_loot(lootable* loot) {
 }
 
 void init_loot_tables() {
-    create_loot_tables();
+    if (!create_loot_tables()) {
+        LOG_ERROR("Failed to create loot tables");
+        exit(1);
+    }
 
     // ==== Chests Loot Table ====
     // ---- BRONZE LOOT ----

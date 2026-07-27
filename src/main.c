@@ -256,7 +256,7 @@ int main(int argc, char* argv[]) {
     // ------------------- Pre Init -------------------
     init_game_system();
 
-    if (init_audio() != 0) exit(EXIT_FAILURE);
+    init_audio();
     play_bgm("assets/audio/background.mp3", 1);
 
     // ------------------- Create core game objects -------------------
@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
     apply_settings_callbacks();
 
     render(screen, MAP_L);
-    // fog_of_war_set_enabled(true);
+    fog_of_war_set_enabled(true);
     update_screen(screen);
 
     increment_statistic(STAT_GAME_STARTED, 1);

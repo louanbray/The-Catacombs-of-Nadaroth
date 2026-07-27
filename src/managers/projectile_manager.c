@@ -266,7 +266,7 @@ void enemy_attack_callback(int x, int y, projectile_data* data) {
         } else
             render_health(screen, p);
     }
-    if (dead) {
+    if (dead && !is_in_cutscene()) {
         kill_all_projectiles(screen);
         char filepath[PATH_MAX];
         GamePhase phase = get_player_phase(p);

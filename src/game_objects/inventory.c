@@ -3,6 +3,7 @@
 #include "../managers/achievements_manager.h"
 #include "../managers/assets_manager.h"
 #include "../managers/projectile_manager.h"
+#include "../utils/logger.h"
 #include "item.h"
 #include "player.h"
 
@@ -152,7 +153,10 @@ void pickup(player* p, item* e) {
 
     UsableItem type = get_item_usable_type(e);
     UsableItemAssetFile* uif = get_usable_item_file(type);
-
+    if (!uif || !uif->specs.specs) {
+        LOG_WARN("Failed to fetch valid usable item asset file");
+        return;
+    }
     Rarity class = uif->specs.specs[0];
     if (class == RARITY_NADINO) set_achievement_progress(ACH_SECRET_FINDER, 1);
     if (type < USABLE_ITEM_BOWS_END && type > USABLE_ITEM_NOT_USABLE) add_achievement_progress(ACH_CRAFTSMAN, 1);

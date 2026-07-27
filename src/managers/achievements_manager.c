@@ -110,10 +110,18 @@ void reset_run_based_achievements() {
 
 void load_achievements() {
     achievements = calloc(ACHIEVEMENT_COUNT, sizeof(achievement*));
+    if (!achievements) {
+        LOG_ERROR("Failed to create achievements");
+        return;
+    }
     FILE* player_file = fopen(PLAYER_FILE, "r");
     FILE* data_file = fopen(DATA_FILE, "r");
 
-    if (data_file == NULL) return;
+    if (data_file == NULL) {
+        LOG_ERROR("Failed to find achievements decriptions");
+        if (player_file) fclose(player_file);
+        return;
+    }
     while (!feof(data_file)) {
         int id;
         char name[256];
@@ -151,6 +159,10 @@ void load_achievements() {
 }
 void save_achievements() {
     FILE* file = fopen(PLAYER_FILE, "w");
+    if (!file) {
+        LOG_WARN("Failed to save achievements to file");
+        return;
+    }
     for (int i = 0; i < ACHIEVEMENT_COUNT; i++) {
         fprintf(file, "%d\n", achievements[i]->progress);
     }

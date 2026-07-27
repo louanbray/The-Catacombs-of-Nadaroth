@@ -11,6 +11,11 @@
 #define MAX_BUFFER_SIZE 1024
 #define CTRL_C 0x03  // CTRL+C character code
 
+#define ARROW_UP 200
+#define ARROW_DOWN 201
+#define ARROW_LEFT 202
+#define ARROW_RIGHT 203
+
 // ---- Default Key Press ----
 static bool key_states[MAX_KEYS] = {false};
 static bool key_pressed_last_frame[MAX_KEYS] = {false};
@@ -207,7 +212,7 @@ void init_terminal() {
     printf("\33[?25l");                // Disable cursor
     printf("\033[?1003h\033[?1006h");  // Enable mouse motion events
     printf("\033[?2004h");             // Enable bracketed paste mode
-    printf("\033[>3u");                // Activates kitty keyboard protocol (Press + Repeat + Release)
+    printf("\033[>7u");                // Activates kitty keyboard protocol (Press + Repeat + Release)
     fflush(stdout);
 }
 
@@ -387,50 +392,132 @@ static bool parse_kitty_key_event(const char* buf, size_t length, size_t* parsed
     if (length < 3 || buf[0] != '\033' || buf[1] != '[') return false;
 
     size_t i = 2;
-    while (i < length && buf[i] != 'u') {
-        i++;
-    }
-    if (i >= length || buf[i] != 'u') return false;  // Incomplete sequence
+    while (i < length && buf[i] != 'u') i++;
+    if (i >= length || buf[i] != 'u') return false;
 
     *parsed_len = i + 1;
 
-    int codepoint = 0, mod = 1, evt = 1;
-    if (sscanf(buf, "\033[%d;%d:%du", &codepoint, &mod, &evt) == 3) {
-        *key = codepoint;
-        *modifier = mod;
-        *event_type = evt;
-        return true;
-    }
-    if (sscanf(buf, "\033[%d:%du", &codepoint, &evt) == 2) {
-        *key = codepoint;
-        *modifier = mod;
-        *event_type = evt;
-        return true;
-    }
-    if (sscanf(buf, "\033[%du", &codepoint) == 1) {
-        *key = codepoint;
-        *modifier = mod;
-        *event_type = 1;  // Default : Press
-        return true;
-    }
+    size_t pos = 2;
+    if (pos >= i || !isdigit((unsigned char)buf[pos])) return false;
 
-    return false;
-}
+    int key_code = atoi(buf + pos);
+    int shifted_key = -1;
+    int base_layout_key = -1;
 
-unsigned int get_held_move_mask() {
-    uint64_t now = get_tick_count_ms();
-    if (!kitty_supported) {
-        for (int i = 0; i < MAX_KEYS; i++) {
-            if (held_keys[i] && (now - last_seen_keys[i] > FALLBACK_RELEASE_TIMEOUT_MS)) {
-                held_keys[i] = false;
+    // Skip the first field
+    while (pos < i && buf[pos] != ';' && buf[pos] != ':') pos++;
+
+    // :shifted_key:base_layout_key
+    if (pos < i && buf[pos] == ':') {
+        pos++;
+        if (pos < i && isdigit((unsigned char)buf[pos])) {
+            shifted_key = atoi(buf + pos);
+            while (pos < i && buf[pos] != ';' && buf[pos] != ':') pos++;
+            if (pos < i && buf[pos] == ':') {
+                pos++;
+                if (pos < i && isdigit((unsigned char)buf[pos])) {
+                    base_layout_key = atoi(buf + pos);
+                    while (pos < i && buf[pos] != ';') pos++;
+                }
             }
         }
     }
 
-    bool up = held_keys['z'] || held_keys['Z'];
-    bool down = held_keys['s'] || held_keys['S'];
-    bool left = held_keys['q'] || held_keys['Q'];
-    bool right = held_keys['d'] || held_keys['D'];
+    // Read until ';' for mod and event type
+    while (pos < i && buf[pos] != ';') pos++;
+
+    int mod = 1, evt = 1;
+
+    if (pos < i && buf[pos] == ';') {
+        pos++;
+        if (pos < i && isdigit((unsigned char)buf[pos])) {
+            mod = atoi(buf + pos);
+            while (pos < i && isdigit((unsigned char)buf[pos])) pos++;
+            if (pos < i && buf[pos] == ':') {
+                pos++;
+                if (pos < i && isdigit((unsigned char)buf[pos])) {
+                    evt = atoi(buf + pos);
+                }
+            }
+        }
+    }
+
+    // Returns the key pressed in this order of fallback
+    // 1. base_layout_key
+    // 2. shifted_key if no base_layout
+    // 3. physical key_code
+    int selected_key = key_code;
+    if (base_layout_key != -1) {
+        selected_key = base_layout_key;
+    } else if (shifted_key != -1) {
+        selected_key = shifted_key;
+        if (selected_key >= 'A' && selected_key <= 'Z') selected_key += 32;
+    }
+
+    *key = selected_key;
+    *modifier = mod;
+    *event_type = evt;
+    return true;
+}
+
+/// @brief Parse an arrow key (legacy or kitty extended) :
+///        \033[A            (legacy / kitty press simple)
+///        \033[1;mod A      (kitty with mod)
+///        \033[1;mod:evt A  (kitty with mod + event type)
+static bool parse_kitty_arrow_event(const char* buf, size_t length, size_t* parsed_len, int* pseudo_key, int* event_type, bool* is_extended) {
+    if (length < 3 || buf[0] != '\033' || buf[1] != '[') return false;
+
+    size_t i = 2;
+    while (i < length && buf[i] != 'A' && buf[i] != 'B' && buf[i] != 'C' && buf[i] != 'D') {
+        if (!isdigit((unsigned char)buf[i]) && buf[i] != ';' && buf[i] != ':') return false;
+        i++;
+    }
+    if (i >= length) return false;  // Incomplete Sequence
+
+    char final = buf[i];
+    *parsed_len = i + 1;
+
+    int p1 = 1, mod = 1, evt = 1;
+    bool extended = false;
+
+    if (sscanf(buf, "\033[%d;%d:%d%*c", &p1, &mod, &evt) == 3) {
+        extended = true;
+    } else if (sscanf(buf, "\033[%d;%d%*c", &p1, &mod) == 2) {
+        evt = 1;
+    }
+
+    *event_type = evt;
+    *is_extended = extended;
+
+    switch (final) {
+        case 'A':
+            *pseudo_key = ARROW_UP;
+            break;
+        case 'B':
+            *pseudo_key = ARROW_DOWN;
+            break;
+        case 'D':
+            *pseudo_key = ARROW_LEFT;
+            break;
+        case 'C':
+            *pseudo_key = ARROW_RIGHT;
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
+
+unsigned int get_held_move_mask() {
+    uint64_t now = get_tick_count_ms();
+    if (!kitty_supported)
+        for (int i = 0; i < MAX_KEYS; i++)
+            if (held_keys[i] && (now - last_seen_keys[i] > FALLBACK_RELEASE_TIMEOUT_MS)) held_keys[i] = false;
+
+    bool up = held_keys['z'] || held_keys[ARROW_UP];
+    bool down = held_keys['s'] || held_keys[ARROW_DOWN];
+    bool left = held_keys['q'] || held_keys[ARROW_LEFT];
+    bool right = held_keys['d'] || held_keys[ARROW_RIGHT];
 
     if (up && down) {
         up = false;
@@ -483,6 +570,7 @@ void process_input(player** p, Render_Buffer* screen,
         size_t processed = 0;
         size_t kitty_len = 0;
         int key_code = 0, event_type = 0, modifier = 1;
+        bool is_extended_arrow = false;
 
         while (processed < input_buffer_length) {
             // Check for paste start/end sequences first
@@ -504,6 +592,10 @@ void process_input(player** p, Render_Buffer* screen,
 
             if (parse_kitty_key_event(input_buffer + processed, input_buffer_length - processed, &kitty_len, &key_code, &event_type, &modifier)) {
                 kitty_supported = true;
+
+                int canonical_key = key_code;
+                if (canonical_key >= 'A' && canonical_key <= 'Z') canonical_key += 32;
+
                 bool is_ctrl_down = ((modifier - 1) & 4) != 0;
                 //? Handling ctrl-c in kitty protocol
                 if ((key_code == 'c' || key_code == 'C' || key_code == 99) && is_ctrl_down) {
@@ -511,12 +603,12 @@ void process_input(player** p, Render_Buffer* screen,
                     processed += kitty_len;
                     continue;
                 }
-                if (key_code >= 0 && key_code < MAX_KEYS) {
+                if (canonical_key >= 0 && canonical_key < MAX_KEYS) {
                     // event_type : 1 = Press, 2 = Repeat, 3 = Release
                     if (event_type == 1 || event_type == 2) {
-                        held_keys[key_code] = true;
+                        held_keys[canonical_key] = true;
                     } else if (event_type == 3) {
-                        held_keys[key_code] = false;
+                        held_keys[canonical_key] = false;
                     }
                 }
                 processed += kitty_len;
@@ -545,25 +637,37 @@ void process_input(player** p, Render_Buffer* screen,
                 } else {
                     break;  // Wait for more data
                 }
-            } else if (is_arrow_key(input_buffer + processed, input_buffer_length - processed)) {
-                processed += 3;
+            } else if (parse_kitty_arrow_event(input_buffer + processed, input_buffer_length - processed, &kitty_len, &key_code, &event_type, &is_extended_arrow)) {
+                if (is_extended_arrow) kitty_supported = true;
+
+                if (event_type == 1 || event_type == 2) {
+                    held_keys[key_code] = true;
+                } else if (event_type == 3) {
+                    held_keys[key_code] = false;
+                }
+                last_seen_keys[key_code] = get_tick_count_ms();
+
+                processed += kitty_len;
             } else if (input_buffer[processed] == CTRL_C) {
                 // CTRL+C detected in raw mode
                 stop_game();
                 processed++;
             } else if ((input_buffer[processed] >= 32 && input_buffer[processed] <= 126) ||
                        input_buffer[processed] == '\n' || input_buffer[processed] == '\r') {
-                unsigned char key = (unsigned char)input_buffer[processed];
+                unsigned char raw_key = (unsigned char)input_buffer[processed];
 
-                held_keys[key] = true;
-                last_seen_keys[key] = get_tick_count_ms();
+                unsigned char canonical_key = raw_key;
+                if (canonical_key >= 'A' && canonical_key <= 'Z') canonical_key += 32;
+
+                held_keys[canonical_key] = true;
+                last_seen_keys[canonical_key] = get_tick_count_ms();
 
                 if (unlock) {
                     player* current_player = *p;
-                    printable_char_callback(screen, current_player, key);
+                    printable_char_callback(screen, current_player, raw_key);
                 }
 
-                key_states[key] = true;
+                key_states[raw_key] = true;
 
                 processed++;
             } else {

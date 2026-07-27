@@ -40,7 +40,10 @@ void apply_settings_callbacks() {
 }
 
 void setting_attach_callback(enum SettingID id, SettingCallback callback_fn) {
-    if (id < 0 || id >= SETTINGS_COUNT || !settings[id] || !callback_fn) return;
+    if (id < 0 || id >= SETTINGS_COUNT || !settings[id] || !callback_fn) {
+        LOG_WARN("Failed to attach setting callback to setting : %d", id);
+        return;
+    }
 
     setting* s = settings[id];
     s->callbacks = realloc(s->callbacks, sizeof(SettingCallback) * (s->callback_count + 1));
@@ -108,10 +111,18 @@ Color get_setting_color(enum SettingID id) {
 
 void load_settings() {
     settings = calloc(SETTINGS_COUNT, sizeof(setting*));
+    if (!settings) {
+        LOG_ERROR("Failed to create settings");
+        return;
+    }
     FILE* settings_file = fopen(SETTINGS_FILE, "r");
     FILE* data_file = fopen(DATA_FILE, "r");
 
-    if (data_file == NULL) return;
+    if (data_file == NULL) {
+        LOG_ERROR("Failed to find settings decriptions");
+        if (settings_file) fclose(settings_file);
+        return;
+    }
     while (!feof(data_file)) {
         int id;
         char name[256];
@@ -147,7 +158,10 @@ void load_settings() {
 
 void save_settings() {
     FILE* file = fopen(SETTINGS_FILE, "w");
-    if (!file) return;
+    if (!file) {
+        LOG_WARN("Failed to save settings to file");
+        return;
+    }
     for (int i = 0; i < SETTINGS_COUNT; i++) {
         fprintf(file, "%d\n", settings[i] ? settings[i]->value : 0);
     }

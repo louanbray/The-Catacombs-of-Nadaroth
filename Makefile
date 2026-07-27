@@ -23,7 +23,7 @@ ifeq ($(OS),Windows_NT)
     EXECUTABLE = outDebug.exe
     RELEASE_EXECUTABLE = outRelease.exe
     PLATFORM_CFLAGS = -DWIN32 -D_WIN32 -D__USE_MINGW_ANSI_STDIO=1
-    LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread -lz -lwinmm
+    LDFLAGS = -lSDL2 -lSDL2_mixer -Wl,-Bstatic -lgomp -lpthread -Wl,-Bdynamic -lz -lwinmm
     OPENMP = -fopenmp
     RM = C:/msys64/usr/bin/rm -f
 	RMDIR = C:/msys64/usr/bin/rm -rf
@@ -48,7 +48,7 @@ else
     else
         # Linux specific flags
         PLATFORM_CFLAGS =
-        LDFLAGS = -lSDL2 -lSDL2_mixer -lpthread -lm -lz
+        LDFLAGS = -lSDL2 -lSDL2_mixer -Wl,-Bstatic -lgomp -Wl,-Bdynamic -lpthread -lm -lz
         OPENMP = -fopenmp
         NATIVE_DIST_DIR = release/linux
     endif
@@ -84,6 +84,7 @@ RELEASE_CFLAGS = $(WARN_FLAGS) $(PLATFORM_CFLAGS) -Wformat=0 -O2 -DNDEBUG
 # available regardless of host OS
 # ============================================================
 RELEASE_WIN_CFLAGS = $(WARN_FLAGS) -Wformat=0 -O2 -DNDEBUG -DWIN32 -D_WIN32 \
+    -ffunction-sections -fdata-sections -flto \
     -I$(MINGW_SDL2_ROOT)/include \
     -I$(MINGW_SDL2_ROOT)/include/SDL2 \
     -I$(MINGW_SDL2_MIXER_ROOT)/include \
@@ -92,11 +93,11 @@ RELEASE_WIN_CFLAGS = $(WARN_FLAGS) -Wformat=0 -O2 -DNDEBUG -DWIN32 -D_WIN32 \
 
 # -static-libgcc / winpthread statically linked so the .exe runs on a
 # machine without mingw's runtime DLLs installed.
-RELEASE_WIN_LDFLAGS = \
+RELEASE_WIN_LDFLAGS = -s -flto -Wl,--gc-sections \
     -L$(MINGW_SDL2_ROOT)/lib \
     -L$(MINGW_SDL2_MIXER_ROOT)/lib \
     -L$(MINGW_ZLIB_ROOT)/lib \
-    -static-libgcc -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic \
+    -static-libgcc -Wl,-Bstatic -lgomp -lstdc++ -lpthread -Wl,-Bdynamic \
     -lmingw32 -lSDL2main -lSDL2 -lSDL2_mixer -lz -lwinmm -lole32 -loleaut32 -limm32 -lversion -lsetupapi
 
 RELEASE_WIN_OPENMP = -fopenmp

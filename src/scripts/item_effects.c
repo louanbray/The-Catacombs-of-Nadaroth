@@ -49,6 +49,7 @@ bool effect_forgotten_dish(player* p) {
 static const ItemUseCallback ITEM_EFFECTS[USABLE_ITEM_COUNT] = {
     [USABLE_ITEM_NOT_USABLE] = NULL,
     [USABLE_ITEM_GOLDEN_APPLE] = effect_golden_apple,
+    [USABLE_ITEM_STOCKFISH] = effect_stockfish,
     [USABLE_ITEM_ONION_RING] = effect_onion_ring,
     [USABLE_ITEM_BOMB] = effect_bomb,
     [USABLE_ITEM_FORGOTTEN_DISH] = effect_forgotten_dish,

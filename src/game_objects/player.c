@@ -489,6 +489,7 @@ void player_update_weapon(player* p) {
 bool drop(player* p, int index) {
     item* i = get_hotbar(p->hotbar, index);
     if (!i) return false;
+    if ((item*)get_hm(get_chunk_furniture_coords(p->current_chunk), p->px, p->py)) return false;
 
     set_item_x(i, p->px);
     set_item_y(i, p->py);
