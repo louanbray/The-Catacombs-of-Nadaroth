@@ -609,6 +609,15 @@ void process_input(player** p, Render_Buffer* screen,
                         held_keys[canonical_key] = true;
                     } else if (event_type == 3) {
                         held_keys[canonical_key] = false;
+
+                        if (canonical_key == 'z' || canonical_key == 'w') {
+                            held_keys['z'] = false;
+                            held_keys['w'] = false;
+                        }
+                        if (canonical_key == 'q' || canonical_key == 'a') {
+                            held_keys['q'] = false;
+                            held_keys['a'] = false;
+                        }
                     }
                 }
                 processed += kitty_len;
