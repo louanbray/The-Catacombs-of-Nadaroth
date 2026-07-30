@@ -11,11 +11,6 @@
 #define MAX_BUFFER_SIZE 1024
 #define CTRL_C 0x03  // CTRL+C character code
 
-#define ARROW_UP 200
-#define ARROW_DOWN 201
-#define ARROW_LEFT 202
-#define ARROW_RIGHT 203
-
 // ---- Default Key Press ----
 static bool key_states[MAX_KEYS] = {false};
 static bool key_pressed_last_frame[MAX_KEYS] = {false};
@@ -491,16 +486,16 @@ static bool parse_kitty_arrow_event(const char* buf, size_t length, size_t* pars
 
     switch (final) {
         case 'A':
-            *pseudo_key = ARROW_UP;
+            *pseudo_key = KEY_ARROW_UP;
             break;
         case 'B':
-            *pseudo_key = ARROW_DOWN;
+            *pseudo_key = KEY_ARROW_DOWN;
             break;
         case 'D':
-            *pseudo_key = ARROW_LEFT;
+            *pseudo_key = KEY_ARROW_LEFT;
             break;
         case 'C':
-            *pseudo_key = ARROW_RIGHT;
+            *pseudo_key = KEY_ARROW_RIGHT;
             break;
         default:
             return false;
@@ -514,10 +509,10 @@ unsigned int get_held_move_mask() {
         for (int i = 0; i < MAX_KEYS; i++)
             if (held_keys[i] && (now - last_seen_keys[i] > FALLBACK_RELEASE_TIMEOUT_MS)) held_keys[i] = false;
 
-    bool up = held_keys['z'] || held_keys[ARROW_UP];
-    bool down = held_keys['s'] || held_keys[ARROW_DOWN];
-    bool left = held_keys['q'] || held_keys[ARROW_LEFT];
-    bool right = held_keys['d'] || held_keys[ARROW_RIGHT];
+    bool up = held_keys['z'] || held_keys[KEY_ARROW_UP];
+    bool down = held_keys['s'] || held_keys[KEY_ARROW_DOWN];
+    bool left = held_keys['q'] || held_keys[KEY_ARROW_LEFT];
+    bool right = held_keys['d'] || held_keys[KEY_ARROW_RIGHT];
 
     if (up && down) {
         up = false;
@@ -650,8 +645,10 @@ void process_input(player** p, Render_Buffer* screen,
                 if (is_extended_arrow) kitty_supported = true;
 
                 if (event_type == 1 || event_type == 2) {
+                    key_states[key_code] = true;
                     held_keys[key_code] = true;
                 } else if (event_type == 3) {
+                    key_states[key_code] = false;
                     held_keys[key_code] = false;
                 }
                 last_seen_keys[key_code] = get_tick_count_ms();

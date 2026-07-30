@@ -56,6 +56,7 @@ static int g_set_count = 0;
 
 static char g_dir_keys[4] = {'z', 'd', 's', 'q'};
 static char g_mdir_keys[4] = {'Z', 'D', 'S', 'Q'};
+static int g_adir_keys[4] = {KEY_ARROW_UP, KEY_ARROW_RIGHT, KEY_ARROW_DOWN, KEY_ARROW_LEFT};
 
 // ----- Helpers -----
 static InteractionSet* find_set_by_id(const char* id) {
@@ -483,7 +484,7 @@ int* display_interface_with_interactions_main(Render_Buffer* r, const char* visu
     // If no set found: just update and wait like old display_interface
     if (!set || set->anim_count == 0) {
         update_screen(r);
-        while (!USE_KEY('H') && !USE_KEY('h'));
+        while (!USE_KEY(' ') && !USE_KEY('\n'));
         finalize_render_buffer(r);
         return NULL;
     }
@@ -508,13 +509,13 @@ int* display_interface_with_interactions_main(Render_Buffer* r, const char* visu
     // We'll sample keys with USE_KEY for the mapped chars (g_dir_keys).
     while (1) {
         // exit checks
-        if (USE_KEY('H') || USE_KEY('h') || USE_KEY('\n') || USE_KEY(' ')) break;
+        if (USE_KEY('\n') || USE_KEY(' ')) break;
 
         // Poll all direction keys and produce action ids 0..3
         bool any_action = false;
         int action_indices[4] = {0, 0, 0, 0};
         for (int d = 0; d < 4; d++) {
-            if (USE_KEY(g_dir_keys[d]) || USE_KEY(g_mdir_keys[d])) {
+            if (USE_KEY(g_dir_keys[d]) || USE_KEY(g_mdir_keys[d]) || USE_KEY(g_adir_keys[d])) {
                 action_indices[d] = 1;
                 any_action = true;
             }

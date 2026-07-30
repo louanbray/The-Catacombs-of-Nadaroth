@@ -951,8 +951,8 @@ void display_achievements(Render_Buffer* r, int page) {
 
     bool left = false, right = false;
     while (!USE_KEY('A') && !USE_KEY('a') && !USE_KEY('\n') && !USE_KEY(' ') && !left && !right) {
-        if (page != max_page && (USE_KEY('D') || USE_KEY('d'))) right = true;
-        if (page != 0 && (USE_KEY('Q') || USE_KEY('q'))) left = true;
+        if (page != max_page && (USE_KEY('D') || USE_KEY('d') || USE_KEY(KEY_ARROW_RIGHT))) right = true;
+        if (page != 0 && (USE_KEY('Q') || USE_KEY('q') || USE_KEY(KEY_ARROW_LEFT))) left = true;
         sys_sleep_ms(50);
     }
 
@@ -1008,20 +1008,20 @@ void display_settings(Render_Buffer* r, int page) {
     int incr = 0;
 
     while (!USE_KEY('\n') && !USE_KEY(' ') && !left && !right) {
-        if (selected != first_setting_on_screen && (USE_KEY('Z') || USE_KEY('z'))) up = true;
-        if (selected != last_setting_on_screen && (USE_KEY('S') || USE_KEY('s'))) down = true;
+        if (USE_KEY('Z') || USE_KEY('z') || USE_KEY(KEY_ARROW_UP)) up = true;
+        if (USE_KEY('S') || USE_KEY('s') || USE_KEY(KEY_ARROW_DOWN)) down = true;
         if (USE_KEY('P') || USE_KEY('p')) incr = 1;
         if (USE_KEY('M') || USE_KEY('m')) incr = -1;
-        if (page != max_page && (USE_KEY('D') || USE_KEY('d'))) right = true;
-        if (page != 0 && (USE_KEY('Q') || USE_KEY('q'))) left = true;
+        if (page != max_page && (USE_KEY('D') || USE_KEY('d') || USE_KEY(KEY_ARROW_RIGHT))) right = true;
+        if (page != 0 && (USE_KEY('Q') || USE_KEY('q') || USE_KEY(KEY_ARROW_LEFT))) left = true;
         if (up || down) {
             int y = SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2) - 1;
             r->bd[y][SETTINGS_POINTER_X].ch = L' ';
-            update_screen(r);
+
             if (up)
-                selected = max(selected - 1, first_setting_on_screen);
+                selected = selected > first_setting_on_screen ? selected - 1 : last_setting_on_screen;
             else if (down)
-                selected = min(selected + 1, last_setting_on_screen);
+                selected = selected < last_setting_on_screen ? selected + 1 : first_setting_on_screen;
             up = false;
             down = false;
             y = SETTINGS_ENTRY_SPACING * (selected % MAX_SETTINGS_PER_PAGE + 2) - 1;
@@ -1180,6 +1180,56 @@ static int flashes_frame_length = 0;
 static int flashes_frame_interval = 0;
 static int flashes_ticks_left = 0;
 
+void set_glitch(int frame_nb, int chance) {
+    glitch_ticks_left = max(0, frame_nb);
+    glitch_chance = CLAMP(chance, 0, 100);
+}
+
+void set_color_flashes(Color color, int frame_length, int frame_spacing, int duration) {
+    flashes_color = color;
+    flashes_frame_length = frame_length;
+    flashes_frame_interval = frame_spacing;
+    flashes_duration = duration;
+    flashes_ticks_left = frame_length;
+}
+
+static bool update_flashes() {
+    if (flashes_ticks_left != 0) {
+        flashes_duration--;
+        if (flashes_duration <= 0) {
+            flashes_ticks_left = 0;
+        } else if (flashes_ticks_left > 0) {
+            flashes_ticks_left--;
+            if (flashes_ticks_left == 0) {
+                flashes_ticks_left = -flashes_frame_interval;
+            } else {
+                return true;
+            }
+        } else {
+            flashes_ticks_left++;
+            if (flashes_ticks_left == 0) {
+                flashes_ticks_left = min(flashes_frame_length, flashes_duration);
+            }
+        }
+    }
+    return false;
+}
+
+static void update_fog_of_war(int i, int j, wchar_t* ch, Color* color) {
+    if (!FOG_OF_WAR || IN_MENU || i <= 0 || i > REVERSED_INBOX_JUNCTION_HEIGHT || j <= 0 || j >= RENDER_WIDTH - 1) return;
+    int dx = (j - FOG_OF_WAR_ORIGIN_X) / 2;
+    int dy = i - FOG_OF_WAR_ORIGIN_Y;
+    int dist_sq = (dx * dx) + (dy * dy);
+
+    if (dist_sq > FOG_OF_WAR_FOG_RADIUS) {
+        *ch = L' ';
+        *color = COLOR_DEFAULT;
+    } else if (dist_sq > FOG_OF_WAR_CLEAR_VISION_RADIUS) {
+        *color = COLOR_GRAY;
+        if (*ch != L' ') *ch = L'░';
+    }
+}
+
 #ifdef _WIN32
 
 static const WORD WIN32_COLOR_LOOKUP[] = {
@@ -1212,27 +1262,8 @@ void update_screen(Render_Buffer* r) {
     int minCol = RENDER_WIDTH, maxCol = -1;
 
     bool is_glitching = (glitch_ticks_left > 0);
-    bool is_flashing = false;
+    bool is_flashing = update_flashes();
     if (glitch_ticks_left > 0) glitch_ticks_left--;
-
-    if (flashes_ticks_left != 0) {
-        flashes_duration--;
-        if (flashes_duration <= 0) {
-            flashes_ticks_left = 0;
-        } else if (flashes_ticks_left > 0) {
-            flashes_ticks_left--;
-            if (flashes_ticks_left == 0) {
-                flashes_ticks_left = -flashes_frame_interval;
-            } else {
-                is_flashing = true;
-            }
-        } else {
-            flashes_ticks_left++;
-            if (flashes_ticks_left == 0) {
-                flashes_ticks_left = min(flashes_frame_length, flashes_duration);
-            }
-        }
-    }
 
     for (int i = 0; i < RENDER_HEIGHT; i++) {
         for (int j = 0; j < RENDER_WIDTH; j++) {
@@ -1244,20 +1275,7 @@ void update_screen(Render_Buffer* r) {
             wchar_t ch = c->ch;
             Color color = is_flashing ? flashes_color : c->color;
 
-            // ---- Fog of War ----
-            if (FOG_OF_WAR && !IN_MENU && i > 0 && i <= REVERSED_INBOX_JUNCTION_HEIGHT && j > 0 && j < RENDER_WIDTH - 1) {
-                int dx = (j - FOG_OF_WAR_ORIGIN_X) / 2;
-                int dy = i - FOG_OF_WAR_ORIGIN_Y;
-                int dist_sq = (dx * dx) + (dy * dy);
-
-                if (dist_sq > FOG_OF_WAR_FOG_RADIUS) {
-                    ch = L' ';
-                    color = COLOR_DEFAULT;
-                } else if (dist_sq > FOG_OF_WAR_CLEAR_VISION_RADIUS) {
-                    color = COLOR_GRAY;
-                    ch = ch == L' ' ? L' ' : L'░';
-                }
-            }
+            update_fog_of_war(i, j, &ch, &color);
 
             WORD attr = WIN32_COLOR_LOOKUP[color];
 
@@ -1321,26 +1339,8 @@ void update_screen(Render_Buffer* r) {
     int out_idx = 0;
 
     bool is_glitching = (glitch_ticks_left > 0);
-    bool is_flashing = false;
+    bool is_flashing = update_flashes();
     if (glitch_ticks_left > 0) glitch_ticks_left--;
-    if (flashes_ticks_left != 0) {
-        flashes_duration--;
-        if (flashes_duration <= 0) {
-            flashes_ticks_left = 0;
-        } else if (flashes_ticks_left > 0) {
-            flashes_ticks_left--;
-            if (flashes_ticks_left == 0) {
-                flashes_ticks_left = -flashes_frame_interval;
-            } else {
-                is_flashing = true;
-            }
-        } else {
-            flashes_ticks_left++;
-            if (flashes_ticks_left == 0) {
-                flashes_ticks_left = min(flashes_frame_length, flashes_duration);
-            }
-        }
-    }
 
     append_ansi_utf8(frame_buffer, &out_idx, L"\033[H");
 
@@ -1354,20 +1354,7 @@ void update_screen(Render_Buffer* r) {
             wchar_t ch = c->ch;
             int color = is_flashing ? (int)flashes_color : c->color;
 
-            // ---- Fog of War ----
-            if (FOG_OF_WAR && !IN_MENU && i > 0 && i <= REVERSED_INBOX_JUNCTION_HEIGHT && j > 0 && j < RENDER_WIDTH - 1) {
-                int dx = (j - FOG_OF_WAR_ORIGIN_X) / 2;
-                int dy = i - FOG_OF_WAR_ORIGIN_Y;
-                int dist_sq = (dx * dx) + (dy * dy);
-
-                if (dist_sq > FOG_OF_WAR_FOG_RADIUS) {
-                    ch = L' ';
-                    color = COLOR_DEFAULT;
-                } else if (dist_sq > FOG_OF_WAR_CLEAR_VISION_RADIUS) {
-                    color = COLOR_GRAY;
-                    ch = (ch == L' ') ? L' ' : L'░';
-                }
-            }
+            update_fog_of_war(i, j, &ch, (Color*)&color);
 
             if (color != current_color) {
                 append_ansi_utf8(frame_buffer, &out_idx, ansi_from_color(color));
@@ -1385,17 +1372,5 @@ void update_screen(Render_Buffer* r) {
     write(STDOUT_FILENO, frame_buffer, out_idx);
 }
 #endif
-void set_glitch(int frame_nb, int chance) {
-    glitch_ticks_left = max(0, frame_nb);
-    glitch_chance = CLAMP(chance, 0, 100);
-}
-
-void set_color_flashes(Color color, int frame_length, int frame_spacing, int duration) {
-    flashes_color = color;
-    flashes_frame_length = frame_length;
-    flashes_frame_interval = frame_spacing;
-    flashes_duration = duration;
-    flashes_ticks_left = frame_length;
-}
 
 #pragma endregion

@@ -1,5 +1,6 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
+#include <stddef.h>
 
 /// @brief KEY_CODE Constants
 #define KEY_Z_LOW 122
@@ -21,10 +22,10 @@
 #define KEY_7 55
 #define KEY_8 56
 #define KEY_9 57
-#define KEY_ARROW_UP 65
-#define KEY_ARROW_DOWN 66
-#define KEY_ARROW_RIGHT 67
-#define KEY_ARROW_LEFT 68
+#define KEY_ARROW_UP 200
+#define KEY_ARROW_DOWN 201
+#define KEY_ARROW_LEFT 202
+#define KEY_ARROW_RIGHT 203
 
 /// @brief Render Constants
 #define GAME_WIDTH 129
@@ -309,7 +310,13 @@ typedef enum KeyHolderLevel {
     KEYHOLDER_LEVEL_COUNT
 } KeyHolderLevel;
 
+typedef struct ChunkTable {
+    const ChunkType* values;
+    size_t count;
+} ChunkTable;
+
 extern const int ScorePerPhase[GAMEPHASE_COUNT];  // Last score is 0, prevents overflow
 extern const char* CHUNK_NAMES[CHUNK_TYPE_COUNT];
+extern const ChunkTable CHUNK_TABLE[GAMEPHASE_COUNT];
 
 #endif

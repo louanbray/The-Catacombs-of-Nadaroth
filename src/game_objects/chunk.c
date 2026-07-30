@@ -308,9 +308,9 @@ chunk* create_chunk(int x, int y) {
     return ck;
 }
 
-chunk* generate_chunk(int x, int y) {
+chunk* generate_chunk(int x, int y, GamePhase game_phase) {
     chunk* c = create_chunk(x, y);
-    decorate(c, x, y);
+    decorate(c, x, y, game_phase);
     return c;
 }
 
@@ -387,11 +387,18 @@ void fill_furniture(chunk* c, ChunkType type) {
     fill_chunk_hm_from_dyn(c);
 }
 
-void decorate(chunk* c, int x, int y) {
+ChunkType get_random_chunk(GamePhase phase) {
+    if (phase < 0 || phase >= GAMEPHASE_COUNT) return CHUNK_EMPTY;
+    const ChunkTable* table = &CHUNK_TABLE[phase];
+    if (table->values == NULL || table->count == 0) return CHUNK_EMPTY;
+    return table->values[rand() % table->count];
+}
+
+void decorate(chunk* c, int x, int y, GamePhase game_phase) {
     int type = is_debug_mode() ? CHUNK_SINGLE : CHUNK_SPAWN;
     int spawn_x = 1;  //! TO CENTER THE PLAYER
-    int spawn_y = is_debug_mode() ? -5 : 0;
-    if (x != 0 || y != 0) type = RAND_RANGE(CHUNK_SPAWN + 1, CHUNK_TYPE_COUNT - 1);
+    int spawn_y = 0;
+    if (x != 0 || y != 0) type = get_random_chunk(game_phase);
     c->type = type;
     c->spawn_x = spawn_x;
     c->spawn_y = spawn_y;

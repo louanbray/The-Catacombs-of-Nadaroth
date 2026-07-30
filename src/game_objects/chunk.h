@@ -82,7 +82,8 @@ void chunk_render_walls(chunk* ck, void* board_ptr);
 /// @param c raw chunk
 /// @param x pos x
 /// @param y pos y
-void decorate(chunk* chunk, int x, int y);
+/// @param game_phase GamePhase
+void decorate(chunk* chunk, int x, int y, GamePhase game_phase);
 
 /// @brief Add all elements of the chunk depending of the type
 /// @param c chunk
@@ -214,8 +215,9 @@ chunk* create_chunk(int x, int y);
 /// @brief Create and decorate a chunk at (x, y)
 /// @param x chunk coord x
 /// @param y chunk coord y
+/// @param game_phase Current GamePhase, sets the pool of ChunkType to generate from (except for spawn chunk 0/0 -> CHUNK_SPAWN)
 /// @return decorated chunk
-chunk* generate_chunk(int x, int y);
+chunk* generate_chunk(int x, int y, GamePhase game_phase);
 
 /// @brief Create a chunk from deserialized data without decoration
 /// @param x chunk coord x

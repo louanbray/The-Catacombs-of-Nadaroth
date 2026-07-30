@@ -23,7 +23,7 @@ static bool CACHE_ENABLED = true;
 /// @return map
 map* create_map() {
     map* m = malloc(sizeof(map));
-    chunk* ck = generate_chunk(0, 0);
+    chunk* ck = generate_chunk(0, 0, GAMEPHASE_INTRODUCTION);  // <- Not used as it is the spawn chunk
 
     m->hashmap = create_hashmap();
     m->cache_map = create_hashmap();
@@ -110,7 +110,9 @@ chunk* get_chunk(map* m, int x, int y) {
     if (get_achievement_progress(ACH_MASTER_EXPLORER) % 10 == 0 && get_statistic(STAT_DISTANCE_TRAVELED) >= 10000) {
         add_achievement_progress(ACH_MASTER_EXPLORER, 1);
     }
-    ck = generate_chunk(x, y);
+    player* p = get_player(m);
+    if (!p) LOG_ERROR("Failed to fetch the player of map %p", (void*)m);
+    ck = generate_chunk(x, y, get_player_phase(p));
     set_hm(m->hashmap, x, y, ck);
 
     return ck;
