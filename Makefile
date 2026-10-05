@@ -98,7 +98,7 @@ RELEASE_WIN_LDFLAGS = -s -flto -Wl,--gc-sections \
     -L$(MINGW_SDL2_MIXER_ROOT)/lib \
     -L$(MINGW_ZLIB_ROOT)/lib \
     -static-libgcc -Wl,-Bstatic -lgomp -lstdc++ -lpthread -Wl,-Bdynamic \
-    -lmingw32 -lSDL2main -lSDL2 -lSDL2_mixer -lz -lwinmm -lole32 -loleaut32 -limm32 -lversion -lsetupapi
+    -lmingw32 -lSDL2main -lSDL2_mixer -lSDL2 -lz -lwinmm -lole32 -loleaut32 -limm32 -lversion -lsetupapi
 
 RELEASE_WIN_OPENMP = -fopenmp
 
