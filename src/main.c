@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
     apply_settings_callbacks();
 
     render(screen, MAP_L);
-    fog_of_war_set_enabled(true);
+    fog_of_war_set_enabled(false);
     update_screen(screen);
 
     increment_statistic(STAT_GAME_STARTED, 1);
@@ -418,6 +418,7 @@ int main(int argc, char* argv[]) {
                 LOG_INFO("%s Fog of War", is_fog_of_war_enabled() ? "Enabled" : "Disabled");
             } else if (USE_KEY('!')) {
                 // debug function of the moment
+                display_save_menu(screen, PLAYER_L);
             }
         }
 

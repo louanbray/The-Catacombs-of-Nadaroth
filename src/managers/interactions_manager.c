@@ -169,6 +169,7 @@ void init_interactions_system() {
     load_interactions_file("assets/interfaces/interactions/skin.interact.dodjo", "skin");
     load_interactions_file("assets/interfaces/interactions/difficulty.interact.dodjo", "difficulty");
     load_interactions_file("assets/interfaces/interactions/kitty.interact.dodjo", "kitty");
+    load_interactions_file("assets/interfaces/interactions/save_menu.interact.dodjo", "save_menu");
 }
 
 void destroy_interactions_system() {

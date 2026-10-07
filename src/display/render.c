@@ -89,6 +89,14 @@ static int FOG_OF_WAR_FOG_RADIUS = (12 * 12);         // 12
 #define SETTINGS_POINTER_X 7
 #define SETTINGS_POINTER_DISPLAY L'▷'
 
+// Save Menu
+#define SAVE_MENU_ENTRY_SPACING 4
+#define SAVE_MENU_X_OFFSET 10
+#define SAVE_MENU_GUI_TITLE_X 63
+#define SAVE_MENU_GUI_TITLE_Y 2
+#define SAVE_MENU_POINTER_X 7
+#define SAVE_MENU_POINTER_DISPLAY L'▷'
+
 //
 // NEW HELPER FUNCTIONS
 //
@@ -715,7 +723,7 @@ void display_item_description(Render_Buffer* r, void* it) {
     finalize_render_buffer(r);
 }
 
-// New: display interface using interactions previously loaded with load_interactions_file()
+// Displays interface using interactions previously loaded with load_interactions_file()
 int* display_interface_with_interactions(Render_Buffer* r, const char* visual_filename, const char* interaction_id, int* out_selected_indices) {
     return display_interface_with_interactions_main(r, visual_filename, interaction_id, out_selected_indices);
 }
@@ -1054,6 +1062,125 @@ void display_settings(Render_Buffer* r, int page) {
         display_settings(r, page - 1);
 }
 
+static const char* MESSAGES[] = {
+    [0] = "Aucune save à cet endroit          ",
+    [1] = "Une save est présente à cet endroit",
+    [2] = "La save actuelle est à cet endroit ",
+};
+
+static const Color COLORS_SAVING[] = {
+    [0] = COLOR_DEFAULT,
+    [1] = COLOR_RED,
+    [2] = COLOR_GREEN,
+};
+
+static const Color COLORS_LOADING[] = {
+    [0] = COLOR_GRAY,
+    [1] = COLOR_DEFAULT,
+    [2] = COLOR_GREEN,
+};
+
+static void display_save_menu_slot_list(Render_Buffer* r, bool is_saving) {
+    wchar_t buffer[RENDER_WIDTH - 1];
+    for (int i = 0; i < SAVE_SLOTS; i++) {
+        int state = get_save_slot_state(i);
+        Color color = is_saving ? COLORS_SAVING[state] : COLORS_LOADING[state];
+        const char* string = MESSAGES[state];
+
+        swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : %s", i + 1, string);
+        write_wstr(r->bd, SAVE_MENU_ENTRY_SPACING * (i + 2) - 1, SAVE_MENU_X_OFFSET, buffer, wcslen(buffer), color);
+    }
+}
+
+bool display_save_menu(Render_Buffer* r, player* p) {
+    bool is_saving = true;
+
+    pause_game();  // Prevents projectilesfrom appearing mid menu transition
+
+    int res = 0;
+    int* result = display_interface_with_interactions(r, "assets/interfaces/structures/save_menu.dodjo", "save_menu", &res);
+    if (result != NULL && res >= 1) {
+        is_saving = !result[0];
+        free(result);
+    }
+    clear_screen(r->pv);
+    setup_render_buffer(r);
+
+    map* m = get_player_map(p);
+    hotbar* h = get_player_hotbar(p);
+
+    wchar_t buffer[RENDER_WIDTH - 1];
+
+    display_save_menu_slot_list(r, is_saving);
+
+    render_string(r, SPACE_TO_EXIT_DISPLAY_X_POS, SPACE_TO_EXIT_DISPLAY_Y_POS, " PRESS [SPACE] TO EXIT", 23);
+    swprintf(buffer, RENDER_WIDTH - 1, L"* %ls *", is_saving ? L"SAVE" : L"LOAD");
+    write_wstr(r->bd, SAVE_MENU_GUI_TITLE_Y, SAVE_MENU_GUI_TITLE_X, buffer, 8, COLOR_DEFAULT);
+
+    int selected = max(get_current_save_slot(), 0);
+
+    r->bd[SAVE_MENU_ENTRY_SPACING * (selected + 2) - 1][SAVE_MENU_POINTER_X].ch = SAVE_MENU_POINTER_DISPLAY;
+    update_screen(r);
+
+    bool up = false, down = false, loaded_a_game = false;
+
+    while (!USE_KEY(' ')) {
+        if (USE_KEY('Z') || USE_KEY('z') || USE_KEY(KEY_ARROW_UP)) up = true;
+        if (USE_KEY('S') || USE_KEY('s') || USE_KEY(KEY_ARROW_DOWN)) down = true;
+        if (up || down) {
+            int y = SAVE_MENU_ENTRY_SPACING * (selected + 2) - 1;
+            r->bd[y][SAVE_MENU_POINTER_X].ch = L' ';
+
+            if (up)
+                selected = selected > 0 ? selected - 1 : SAVE_SLOTS - 1;
+            else if (down)
+                selected = selected < SAVE_SLOTS - 1 ? selected + 1 : 0;
+            up = false;
+            down = false;
+            y = SAVE_MENU_ENTRY_SPACING * (selected + 2) - 1;
+            r->bd[y][SAVE_MENU_POINTER_X].ch = SAVE_MENU_POINTER_DISPLAY;
+            update_screen(r);
+        }
+        if (USE_KEY('\n')) {
+            write_str(r->bd, INFO_ROW_MID, 2, " ", RENDER_WIDTH - 4, COLOR_DEFAULT);
+            update_screen(r);
+
+            if (is_saving) {
+                if (save_game(selected, p, m, h)) {
+                    LOG_INFO("Game saved successfully!");
+                    write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 24) / 2 + 2, "Game saved successfully!", 25, COLOR_GREEN);
+                    play_sound_effect_by_id(AUDIO_SUCCESS);
+                    display_save_menu_slot_list(r, is_saving);
+                } else {
+                    LOG_ERROR("Failed to save game");
+                    write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 19) / 2 + 1, "Failed to save game", 20, COLOR_RED);
+                    play_sound_effect_by_id(AUDIO_FAILURE);
+                }
+            } else {
+                kill_all_projectiles(r);
+                if (load_game(selected, p, m, h)) {
+                    fog_of_war_set_origin(get_player_x(p), get_player_y(p));
+                    loaded_a_game = true;
+                    LOG_INFO("Game loaded successfully!");
+                    write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 25) / 2 + 1, "Game loaded successfully!", 26, COLOR_GREEN);
+                    play_sound_effect_by_id(AUDIO_SUCCESS);
+                    display_save_menu_slot_list(r, is_saving);
+                } else {
+                    LOG_ERROR("Failed to load game");
+                    write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 19) / 2 + 1, "Failed to load game", 20, COLOR_RED);
+                    play_sound_effect_by_id(AUDIO_FAILURE);
+                }
+            }
+            update_screen(r);
+        }
+        sys_sleep_ms(50);
+    }
+
+    finalize_render_buffer(r);
+    resume_game();
+    return loaded_a_game;
+}
+
 void home_menu(Render_Buffer* r, player* p, ResumeState resume_state) {
     if (resume_state == RESUME_DEFAULT || (resume_state == RESUME_RESET && !get_setting_value(SETTING_SKIP_START_MENU_ON_RESET)) || (resume_state == RESUME_NEW_GAME && !get_setting_value(SETTING_SKIP_START_MENU_ON_NEW_GAME))) display_interface(r, "assets/interfaces/structures/start_menu.dodjo");
     int res = 0;
@@ -1101,36 +1228,11 @@ ResumeState pause_menu(Render_Buffer* r, player* p) {
     ResumeState state = RESUME_DEFAULT;
 
     map* m = get_player_map(p);
-    hotbar* h = get_player_hotbar(p);
 
     while ((!USE_KEY(' ') && !USE_KEY('\n'))) {
-        if (USE_KEY('N') || USE_KEY('n')) {
-            write_str(r->bd, INFO_ROW_MID, 2, " ", RENDER_WIDTH - 4, COLOR_DEFAULT);
-            if (save_game("saves/user_saves/0.dat", p, m, h)) {
-                LOG_INFO("Game saved successfully!");
-                write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 24) / 2 + 2, "Game saved successfully!", 25, COLOR_GREEN);
-                play_sound_effect_by_id(AUDIO_SUCCESS);
-            } else {
-                LOG_ERROR("Failed to save game");
-                write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 19) / 2 + 1, "Failed to save game", 20, COLOR_RED);
-                play_sound_effect_by_id(AUDIO_FAILURE);
-            }
-            update_screen(r);
-        } else if (USE_KEY('B') || USE_KEY('b')) {
-            write_str(r->bd, INFO_ROW_MID, 2, " ", RENDER_WIDTH - 4, COLOR_DEFAULT);
-            kill_all_projectiles(r);
-            if (load_game("saves/user_saves/0.dat", p, m, h)) {
-                fog_of_war_set_origin(get_player_x(p), get_player_y(p));
-                loaded_a_game = true;
-                LOG_INFO("Game loaded successfully!");
-                write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 25) / 2 + 1, "Game loaded successfully!", 26, COLOR_GREEN);
-                play_sound_effect_by_id(AUDIO_SUCCESS);
-            } else {
-                LOG_ERROR("Failed to load game");
-                write_str(r->bd, INFO_ROW_MID, (RENDER_WIDTH - 19) / 2 + 1, "Failed to load game", 20, COLOR_RED);
-                play_sound_effect_by_id(AUDIO_FAILURE);
-            }
-            update_screen(r);
+        if (USE_KEY('S') || USE_KEY('s')) {
+            loaded_a_game = display_save_menu(r, p);
+            no_refresh = true;
         } else if (USE_KEY('H') || USE_KEY('h')) {
             display_interface(r, "assets/interfaces/structures/help.dodjo");
             no_refresh = true;
@@ -1140,7 +1242,7 @@ ResumeState pause_menu(Render_Buffer* r, player* p) {
         } else if (USE_KEY('T') || USE_KEY('t')) {
             display_statistics(r);
             no_refresh = true;
-        } else if (USE_KEY('S') || USE_KEY('s')) {
+        } else if (USE_KEY('P') || USE_KEY('p')) {
             display_settings(r, 0);
             no_refresh = true;
         } else if (USE_KEY('R') || USE_KEY('r')) {

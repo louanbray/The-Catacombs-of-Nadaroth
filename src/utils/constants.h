@@ -2,7 +2,7 @@
 #define CONSTANTS_H
 #include <stddef.h>
 
-/// @brief KEY_CODE Constants
+/// -------- KEY_CODE Constants --------
 #define KEY_Z_LOW 122
 #define KEY_Z_HIGH 90
 #define KEY_Q_LOW 113
@@ -27,7 +27,7 @@
 #define KEY_ARROW_LEFT 202
 #define KEY_ARROW_RIGHT 203
 
-/// @brief Render Constants
+/// -------- Render Constants --------
 #define GAME_WIDTH 129
 #define RENDER_WIDTH 131
 #define RENDER_HEIGHT 41
@@ -35,6 +35,11 @@
 #define GAME_PADDING (RENDER_WIDTH - GAME_WIDTH)
 #define PLAY_HEIGHT_MAX (RENDER_HEIGHT - HUD_HEIGHT)
 
+#define CHEST_KEY_DESIGN L'⚿'
+
+#define CINEMATIC_FRAME_DELAY 1000  // ms
+
+/// -------- Coordinates Macros --------
 #define RECENTER_X (RENDER_WIDTH / 2 + 1)
 #define RECENTER_Y (RENDER_HEIGHT / 2 - 1)
 
@@ -51,37 +56,30 @@
 #define ITW_X(x) (RTW_X(ITR((x))))
 #define ITW_Y(y) (RTW_Y(ITR((y))))
 
+/// -------- Playbox in W-Coos --------
 #define PLAYBOX_MIN_OX -64
 #define PLAYBOX_MAX_OX 63
 #define PLAYBOX_MIN_OY -17
 #define PLAYBOX_MAX_OY 17
 
+/// -------- Utils --------
 #define CLAMP(val, min, max) ((val) < (min) ? (min) : ((val) > (max) ? (max) : (val)))
 #define RAND(max) (rand() % (max + 1))
 #define RAND_RANGE(min, max) ((min) + rand() % ((max) - (min) + 1))
-
-/// @brief Utils
 #define CHAR_TO_INT 49
 
-/// @brief Player designs
+/// -------- Player Specifics --------
+#define MAX_MENTAL_HEALTH 4
+
+#define HOTBAR_SIZE 9
+
 #define PLAYER_DESIGN_BALL 11044
 #define PLAYER_DESIGN_CAMO 11201
 #define PLAYER_DESIGN_BRAWLER 9632
 #define PLAYER_DESIGN_SHIELD 9960
 
-///@brief Projectile designs
 #define PLAYER_PROJECTILE_DESIGN L'○'
 #define ENEMY_PROJECTILE_DESIGN L'●'
-
-#define CHEST_KEY_DESIGN L'⚿'
-
-/// @brief Inventory
-#define HOTBAR_SIZE 9
-
-/// @brief Cinematics
-#define CINEMATIC_FRAME_DELAY 1000  // ms
-
-#define MAX_MENTAL_HEALTH 4
 
 //! COPYRIGHT 24/01/2025 20:33, EVERY IDEA HERE IS MINE IF YOU FOUND ANY LEAKED DATA PLEASE INFORM THE DEVELOPPER OF THE GAME
 

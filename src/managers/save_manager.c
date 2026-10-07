@@ -27,6 +27,8 @@ static const char* FILE_CACHE_TEMP = "saves/cache_tmp.bin";
 static const char* FILEDIR_USER_SAVES = "saves/user_saves";
 static const char* FILEDIR_SAVES = "saves";
 
+static int CURRENT_SAVE_SLOT = -1;
+
 #ifdef _WIN32
 typedef long suseconds_t;
 #endif
@@ -1019,13 +1021,16 @@ static bool load_map_data(FILE* f, map* m) {
     return true;
 }
 
-bool save_game(const char* filename, player* p, map* m, hotbar* h) {
-    if (!filename || !p || !m || !h) return false;
+bool save_game(int slot, player* p, map* m, hotbar* h) {
+    if (!p || !m || !h) return false;
 
     if (!create_dir_if_not_exists(FILEDIR_SAVES) || !create_dir_if_not_exists(FILEDIR_USER_SAVES)) {
         LOG_ERROR("Failed to create user saves folder");
         return false;
     }
+
+    char filename[128];
+    sprintf(filename, "saves/user_saves/%d.dat", slot);
 
     // First, save to an uncompressed temporary file
     char temp_filename[512];
@@ -1126,15 +1131,19 @@ bool save_game(const char* filename, player* p, map* m, hotbar* h) {
     }
 
     float ratio = (uncompressed_size > 0) ? (100.0f * compressed_size / uncompressed_size) : 0.0f;
-    LOG_INFO("Game saved to: %s (%zu bytes -> %zu bytes, %.1f%%)",
-             filename, uncompressed_size, compressed_size, ratio);
+    LOG_INFO("Game saved to: %s (%zu bytes -> %zu bytes, %.1f%%)", filename, uncompressed_size, compressed_size, ratio);
+
+    CURRENT_SAVE_SLOT = slot;
     return true;
 }
 
-bool load_game(const char* filename, player* p, map* m, hotbar* h) {
-    if (!filename || !p || !m || !h) return false;
+bool load_game(int slot, player* p, map* m, hotbar* h) {
+    if (!p || !m || !h) return false;
 
     reset_total_enemies();
+
+    char filename[128];
+    sprintf(filename, "saves/user_saves/%d.dat", slot);
 
     // First, decompress the file to a temporary file
     gzFile src = gzopen(filename, "rb");
@@ -1266,6 +1275,7 @@ bool load_game(const char* filename, player* p, map* m, hotbar* h) {
     add_total_enemies(p);
 
     LOG_INFO("Game loaded from: %s", filename);
+    CURRENT_SAVE_SLOT = slot;
     return true;
 }
 
@@ -1548,4 +1558,19 @@ void clear_chunk_cache() {
     remove(FILE_CACHE_TEMP);
     g_cache_dead_bytes = 0;
     LOG_INFO("Single binary chunk cache cleared");
+}
+
+int get_save_slot_state(int slot) {
+    char filename[128];
+    sprintf(filename, "saves/user_saves/%d.dat", slot);
+    FILE* file = fopen(filename, "r");
+    if (file) {
+        fclose(file);
+        return 1 + (slot == CURRENT_SAVE_SLOT);
+    }
+    return 0;
+}
+
+int get_current_save_slot() {
+    return CURRENT_SAVE_SLOT;
 }

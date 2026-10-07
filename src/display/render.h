@@ -234,6 +234,15 @@ void display_achievements(Render_Buffer* r, int page);
 void display_settings(Render_Buffer* r, int page);
 
 /**
+ * @brief Displays the save/load GUI
+ *
+ * @param r Pointer to the render buffer
+ * @param p Pointer to the player
+ * @return true if a game was loaded, false otherwise
+ */
+bool display_save_menu(Render_Buffer* r, player* p);
+
+/**
  * @brief Displays the start menu, skin and difficulty selection GUIs
  *
  * @param r Pointer to the render buffer
