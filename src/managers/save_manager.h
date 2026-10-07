@@ -2,10 +2,25 @@
 #define SAVE_MANAGER_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "../game_objects/inventory.h"
 #include "../game_objects/map.h"
 #include "../game_objects/player.h"
+#include "../utils/game_status.h"
+
+/// @brief metadata for a save slot, stored in a separate .meta file.
+/// Read by the UI to display save informations wthout openning the .dat
+typedef struct SaveSlotMeta {
+    uint32_t magic;
+    int score;
+    GamePhase phase;
+    Difficulty difficulty;
+    int mental_health;
+    PlayerClass player_class;
+    int64_t time_played_sec;
+    int64_t saved_at_sec;
+} SaveSlotMeta;
 
 #define SAVE_SLOTS 7
 
@@ -64,5 +79,11 @@ void clear_chunk_cache();
 int get_save_slot_state(int slot);
 
 int get_current_save_slot();
+
+/// @brief Load the lightweight metadata for a save slot.
+/// @param slot Save slot index.
+/// @param out  Pointer to a SaveSlotMeta struct to fill.
+/// @return true if the .meta file was read successfully, false otherwise.
+bool load_slot_meta(int slot, SaveSlotMeta* out);
 
 #endif

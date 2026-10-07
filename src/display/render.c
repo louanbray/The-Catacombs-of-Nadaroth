@@ -8,6 +8,7 @@
 #include "../game_objects/player.h"
 #include "../managers/cutscene_manager.h"
 #include "../managers/managers.h"
+#include "../managers/save_manager.h"
 #include "../utils/dynarray.h"
 #include "../utils/game_status.h"
 #include "../utils/logger.h"
@@ -1062,10 +1063,14 @@ void display_settings(Render_Buffer* r, int page) {
         display_settings(r, page - 1);
 }
 
-static const char* MESSAGES[] = {
-    [0] = "Aucune save à cet endroit          ",
-    [1] = "Une save est présente à cet endroit",
-    [2] = "La save actuelle est à cet endroit ",
+static const char* PHASE_LABELS[GAMEPHASE_COUNT] = {
+    [GAMEPHASE_INTRODUCTION] = "Intro",
+    [GAMEPHASE_FIRST_ACT_FIRST_PHASE] = "Act I",
+    [GAMEPHASE_FIRST_ACT_SECOND_PHASE] = "Act I - Ph.2",
+    [GAMEPHASE_FIRST_ACT_THIRD_PHASE] = "Act I - Ph.3",
+    [GAMEPHASE_FIRST_ACT_FOURTH_PHASE] = "Act I - Ph.4",
+    [GAMEPHASE_FIRST_ACT_END] = "Act I - End",
+    [GAMEPHASE_WIP] = "WIP",
 };
 
 static const Color COLORS_SAVING[] = {
@@ -1085,9 +1090,24 @@ static void display_save_menu_slot_list(Render_Buffer* r, bool is_saving) {
     for (int i = 0; i < SAVE_SLOTS; i++) {
         int state = get_save_slot_state(i);
         Color color = is_saving ? COLORS_SAVING[state] : COLORS_LOADING[state];
-        const char* string = MESSAGES[state];
 
-        swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : %s", i + 1, string);
+        SaveSlotMeta meta;
+        if (state > 0 && load_slot_meta(i, &meta)) {
+            const char* phase_label = (meta.phase >= 0 && meta.phase < GAMEPHASE_COUNT) ? PHASE_LABELS[meta.phase] : "?";
+            const char* diff_label = (meta.difficulty == DIFFICULTY_HARD) ? "Hard" : "Normal";
+            int mins = (int)(meta.time_played_sec / 60);
+            int hrs = mins / 60;
+            mins = mins % 60;
+            if (hrs > 0)
+                swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : %-13s | %-6s | Score: %5d | %dh%02dm", i + 1, phase_label, diff_label, meta.score, hrs, mins);
+            else
+                swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : %-13s | %-6s | Score: %5d | %dm", i + 1, phase_label, diff_label, meta.score, mins);
+        } else if (state > 0) {
+            swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : Save present (no details)", i + 1);
+        } else {
+            swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : Empty", i + 1);
+        }
+
         write_wstr(r->bd, SAVE_MENU_ENTRY_SPACING * (i + 2) - 1, SAVE_MENU_X_OFFSET, buffer, wcslen(buffer), color);
     }
 }

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <zlib.h>
 
 #include "../game_objects/chunk.h"
@@ -20,7 +21,8 @@
 #include "projectile_manager.h"
 
 #define SAVE_VERSION 7
-#define SAVE_MAGIC 0x4E414430  // "NAD0" in hex
+#define SAVE_MAGIC 0x4E414430       // "NAD0" in hex
+#define SLOT_META_MAGIC 0x4D455441  // "META" in hex
 
 static const char* FILE_CACHE = "saves/cache.bin";
 static const char* FILE_CACHE_TEMP = "saves/cache_tmp.bin";
@@ -28,6 +30,12 @@ static const char* FILEDIR_USER_SAVES = "saves/user_saves";
 static const char* FILEDIR_SAVES = "saves";
 
 static int CURRENT_SAVE_SLOT = -1;
+
+/// @brief Checked fread: jump to @p label on short-read.
+#define FREAD_CHECK(ptr, size, count, f, label)                        \
+    do {                                                               \
+        if (fread((ptr), (size), (count), (f)) != (count)) goto label; \
+    } while (0)
 
 #ifdef _WIN32
 typedef long suseconds_t;
@@ -136,31 +144,31 @@ static bool load_player_data(FILE* f, player* p) {
     int score, deaths, color, phase, class;
     int chunk_x, chunk_y;
 
-    fread(&x, sizeof(int), 1, f);
-    fread(&y, sizeof(int), 1, f);
-    fread(&px, sizeof(int), 1, f);
-    fread(&py, sizeof(int), 1, f);
-    fread(&health, sizeof(int), 1, f);
-    fread(&max_health, sizeof(int), 1, f);
-    fread(&mental_health, sizeof(int), 1, f);
-    fread(&damage, sizeof(int), 1, f);
-    fread(&arrow_speed, sizeof(int), 1, f);
-    fread(&range, sizeof(int), 1, f);
-    fread(&infinity, sizeof(bool), 1, f);
-    fread(&score, sizeof(int), 1, f);
-    fread(&deaths, sizeof(int), 1, f);
-    fread(&color, sizeof(int), 1, f);
-    fread(&phase, sizeof(int), 1, f);
-    fread(&class, sizeof(int), 1, f);
-    fread(&chunk_x, sizeof(int), 1, f);
-    fread(&chunk_y, sizeof(int), 1, f);
+    FREAD_CHECK(&x, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&y, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&px, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&py, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&health, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&max_health, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&mental_health, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&damage, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&arrow_speed, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&range, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&infinity, sizeof(bool), 1, f, fail);
+    FREAD_CHECK(&score, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&deaths, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&color, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&phase, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&class, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&chunk_x, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&chunk_y, sizeof(int), 1, f, fail);
 
     // Read player's keyholder (level + counts per rarity)
     int kh_level = 0;
-    fread(&kh_level, sizeof(int), 1, f);
+    FREAD_CHECK(&kh_level, sizeof(int), 1, f, fail);
     int kh_counts[RARITY_COUNT];
     for (int r = 0; r < RARITY_COUNT; r++) {
-        fread(&kh_counts[r], sizeof(int), 1, f);
+        FREAD_CHECK(&kh_counts[r], sizeof(int), 1, f, fail);
     }
 
     // Store chunk coordinates in globals for later restoration
@@ -196,6 +204,10 @@ static bool load_player_data(FILE* f, player* p) {
     }
 
     return true;
+
+fail:
+    LOG_ERROR("Unexpected end of file while reading player data");
+    return false;
 }
 
 /// @brief Save hotbar data to file
@@ -247,8 +259,8 @@ static bool load_hotbar_data(FILE* f, hotbar* h) {
     if (!f || !h) return false;
 
     int max_size, selected_slot;
-    fread(&max_size, sizeof(int), 1, f);
-    fread(&selected_slot, sizeof(int), 1, f);
+    FREAD_CHECK(&max_size, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&selected_slot, sizeof(int), 1, f, fail);
 
     if (max_size != get_hotbar_max_size(h)) {
         LOG_ERROR("Hotbar size mismatch in save file");
@@ -260,20 +272,20 @@ static bool load_hotbar_data(FILE* f, hotbar* h) {
     // Load each slot
     for (int i = 0; i < max_size; i++) {
         bool has_item;
-        fread(&has_item, sizeof(bool), 1, f);
+        FREAD_CHECK(&has_item, sizeof(bool), 1, f, fail);
 
         if (has_item) {
             int item_x, item_y, item_type, item_display, item_usable_type, item_color;
             bool item_hidden, item_used;
 
-            fread(&item_x, sizeof(int), 1, f);
-            fread(&item_y, sizeof(int), 1, f);
-            fread(&item_type, sizeof(int), 1, f);
-            fread(&item_display, sizeof(int), 1, f);
-            fread(&item_hidden, sizeof(bool), 1, f);
-            fread(&item_used, sizeof(bool), 1, f);
-            fread(&item_usable_type, sizeof(int), 1, f);
-            fread(&item_color, sizeof(int), 1, f);
+            FREAD_CHECK(&item_x, sizeof(int), 1, f, fail);
+            FREAD_CHECK(&item_y, sizeof(int), 1, f, fail);
+            FREAD_CHECK(&item_type, sizeof(int), 1, f, fail);
+            FREAD_CHECK(&item_display, sizeof(int), 1, f, fail);
+            FREAD_CHECK(&item_hidden, sizeof(bool), 1, f, fail);
+            FREAD_CHECK(&item_used, sizeof(bool), 1, f, fail);
+            FREAD_CHECK(&item_usable_type, sizeof(int), 1, f, fail);
+            FREAD_CHECK(&item_color, sizeof(int), 1, f, fail);
             // Recreate item
             item* it = generate_item(item_x, item_y, (ItemType)item_type, item_display, (UsableItem)item_usable_type, i);
             if (it) {
@@ -294,6 +306,10 @@ static bool load_hotbar_data(FILE* f, hotbar* h) {
     select_slot(h, selected_slot);
 
     return true;
+
+fail:
+    LOG_ERROR("Unexpected end of file while reading hotbar data");
+    return false;
 }
 
 /// @brief Save an item to file
@@ -391,17 +407,17 @@ static item* load_item_data(FILE* f, chunk* c, dynarray* items_array) {
     int x, y, type, display, usable_type;
     bool hidden, used, has_entity;
 
-    fread(&x, sizeof(int), 1, f);
-    fread(&y, sizeof(int), 1, f);
-    fread(&type, sizeof(int), 1, f);
-    fread(&display, sizeof(int), 1, f);
-    fread(&hidden, sizeof(bool), 1, f);
-    fread(&used, sizeof(bool), 1, f);
-    fread(&usable_type, sizeof(int), 1, f);
-    fread(&has_entity, sizeof(bool), 1, f);  // Read but ignore - kept for compatibility
+    FREAD_CHECK(&x, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&y, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&type, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&display, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&hidden, sizeof(bool), 1, f, fail);
+    FREAD_CHECK(&used, sizeof(bool), 1, f, fail);
+    FREAD_CHECK(&usable_type, sizeof(int), 1, f, fail);
+    FREAD_CHECK(&has_entity, sizeof(bool), 1, f, fail);  // Read but ignore - kept for compatibility
 
     int color;
-    fread(&color, sizeof(int), 1, f);
+    FREAD_CHECK(&color, sizeof(int), 1, f, fail);
 
     if (type == ITEMTYPE_WALL) {
         chunk_set_wall(c, x, y, display, (Color)color);
@@ -416,33 +432,33 @@ static item* load_item_data(FILE* f, chunk* c, dynarray* items_array) {
     // Load specs based on item type
     if (type == ITEMTYPE_ENEMY) {
         enemy* e = arena ? (enemy*)chunk_arena_alloc(arena, sizeof(enemy)) : (enemy*)malloc(sizeof(enemy));
-        fread(&e->hp, sizeof(int), 1, f);
-        fread(&e->damage, sizeof(int), 1, f);
-        fread(&e->from_id, sizeof(int), 1, f);
-        fread(&e->speed, sizeof(int), 1, f);
-        fread(&e->infinity, sizeof(int), 1, f);
-        fread(&e->score, sizeof(int), 1, f);
-        fread(&e->attack_delay, sizeof(int), 1, f);
-        fread(&e->attack_interval, sizeof(int), 1, f);
-        fread(&e->can_drop, sizeof(bool), 1, f);
-        fread(&e->entity_type, sizeof(EntityType), 1, f);
-        fread(&e->loot.key, sizeof(UsableItem), 1, f);
-        fread(&e->loot.none, sizeof(int), 1, f);
-        fread(&e->loot.bronze, sizeof(int), 1, f);
-        fread(&e->loot.silver, sizeof(int), 1, f);
-        fread(&e->loot.gold, sizeof(int), 1, f);
-        fread(&e->loot.nadino, sizeof(int), 1, f);
-        fread(&e->loot.id, sizeof(LootTableID), 1, f);
+        FREAD_CHECK(&e->hp, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->damage, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->from_id, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->speed, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->infinity, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->score, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->attack_delay, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->attack_interval, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->can_drop, sizeof(bool), 1, f, fail);
+        FREAD_CHECK(&e->entity_type, sizeof(EntityType), 1, f, fail);
+        FREAD_CHECK(&e->loot.key, sizeof(UsableItem), 1, f, fail);
+        FREAD_CHECK(&e->loot.none, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->loot.bronze, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->loot.silver, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->loot.gold, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->loot.nadino, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&e->loot.id, sizeof(LootTableID), 1, f, fail);
         specialize(it, used, hidden, e);
     } else if (type == ITEMTYPE_LOOTABLE) {
         lootable* loot = arena ? (lootable*)chunk_arena_alloc(arena, sizeof(lootable)) : (lootable*)malloc(sizeof(lootable));
-        fread(&loot->key, sizeof(UsableItem), 1, f);
-        fread(&loot->none, sizeof(int), 1, f);
-        fread(&loot->bronze, sizeof(int), 1, f);
-        fread(&loot->silver, sizeof(int), 1, f);
-        fread(&loot->gold, sizeof(int), 1, f);
-        fread(&loot->nadino, sizeof(int), 1, f);
-        fread(&loot->id, sizeof(LootTableID), 1, f);
+        FREAD_CHECK(&loot->key, sizeof(UsableItem), 1, f, fail);
+        FREAD_CHECK(&loot->none, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&loot->bronze, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&loot->silver, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&loot->gold, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&loot->nadino, sizeof(int), 1, f, fail);
+        FREAD_CHECK(&loot->id, sizeof(LootTableID), 1, f, fail);
         specialize(it, used, hidden, loot);
     } else {
         // For other types, just set the states
@@ -451,6 +467,10 @@ static item* load_item_data(FILE* f, chunk* c, dynarray* items_array) {
     }
 
     return it;
+
+fail:
+    LOG_ERROR("Unexpected end of file while reading item data");
+    return NULL;
 }
 
 /// @brief Save the wall_entry structure of a chunk to file
@@ -490,10 +510,14 @@ static bool load_chunk_walls_data(FILE* f, chunk* ck) {
             uint8_t row, col, color;
             uint16_t display;
 
-            fread(&row, sizeof(uint8_t), 1, f);
-            fread(&col, sizeof(uint8_t), 1, f);
-            fread(&display, sizeof(uint16_t), 1, f);
-            fread(&color, sizeof(uint8_t), 1, f);
+            if (fread(&row, sizeof(uint8_t), 1, f) != 1 ||
+                fread(&col, sizeof(uint8_t), 1, f) != 1 ||
+                fread(&display, sizeof(uint16_t), 1, f) != 1 ||
+                fread(&color, sizeof(uint8_t), 1, f) != 1) {
+                LOG_ERROR("Unexpected end of file while reading wall entry %d", i);
+                free(walls);
+                return false;
+            }
 
             walls[i].row = row;
             walls[i].col = col;
@@ -825,6 +849,125 @@ typedef struct {
     int link_coords[4][2];  // For each direction: [x, y] or [-9999, -9999] if no link
 } chunk_link_info;
 
+/// @brief Write a lightweight metadata sidecar next to the .dat save file.
+static void write_slot_meta(int slot, player* p) {
+    if (!p) return;
+    char meta_path[128];
+    sprintf(meta_path, "saves/user_saves/%d.meta", slot);
+
+    FILE* f = fopen(meta_path, "wb");
+    if (!f) {
+        LOG_WARN("Could not write slot metadata: %s", meta_path);
+        return;
+    }
+
+    struct timeval tp = get_time_played();
+    SaveSlotMeta meta = {
+        .magic = SLOT_META_MAGIC,
+        .score = get_player_score(p),
+        .phase = get_player_phase(p),
+        .difficulty = get_difficulty(),
+        .mental_health = get_player_mental_health(p),
+        .player_class = get_player_class(p),
+        .time_played_sec = (int64_t)tp.tv_sec,
+        .saved_at_sec = (int64_t)time(NULL),
+    };
+
+    fwrite(&meta, sizeof(meta), 1, f);
+    fclose(f);
+    LOG_INFO("Slot metadata written: %s", meta_path);
+}
+
+bool load_slot_meta(int slot, SaveSlotMeta* out) {
+    if (!out) return false;
+    char meta_path[128];
+    sprintf(meta_path, "saves/user_saves/%d.meta", slot);
+
+    FILE* f = fopen(meta_path, "rb");
+    if (!f) return false;
+
+    bool ok = (fread(out, sizeof(SaveSlotMeta), 1, f) == 1) && (out->magic == SLOT_META_MAGIC);
+    fclose(f);
+    if (!ok) LOG_WARN("Invalid or missing slot metadata: %s", meta_path);
+    return ok;
+}
+
+/// @brief Load all enemy/entity entries for a chunk from @p f.
+static void load_enemies_from_file(FILE* f, chunk* ck) {
+    int enemy_count;
+    if (fread(&enemy_count, sizeof(int), 1, f) != 1) {
+        LOG_ERROR("Unexpected end of file reading enemy count for chunk (%d,%d)", get_chunk_x(ck), get_chunk_y(ck));
+        return;
+    }
+
+    for (int j = 0; j < enemy_count; j++) {
+        bool enemy_exists;
+        if (fread(&enemy_exists, sizeof(bool), 1, f) != 1) break;
+
+        if (!enemy_exists) {
+            chunk_append_enemy(ck, NULL);
+            continue;
+        }
+
+        item* brain = load_item_data(f, ck, get_chunk_enemies(ck));
+        if (!brain) continue;
+
+        int part_count;
+        if (fread(&part_count, sizeof(int), 1, f) != 1) {
+            LOG_ERROR("Unexpected end of file reading part_count");
+            free_item(brain);
+            break;
+        }
+
+        // Skip empty chests
+        bool should_skip = false;
+        if (get_item_type(brain) == ITEMTYPE_LOOTABLE) {
+            lootable* loot = (lootable*)get_item_spec(brain);
+            if (loot && loot->bronze == 0 && loot->silver == 0 &&
+                loot->gold == 0 && loot->nadino == 0) {
+                should_skip = true;
+                LOG_INFO("Skipping empty chest in chunk (%d, %d)", get_chunk_x(ck), get_chunk_y(ck));
+            }
+        }
+
+        if (!should_skip) {
+            if (get_item_type(brain) == ITEMTYPE_ENEMY) {
+                enemy* e = (enemy*)get_item_spec(brain);
+                if (e) e->from_id = len_dyn(get_chunk_enemies(ck));
+            }
+
+            if (part_count > 0) {
+                entity* ent = create_entity(brain, ck);
+                for (int k = 0; k < part_count; k++) {
+                    bool part_exists;
+                    if (fread(&part_exists, sizeof(bool), 1, f) != 1) break;
+                    if (part_exists) {
+                        item* part = load_item_data(f, ck, get_chunk_furniture_list(ck));
+                        if (part) {
+                            add_entity_part(ent, part);
+                            link_entity(part, ent);
+                            chunk_append_element(ck, part);
+                            chunk_register_item(ck, part);
+                        }
+                    }
+                }
+            }
+
+            if (get_item_type(brain) == ITEMTYPE_ENEMY) {
+                chunk_append_enemy(ck, brain);
+            }
+        } else {
+            // Drain parts from file even if skipping
+            for (int k = 0; k < part_count; k++) {
+                bool part_exists;
+                if (fread(&part_exists, sizeof(bool), 1, f) != 1) break;
+                if (part_exists) load_item_data(f, ck, get_chunk_furniture_list(ck));
+            }
+            free_item(brain);
+        }
+    }
+}
+
 /// @brief Load map data from file
 static bool load_map_data(FILE* f, map* m) {
     if (!f || !m) return false;
@@ -914,75 +1057,7 @@ static bool load_map_data(FILE* f, map* m) {
         }
 
         // Load enemies
-        int enemy_count;
-        fread(&enemy_count, sizeof(int), 1, f);
-
-        for (int j = 0; j < enemy_count; j++) {
-            bool enemy_exists;
-            fread(&enemy_exists, sizeof(bool), 1, f);
-
-            if (enemy_exists) {
-                item* brain = load_item_data(f, ck, get_chunk_enemies(ck));
-
-                if (brain) {
-                    int part_count;
-                    fread(&part_count, sizeof(int), 1, f);
-
-                    bool should_skip = false;
-                    if (get_item_type(brain) == ITEMTYPE_LOOTABLE) {
-                        lootable* loot = (lootable*)get_item_spec(brain);
-                        if (loot && loot->bronze == 0 && loot->silver == 0 &&
-                            loot->gold == 0 && loot->nadino == 0) {
-                            should_skip = true;
-                            LOG_INFO("Skipping empty chest in chunk (%d, %d)", x, y);
-                        }
-                    }
-
-                    if (!should_skip) {
-                        if (get_item_type(brain) == ITEMTYPE_ENEMY) {
-                            enemy* e = (enemy*)get_item_spec(brain);
-                            if (e) {
-                                e->from_id = len_dyn(get_chunk_enemies(ck));
-                            }
-                        }
-
-                        if (part_count > 0) {
-                            entity* ent = create_entity(brain, ck);
-
-                            for (int k = 0; k < part_count; k++) {
-                                bool part_exists;
-                                fread(&part_exists, sizeof(bool), 1, f);
-
-                                if (part_exists) {
-                                    item* part = load_item_data(f, ck, get_chunk_furniture_list(ck));
-                                    if (part) {
-                                        add_entity_part(ent, part);
-                                        link_entity(part, ent);
-                                        chunk_append_element(ck, part);
-                                        chunk_register_item(ck, part);
-                                    }
-                                }
-                            }
-                        }
-
-                        if (get_item_type(brain) == ITEMTYPE_ENEMY) {
-                            chunk_append_enemy(ck, brain);
-                        }
-                    } else {
-                        for (int k = 0; k < part_count; k++) {
-                            bool part_exists;
-                            fread(&part_exists, sizeof(bool), 1, f);
-                            if (part_exists) {
-                                load_item_data(f, ck, get_chunk_furniture_list(ck));
-                            }
-                        }
-                        free_item(brain);
-                    }
-                }
-            } else {
-                chunk_append_enemy(ck, NULL);
-            }
-        }
+        load_enemies_from_file(f, ck);
 
         if (is_near) {
             ram_count++;
@@ -1134,6 +1209,7 @@ bool save_game(int slot, player* p, map* m, hotbar* h) {
     LOG_INFO("Game saved to: %s (%zu bytes -> %zu bytes, %.1f%%)", filename, uncompressed_size, compressed_size, ratio);
 
     CURRENT_SAVE_SLOT = slot;
+    write_slot_meta(slot, p);
     return true;
 }
 
@@ -1288,6 +1364,13 @@ bool save_file_exists(const char* filename) {
 bool delete_save(const char* filename) {
     if (!filename) return false;
     if (remove(filename) == 0) {
+        char meta_path[512];
+        snprintf(meta_path, sizeof(meta_path), "%s", filename);
+        size_t len = strlen(meta_path);
+        if (len > 4 && strcmp(meta_path + len - 4, ".dat") == 0) {
+            strcpy(meta_path + len - 4, ".meta");
+            remove(meta_path);
+        }
         LOG_INFO("Save file deleted: %s", filename);
         return true;
     }
@@ -1491,60 +1574,7 @@ chunk* load_chunk_from_cache(map* m, int x, int y) {
         }
     }
 
-    int enemy_count;
-    fread(&enemy_count, sizeof(int), 1, f);
-
-    for (int j = 0; j < enemy_count; j++) {
-        bool enemy_exists;
-        fread(&enemy_exists, sizeof(bool), 1, f);
-
-        if (enemy_exists) {
-            item* brain = load_item_data(f, ck, get_chunk_enemies(ck));
-            if (brain) {
-                int part_count;
-                fread(&part_count, sizeof(int), 1, f);
-
-                bool should_skip = false;
-                if (get_item_type(brain) == ITEMTYPE_LOOTABLE) {
-                    lootable* loot = (lootable*)get_item_spec(brain);
-                    if (loot && loot->bronze == 0 && loot->silver == 0 &&
-                        loot->gold == 0 && loot->nadino == 0) {
-                        should_skip = true;
-                    }
-                }
-
-                if (!should_skip) {
-                    if (get_item_type(brain) == ITEMTYPE_ENEMY) {
-                        enemy* e = (enemy*)get_item_spec(brain);
-                        if (e) {
-                            e->from_id = len_dyn(get_chunk_enemies(ck));
-                        }
-                    }
-
-                    if (part_count > 0) {
-                        entity* ent = create_entity(brain, ck);
-                        for (int k = 0; k < part_count; k++) {
-                            bool part_exists;
-                            fread(&part_exists, sizeof(bool), 1, f);
-                            if (part_exists) {
-                                item* part = load_item_data(f, ck, get_chunk_furniture_list(ck));
-                                if (part) {
-                                    add_entity_part(ent, part);
-                                    link_entity(part, ent);
-                                    chunk_append_element(ck, part);
-                                    chunk_register_item(ck, part);
-                                }
-                            }
-                        }
-                    }
-
-                    if (get_item_type(brain) == ITEMTYPE_ENEMY) {
-                        chunk_append_enemy(ck, brain);
-                    }
-                }
-            }
-        }
-    }
+    load_enemies_from_file(f, ck);
 
     fclose(f);
     g_cache_dead_bytes += entry->length;

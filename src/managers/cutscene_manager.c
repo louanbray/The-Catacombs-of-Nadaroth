@@ -100,6 +100,8 @@ void start_cutscene(CutsceneID id, Render_Buffer* screen, player* original_playe
     set_map_player(cmap, cplayer);
     set_player_map(cplayer, cmap);
 
+    restart_projectile_system(screen, cplayer, CUTSCENE_SEED);
+
     render_from_player(screen, cplayer);
     update_screen(screen);
 
