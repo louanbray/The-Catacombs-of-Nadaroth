@@ -1,9 +1,9 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-#include "../utils/dynarray.h"
-#include "chunk.h"
-#include "item.h"
+#include "game_objects/chunk.h"
+#include "game_objects/item.h"
+#include "utils/dynarray.h"
 
 /**
  * @brief Creates a new entity with the given brain.

@@ -1,8 +1,8 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "../game_objects/item.h"
-#include "../utils/dynarray.h"
+#include "game_objects/item.h"
+#include "utils/dynarray.h"
 
 typedef struct chunk chunk;
 

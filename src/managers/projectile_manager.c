@@ -1,21 +1,21 @@
-#include "projectile_manager.h"
+#include "managers/projectile_manager.h"
 
 #include <limits.h>
 
-#include "../display/render.h"
-#include "../game_objects/entity.h"
-#include "../game_objects/player.h"
-#include "../utils/constants.h"
-#include "../utils/game_status.h"
-#include "../utils/logger.h"
-#include "../utils/sys_platform.h"
-#include "achievements_manager.h"
-#include "audio_manager.h"
-#include "behaviour_manager.h"
-#include "cutscene_manager.h"
-#include "input_manager.h"
-#include "loot_manager.h"
-#include "statistics_manager.h"
+#include "display/render.h"
+#include "game_objects/entity.h"
+#include "game_objects/player.h"
+#include "managers/achievements_manager.h"
+#include "managers/audio_manager.h"
+#include "managers/behaviour_manager.h"
+#include "managers/cutscene_manager.h"
+#include "managers/input_manager.h"
+#include "managers/loot_manager.h"
+#include "managers/statistics_manager.h"
+#include "utils/constants.h"
+#include "utils/game_status.h"
+#include "utils/logger.h"
+#include "utils/sys_platform.h"
 
 #define MAX_PROJECTILES 128
 

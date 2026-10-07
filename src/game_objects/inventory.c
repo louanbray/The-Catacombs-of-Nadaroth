@@ -1,11 +1,11 @@
-#include "inventory.h"
+#include "game_objects/inventory.h"
 
-#include "../managers/achievements_manager.h"
-#include "../managers/assets_manager.h"
-#include "../managers/projectile_manager.h"
-#include "../utils/logger.h"
-#include "item.h"
-#include "player.h"
+#include "game_objects/item.h"
+#include "game_objects/player.h"
+#include "managers/achievements_manager.h"
+#include "managers/assets_manager.h"
+#include "managers/projectile_manager.h"
+#include "utils/logger.h"
 
 static int last_hotbar_index = 0;
 

@@ -1,16 +1,16 @@
-#include "player_handler.h"
+#include "scripts/player_handler.h"
 
 #include <stdio.h>
 
-#include "../display/render.h"
-#include "../game_objects/chunk.h"
-#include "../game_objects/entity.h"
-#include "../game_objects/player.h"
-#include "../managers/achievements_manager.h"
-#include "../managers/audio_manager.h"
-#include "../managers/loot_manager.h"
-#include "../managers/projectile_manager.h"
-#include "../managers/statistics_manager.h"
+#include "display/render.h"
+#include "game_objects/chunk.h"
+#include "game_objects/entity.h"
+#include "game_objects/player.h"
+#include "managers/achievements_manager.h"
+#include "managers/audio_manager.h"
+#include "managers/loot_manager.h"
+#include "managers/projectile_manager.h"
+#include "managers/statistics_manager.h"
 
 /// @brief Returns the part of the map the player is in as a direction (USED ONLY FOR GATES)
 /// @param x player x

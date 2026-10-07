@@ -1,16 +1,16 @@
-#include "cutscene_manager.h"
+#include "managers/cutscene_manager.h"
 
-#include "../display/render.h"
-#include "../game_objects/map.h"
-#include "../game_objects/player.h"
-#include "../scripts/chunk_generation.h"
-#include "../scripts/player_handler.h"
-#include "../utils/game_status.h"
-#include "../utils/logger.h"
-#include "../utils/sys_platform.h"
-#include "behaviour_manager.h"
-#include "input_manager.h"
-#include "projectile_manager.h"
+#include "display/render.h"
+#include "game_objects/map.h"
+#include "game_objects/player.h"
+#include "managers/behaviour_manager.h"
+#include "managers/input_manager.h"
+#include "managers/projectile_manager.h"
+#include "scripts/chunk_generation.h"
+#include "scripts/player_handler.h"
+#include "utils/game_status.h"
+#include "utils/logger.h"
+#include "utils/sys_platform.h"
 
 typedef void (*cutscene_behaviour)(CutsceneID self_id, Render_Buffer* screen, map* m, player* p);
 

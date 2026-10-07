@@ -1,10 +1,10 @@
-#include "assets_manager.h"
+#include "managers/assets_manager.h"
 
 #include <stdio.h>
 #include <string.h>
 
-#include "../scripts/chunk_generation.h"
-#include "../utils/logger.h"
+#include "scripts/chunk_generation.h"
+#include "utils/logger.h"
 
 static AssetManager* asset_manager = NULL;
 static bool HAS_GENERATOR[CHUNK_TYPE_COUNT] = {0};

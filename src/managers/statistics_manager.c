@@ -1,10 +1,10 @@
-#include "statistics_manager.h"
+#include "managers/statistics_manager.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../utils/logger.h"
+#include "utils/logger.h"
 
 #define STAT_FILE "data/player_statistics.dodjo"
 

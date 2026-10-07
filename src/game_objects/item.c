@@ -1,7 +1,7 @@
-#include "item.h"
+#include "game_objects/item.h"
 
-#include "../game_objects/chunk.h"
-#include "../managers/assets_manager.h"
+#include "game_objects/chunk.h"
+#include "managers/assets_manager.h"
 typedef struct item {
     int x, y;
     ItemType type;

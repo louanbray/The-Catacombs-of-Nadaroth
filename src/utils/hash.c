@@ -1,10 +1,10 @@
-#include "hash.h"
+#include "utils/hash.h"
 
 #include <omp.h>
 #include <stdio.h>
 
-#include "../game_objects/chunk.h"
-#include "logger.h"
+#include "game_objects/chunk.h"
+#include "utils/logger.h"
 
 /// @brief Bucket list
 typedef struct list {

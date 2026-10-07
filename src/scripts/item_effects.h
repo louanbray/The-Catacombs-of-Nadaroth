@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include "../utils/constants.h"
+#include "utils/constants.h"
 
 typedef struct player player;
 

@@ -1,11 +1,11 @@
-#include "chunk.h"
+#include "game_objects/chunk.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "../display/render.h"
-#include "../utils/game_status.h"
-#include "item.h"
+#include "display/render.h"
+#include "game_objects/item.h"
+#include "utils/game_status.h"
 
 /// @brief Private chunk structure definition
 typedef struct chunk {

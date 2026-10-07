@@ -1,10 +1,10 @@
-#include "chunk_parser.h"
+#include "scripts/chunk_parser.h"
 
 #include <stdio.h>
 
-#include "../game_objects/entity.h"
-#include "../managers/assets_manager.h"
-#include "../utils/logger.h"
+#include "game_objects/entity.h"
+#include "managers/assets_manager.h"
+#include "utils/logger.h"
 
 /// @brief Read and parse the given file using the dodjo format to update the chunk decorations
 /// @param c chunk

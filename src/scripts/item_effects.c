@@ -1,6 +1,6 @@
-#include "item_effects.h"
+#include "scripts/item_effects.h"
 
-#include "../game_objects/player.h"
+#include "game_objects/player.h"
 
 typedef bool (*ItemUseCallback)(player* p);
 

@@ -2,8 +2,8 @@
 #define CHUNK_H
 #include <stdint.h>
 
-#include "../scripts/chunk_parser.h"
-#include "../utils/hash.h"
+#include "scripts/chunk_parser.h"
+#include "utils/hash.h"
 
 typedef struct chunk chunk;
 /// @brief define link to an array of chunk*

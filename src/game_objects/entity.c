@@ -1,4 +1,4 @@
-#include "entity.h"
+#include "game_objects/entity.h"
 
 #include <omp.h>
 typedef struct entity {

@@ -1,4 +1,4 @@
-#include "constants.h"
+#include "utils/constants.h"
 
 #define CHUNK_TABLE_ENTRY(name) {name, sizeof(name) / sizeof(*(name))}
 

@@ -1,14 +1,14 @@
-#include "player.h"
+#include "game_objects/player.h"
 
 #include <time.h>
 
-#include "../managers/achievements_manager.h"
-#include "../managers/assets_manager.h"
-#include "../managers/projectile_manager.h"
-#include "../managers/statistics_manager.h"
-#include "../scripts/player_handler.h"
-#include "../utils/logger.h"
-#include "map.h"
+#include "game_objects/map.h"
+#include "managers/achievements_manager.h"
+#include "managers/assets_manager.h"
+#include "managers/projectile_manager.h"
+#include "managers/statistics_manager.h"
+#include "scripts/player_handler.h"
+#include "utils/logger.h"
 
 static int CAN_DIE = true;
 

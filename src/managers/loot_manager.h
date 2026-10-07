@@ -4,7 +4,7 @@
 typedef struct item item;
 typedef struct lootable lootable;
 
-#include "../utils/constants.h"
+#include "utils/constants.h"
 
 /**
  * @brief Returns an item generated using the loot table odds from this specific lootable

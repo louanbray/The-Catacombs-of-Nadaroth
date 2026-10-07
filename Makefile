@@ -64,7 +64,7 @@ else
 	MINGW_ZLIB_ROOT       ?= /opt/mingw-w64/zlib
 endif
 
-CFLAGS = $(WARN_FLAGS) $(PLATFORM_CFLAGS) -g3 -O0
+CFLAGS = $(WARN_FLAGS) $(PLATFORM_CFLAGS) -Isrc -g3 -O0
 
 # ============================================================
 # Directories
@@ -77,13 +77,13 @@ RELEASE_WIN_BUILD_DIR = build/Release-Windows
 # ============================================================
 # Release flags — native (Linux/macOS/Windows host), optimized
 # ============================================================
-RELEASE_CFLAGS = $(WARN_FLAGS) $(PLATFORM_CFLAGS) -Wformat=0 -O2 -DNDEBUG
+RELEASE_CFLAGS = $(WARN_FLAGS) $(PLATFORM_CFLAGS) -Isrc -Wformat=0 -O2 -DNDEBUG
 
 # ============================================================
 # Release flags — Windows cross-compile (via mingw-w64), always
 # available regardless of host OS
 # ============================================================
-RELEASE_WIN_CFLAGS = $(WARN_FLAGS) -Wformat=0 -O2 -DNDEBUG -DWIN32 -D_WIN32 \
+RELEASE_WIN_CFLAGS = $(WARN_FLAGS) -Isrc -Wformat=0 -O2 -DNDEBUG -DWIN32 -D_WIN32 \
     -ffunction-sections -fdata-sections -flto \
     -I$(MINGW_SDL2_ROOT)/include \
     -I$(MINGW_SDL2_ROOT)/include/SDL2 \

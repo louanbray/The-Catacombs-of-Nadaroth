@@ -1,11 +1,11 @@
-#include "input_manager.h"
+#include "managers/input_manager.h"
 
 #include <time.h>
 
-#include "../utils/game_status.h"
-#include "../utils/logger.h"
-#include "../utils/sys_platform.h"
-#include "settings_manager.h"
+#include "managers/settings_manager.h"
+#include "utils/game_status.h"
+#include "utils/logger.h"
+#include "utils/sys_platform.h"
 
 #define MAX_KEYS 256
 #define MAX_BUFFER_SIZE 1024

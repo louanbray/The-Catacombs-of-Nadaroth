@@ -3,8 +3,8 @@
 
 #include <assert.h>
 
-#include "../utils/constants.h"
-#include "inventory.h"
+#include "game_objects/inventory.h"
+#include "utils/constants.h"
 
 /// @brief Map
 typedef struct map map;

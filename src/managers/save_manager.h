@@ -4,10 +4,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "../game_objects/inventory.h"
-#include "../game_objects/map.h"
-#include "../game_objects/player.h"
-#include "../utils/game_status.h"
+#include "game_objects/inventory.h"
+#include "game_objects/map.h"
+#include "game_objects/player.h"
+#include "utils/game_status.h"
 
 /// @brief metadata for a save slot, stored in a separate .meta file.
 /// Read by the UI to display save informations wthout openning the .dat

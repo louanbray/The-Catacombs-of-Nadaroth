@@ -1,12 +1,12 @@
-#include "achievements_manager.h"
+#include "managers/achievements_manager.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../utils/constants.h"
-#include "../utils/logger.h"
-#include "audio_manager.h"
+#include "managers/audio_manager.h"
+#include "utils/constants.h"
+#include "utils/logger.h"
 
 #define PLAYER_FILE "data/player_achievements.dodjo"
 #define DATA_FILE "assets/definitions/achievements.dodjo"

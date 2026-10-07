@@ -1,5 +1,5 @@
 #define _GNU_SOURCE
-#include "interactions_manager.h"
+#include "managers/interactions_manager.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -8,10 +8,10 @@
 #include <unistd.h>
 #include <wchar.h>
 
-#include "../display/render.h"  // update_screen, setup_render_buffer, finalize_render_buffer, USE_KEY, KEY_PRESSED
-#include "../managers/input_manager.h"
-#include "../utils/logger.h"
-#include "../utils/sys_platform.h"
+#include "display/render.h"  // update_screen, setup_render_buffer, finalize_render_buffer, USE_KEY, KEY_PRESSED
+#include "managers/input_manager.h"
+#include "utils/logger.h"
+#include "utils/sys_platform.h"
 
 // ----- Types internes -----
 typedef struct {

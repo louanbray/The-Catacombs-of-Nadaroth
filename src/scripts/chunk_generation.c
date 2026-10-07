@@ -1,10 +1,12 @@
+#include "scripts/chunk_generation.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-#include "../managers/assets_manager.h"
-#include "../utils/logger.h"
+#include "managers/assets_manager.h"
+#include "utils/logger.h"
 
 #define CHUNK_WIDTH 127
 #define CHUNK_HEIGHT 35

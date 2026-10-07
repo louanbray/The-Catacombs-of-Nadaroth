@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "../utils/constants.h"
+#include "utils/constants.h"
 
 /**
  * @struct EntitySpecs

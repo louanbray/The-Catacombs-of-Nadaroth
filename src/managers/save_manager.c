@@ -1,4 +1,4 @@
-#include "save_manager.h"
+#include "managers/save_manager.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -8,17 +8,17 @@
 #include <time.h>
 #include <zlib.h>
 
-#include "../game_objects/chunk.h"
-#include "../game_objects/entity.h"
-#include "../game_objects/inventory.h"
-#include "../game_objects/item.h"
-#include "../game_objects/map.h"
-#include "../game_objects/player.h"
-#include "../utils/game_status.h"
-#include "../utils/hash.h"
-#include "../utils/logger.h"
-#include "../utils/sys_platform.h"
-#include "projectile_manager.h"
+#include "game_objects/chunk.h"
+#include "game_objects/entity.h"
+#include "game_objects/inventory.h"
+#include "game_objects/item.h"
+#include "game_objects/map.h"
+#include "game_objects/player.h"
+#include "managers/projectile_manager.h"
+#include "utils/game_status.h"
+#include "utils/hash.h"
+#include "utils/logger.h"
+#include "utils/sys_platform.h"
 
 #define SAVE_VERSION 7
 #define SAVE_MAGIC 0x4E414430       // "NAD0" in hex

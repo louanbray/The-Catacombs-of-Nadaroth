@@ -1,9 +1,9 @@
-#include "dynarray.h"
+#include "utils/dynarray.h"
 
 #include <stdio.h>
 
-#include "../game_objects/entity.h"
-#include "logger.h"
+#include "game_objects/entity.h"
+#include "utils/logger.h"
 
 typedef struct dynarray {
     element* elt;

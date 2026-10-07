@@ -1,9 +1,9 @@
-#include "behaviour_manager.h"
+#include "managers/behaviour_manager.h"
 
-#include "../display/render.h"
-#include "../game_objects/item.h"
-#include "../game_objects/player.h"
-#include "projectile_manager.h"
+#include "display/render.h"
+#include "game_objects/item.h"
+#include "game_objects/player.h"
+#include "managers/projectile_manager.h"
 
 static bool NO_RANDOM = false;
 

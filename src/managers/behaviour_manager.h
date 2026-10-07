@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include "../utils/constants.h"
+#include "utils/constants.h"
 
 #define ATTACK_COOLDOWN_DEFAULT_RANDOM -1
 #define ATTACK_COOLDOWN_DEFAULT_NOT_RANDOM -2

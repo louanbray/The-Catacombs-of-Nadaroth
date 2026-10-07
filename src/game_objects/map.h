@@ -2,7 +2,7 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include "chunk.h"
+#include "game_objects/chunk.h"
 
 /// @brief Map
 typedef struct map map;

@@ -1,11 +1,11 @@
-#include "settings_manager.h"
+#include "managers/settings_manager.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../utils/logger.h"
-#include "audio_manager.h"
+#include "managers/audio_manager.h"
+#include "utils/logger.h"
 
 #define SETTINGS_FILE "data/player_settings.dodjo"
 #define DATA_FILE "assets/definitions/settings.dodjo"

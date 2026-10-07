@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include "../utils/constants.h"
+#include "utils/constants.h"
 
 enum SettingID {
     SETTING_SKIP_INTRO,

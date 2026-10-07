@@ -1,12 +1,12 @@
-#include "map.h"
+#include "game_objects/map.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../managers/achievements_manager.h"
-#include "../managers/save_manager.h"
-#include "../managers/statistics_manager.h"
-#include "../utils/logger.h"
+#include "managers/achievements_manager.h"
+#include "managers/save_manager.h"
+#include "managers/statistics_manager.h"
+#include "utils/logger.h"
 
 typedef struct map {
     hm* hashmap;

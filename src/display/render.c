@@ -1,18 +1,18 @@
-#include "render.h"
+#include "display/render.h"
 
 #include <omp.h>
 #include <time.h>
 
-#include "../game_objects/item.h"
-#include "../game_objects/map.h"
-#include "../game_objects/player.h"
-#include "../managers/cutscene_manager.h"
-#include "../managers/managers.h"
-#include "../managers/save_manager.h"
-#include "../utils/dynarray.h"
-#include "../utils/game_status.h"
-#include "../utils/logger.h"
-#include "../utils/sys_platform.h"
+#include "game_objects/item.h"
+#include "game_objects/map.h"
+#include "game_objects/player.h"
+#include "managers/cutscene_manager.h"
+#include "managers/managers.h"
+#include "managers/save_manager.h"
+#include "utils/dynarray.h"
+#include "utils/game_status.h"
+#include "utils/logger.h"
+#include "utils/sys_platform.h"
 
 typedef struct Cell {
     wchar_t ch;

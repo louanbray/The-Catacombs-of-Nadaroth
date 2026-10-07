@@ -1,4 +1,4 @@
-#include "audio_manager.h"
+#include "managers/audio_manager.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../utils/logger.h"
+#include "utils/logger.h"
 
 #define MAX_AUDIO_CHANNEL 4
 

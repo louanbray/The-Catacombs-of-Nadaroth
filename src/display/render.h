@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <wchar.h>
 
-#include "../managers/interactions_manager.h"
-#include "../utils/constants.h"
+#include "managers/interactions_manager.h"
+#include "utils/constants.h"
 
 // Forward declarations for types used elsewhere
 typedef struct hotbar hotbar;
