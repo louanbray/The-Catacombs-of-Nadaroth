@@ -719,7 +719,7 @@ void display_item_description(Render_Buffer* r, void* it) {
     render_string(r, SPACE_TO_EXIT_DISPLAY_X_POS, SPACE_TO_EXIT_DISPLAY_Y_POS, " PRESS [SPACE] TO EXIT", 23);
 
     update_screen(r);
-    while (!USE_KEY('e') && !USE_KEY('E') && !USE_KEY('\n') && !USE_KEY(' ')) sys_sleep_ms(50);
+    while (!USE_KEY('e') && !USE_KEY('E') && !USE_KEY('\n') && !USE_KEY('\r') && !USE_KEY(' ')) sys_sleep_ms(50);
 
     finalize_render_buffer(r);
 }
@@ -824,7 +824,7 @@ void display_interface(Render_Buffer* r, const char* filename) {
 
     update_screen(r);
 
-    while (!USE_KEY('\n') && !USE_KEY(' ')) sys_sleep_ms(50);
+    while (!USE_KEY('\n') && !USE_KEY('\r') && !USE_KEY(' ')) sys_sleep_ms(50);
 
     finalize_render_buffer(r);
 }
@@ -918,7 +918,7 @@ void display_statistics(Render_Buffer* r) {
 
     update_screen(r);
 
-    while (!USE_KEY('T') && !USE_KEY('t') && !USE_KEY('\n') && !USE_KEY(' ')) sys_sleep_ms(50);
+    while (!USE_KEY('T') && !USE_KEY('t') && !USE_KEY('\n') && !USE_KEY('\r') && !USE_KEY(' ')) sys_sleep_ms(50);
 
     finalize_render_buffer(r);
 }
@@ -959,7 +959,7 @@ void display_achievements(Render_Buffer* r, int page) {
     update_screen(r);
 
     bool left = false, right = false;
-    while (!USE_KEY('A') && !USE_KEY('a') && !USE_KEY('\n') && !USE_KEY(' ') && !left && !right) {
+    while (!USE_KEY('A') && !USE_KEY('a') && !USE_KEY('\n') && !USE_KEY('\r') && !USE_KEY(' ') && !left && !right) {
         if (page != max_page && (USE_KEY('D') || USE_KEY('d') || USE_KEY(KEY_ARROW_RIGHT))) right = true;
         if (page != 0 && (USE_KEY('Q') || USE_KEY('q') || USE_KEY(KEY_ARROW_LEFT))) left = true;
         sys_sleep_ms(50);
@@ -1016,7 +1016,7 @@ void display_settings(Render_Buffer* r, int page) {
     bool left = false, right = false, up = false, down = false;
     int incr = 0;
 
-    while (!USE_KEY('\n') && !USE_KEY(' ') && !left && !right) {
+    while (!USE_KEY('\n') && !USE_KEY('\r') && !USE_KEY(' ') && !left && !right) {
         if (USE_KEY('Z') || USE_KEY('z') || USE_KEY(KEY_ARROW_UP)) up = true;
         if (USE_KEY('S') || USE_KEY('s') || USE_KEY(KEY_ARROW_DOWN)) down = true;
         if (USE_KEY('P') || USE_KEY('p')) incr = 1;
@@ -1098,12 +1098,18 @@ static void display_save_menu_slot_list(Render_Buffer* r, bool is_saving) {
             int mins = (int)(meta.time_played_sec / 60);
             int hrs = mins / 60;
             mins = mins % 60;
+
+            time_t saved_time = (time_t)meta.saved_at_sec;
+            struct tm* tm_info = localtime(&saved_time);
+            wchar_t date_str[20] = L"N/A";
+            if (tm_info) wcsftime(date_str, sizeof(date_str) / sizeof(wchar_t), L"%Y-%m-%d %H:%M", tm_info);
+
             if (hrs > 0)
-                swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : %-13s | %-6s | Score: %5d | %dh%02dm", i + 1, phase_label, diff_label, meta.score, hrs, mins);
+                swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : %-13s | %-6s | Score: %5d | Playtime: %dh%02dm | Saved: %ls %s", i + 1, phase_label, diff_label, meta.score, hrs, mins, date_str, state == 2 ? "(current)" : "");
             else
-                swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : %-13s | %-6s | Score: %5d | %dm", i + 1, phase_label, diff_label, meta.score, mins);
+                swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : %-13s | %-6s | Score: %5d | Playtime: %dm | Saved: %ls %s", i + 1, phase_label, diff_label, meta.score, mins, date_str, state == 2 ? "(current)" : "");
         } else if (state > 0) {
-            swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : Save present (no details)", i + 1);
+            swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : Save present (no details) %s", i + 1, state == 2 ? "(current)" : "");
         } else {
             swprintf(buffer, RENDER_WIDTH - 1, L"[%d] : Empty", i + 1);
         }
@@ -1133,7 +1139,7 @@ bool display_save_menu(Render_Buffer* r, player* p) {
 
     display_save_menu_slot_list(r, is_saving);
 
-    render_string(r, SPACE_TO_EXIT_DISPLAY_X_POS, SPACE_TO_EXIT_DISPLAY_Y_POS, " PRESS [SPACE] TO EXIT", 23);
+    render_string(r, SPACE_TO_EXIT_DISPLAY_X_POS - 11, SPACE_TO_EXIT_DISPLAY_Y_POS, " PRESS [ENTER] TO CONFIRM | [SPACE] TO EXIT", 44);
     swprintf(buffer, RENDER_WIDTH - 1, L"* %ls *", is_saving ? L"SAVE" : L"LOAD");
     write_wstr(r->bd, SAVE_MENU_GUI_TITLE_Y, SAVE_MENU_GUI_TITLE_X, buffer, 8, COLOR_DEFAULT);
 
@@ -1161,7 +1167,7 @@ bool display_save_menu(Render_Buffer* r, player* p) {
             r->bd[y][SAVE_MENU_POINTER_X].ch = SAVE_MENU_POINTER_DISPLAY;
             update_screen(r);
         }
-        if (USE_KEY('\n')) {
+        if (USE_KEY('\n') || USE_KEY('\r')) {
             write_str(r->bd, INFO_ROW_MID, 2, " ", RENDER_WIDTH - 4, COLOR_DEFAULT);
             update_screen(r);
 
@@ -1249,7 +1255,7 @@ ResumeState pause_menu(Render_Buffer* r, player* p) {
 
     map* m = get_player_map(p);
 
-    while ((!USE_KEY(' ') && !USE_KEY('\n'))) {
+    while ((!USE_KEY(' ') && !USE_KEY('\n') && !USE_KEY('\r'))) {
         if (USE_KEY('S') || USE_KEY('s')) {
             loaded_a_game = display_save_menu(r, p);
             no_refresh = true;

@@ -485,7 +485,7 @@ int* display_interface_with_interactions_main(Render_Buffer* r, const char* visu
     // If no set found: just update and wait like old display_interface
     if (!set || set->anim_count == 0) {
         update_screen(r);
-        while (!USE_KEY(' ') && !USE_KEY('\n'));
+        while (!USE_KEY(' ') && !USE_KEY('\n') && !USE_KEY('\r'));
         finalize_render_buffer(r);
         return NULL;
     }
@@ -510,7 +510,7 @@ int* display_interface_with_interactions_main(Render_Buffer* r, const char* visu
     // We'll sample keys with USE_KEY for the mapped chars (g_dir_keys).
     while (1) {
         // exit checks
-        if (USE_KEY('\n') || USE_KEY(' ')) break;
+        if (USE_KEY('\n') || USE_KEY('\r') || USE_KEY(' ')) break;
 
         // Poll all direction keys and produce action ids 0..3
         bool any_action = false;
