@@ -103,8 +103,6 @@ void compute_entry(Render_Buffer* screen, player* p, int entry) {
     hotbar* hb = get_player_hotbar(p);
     switch (entry) {
         case KEY_1:
-            request_cutscene(CUTSCENE_TEST);
-            break;
         case KEY_2:
         case KEY_3:
         case KEY_4:

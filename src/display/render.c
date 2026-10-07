@@ -1044,7 +1044,7 @@ void display_settings(Render_Buffer* r, int page) {
                 int color = get_setting_color((enum SettingID)selected);
                 int y = SETTINGS_ENTRY_SPACING * (j + 2) - 1;
                 swprintf(buffer, RENDER_WIDTH - 1, L"%hs: [%d/%d]", title, get_setting_value((enum SettingID)selected), get_setting_max_value((enum SettingID)selected));
-                write_wstr(r->bd, y, SETTINGS_X_OFFSET, buffer, RENDER_WIDTH - 2 - SETTINGS_X_OFFSET, color);
+                write_wstr(r->bd, y, SETTINGS_X_OFFSET, buffer, RENDER_WIDTH - 4 - SETTINGS_X_OFFSET, color);
                 update_screen(r);
             }
             incr = 0;
